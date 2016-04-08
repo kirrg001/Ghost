@@ -1,9 +1,11 @@
 /*globals describe, it, beforeEach, afterEach */
 var fs              = require('fs'),
     sinon           = require('sinon'),
+    should          = require('should'),
     serveSharedFile = require('../../../server/middleware/serve-shared-file'),
-
     sandbox = sinon.sandbox.create();
+
+should.equal(true, true);
 
 describe('serveSharedFile', function () {
     var res, req, next;
@@ -20,7 +22,6 @@ describe('serveSharedFile', function () {
 
     it('should return a middleware', function () {
         var result = serveSharedFile('robots.txt', 'text/plain', 3600);
-
         result.should.be.a.Function();
     });
 

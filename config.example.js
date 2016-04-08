@@ -82,7 +82,7 @@ config = {
         database: {
             client: 'sqlite3',
             connection: {
-                filename: path.join(__dirname, '/content/data/ghost-test.db')
+                filename: path.join(__dirname, '/content/data/ghost-test.db' + process.env.NODE_PROCESSNAME)
             },
             pool: {
                 afterCreate: function (conn, done) {
