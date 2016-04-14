@@ -445,6 +445,25 @@ describe('Post Model', function () {
                 });
             });
 
+            it('draft -> scheduled with invalid published_at update', function (done) {
+                PostModel.findOne({status: 'draft'}).then(function (results) {
+                    var post;
+
+                    should.exist(results);
+                    post = results.toJSON();
+                    post.status.should.equal('draft');
+
+                    return PostModel.edit({
+                        status: 'scheduled',
+                        published_at: '328432423'
+                    }, _.extend({}, context, {id: post.id}));
+                }).catch(function(err) {
+                    should.exist(err);
+                    (err instanceof errors.ValidationError).should.eql(true);
+                    done();
+                });
+            });
+
             it('draft -> scheduled and expect update of published_at', function (done) {
                 var newPublishedAt = moment().add(1, 'day').toDate();
 

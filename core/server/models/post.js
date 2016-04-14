@@ -128,6 +128,12 @@ Post = ghostBookshelf.Model.extend({
             // CASE: published_at is empty, not possible for case schedule
             if (!publishedAt) {
                 return Promise.reject(new errors.ValidationError(
+                    i18n.t('errors.models.post.valueCannotBeBlank', {key: 'published_at'})
+                ));
+            }
+            // CASE: invalid input
+            else if (!moment(publishedAt).isValid()) {
+                return Promise.reject(new errors.ValidationError(
                     i18n.t('errors.models.post.valueCannotBeBlank', { key: 'published_at' })
                 ));
             }
