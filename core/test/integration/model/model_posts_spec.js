@@ -427,6 +427,54 @@ describe('Post Model', function () {
                 }).catch(done);
             });
 
+            it('draft -> scheduled and expect update of published_at', function (done) {
+                PostModel.findOne({status: 'draft'}).then(function (results) {
+                    var post;
+                    should.exist(results);
+                    post = results.toJSON();
+                    post.status.should.equal('draft');
+
+                    return PostModel.edit({
+                        status: 'scheduled',
+                        published_at: moment().add(1, 'day').toDate()
+                    }, _.extend({}, context, {id: post.id}));
+                }).then(function (edited) {
+                    should.exist(edited);
+                    edited.attributes.status.should.equal('scheduled');
+                    eventSpy.calledTwice.should.be.true();
+                    eventSpy.firstCall.calledWith('post.scheduled').should.be.true();
+                    eventSpy.secondCall.calledWith('post.edited').should.be.true();
+
+                    done();
+                }).catch(done);
+            });
+
+            it('published -> scheduled and expect update of published_at', function (done) {
+                var postId = 1;
+
+                PostModel.findOne({id: postId}).then(function (results) {
+                    var post;
+                    should.exist(results);
+                    post = results.toJSON();
+                    post.id.should.equal(postId);
+                    post.status.should.equal('published');
+
+                    return PostModel.edit({
+                        status: 'scheduled',
+                        published_at: moment().add(1, 'day').toDate()
+                    }, _.extend({}, context, {id: postId}));
+                }).then(function (edited) {
+                    should.exist(edited);
+                    edited.attributes.status.should.equal('scheduled');
+                    eventSpy.callCount.should.eql(3);
+                    eventSpy.firstCall.calledWith('post.unpublished').should.be.true();
+                    eventSpy.secondCall.calledWith('post.scheduled').should.be.true();
+                    eventSpy.thirdCall.calledWith('post.edited').should.be.true();
+
+                    done();
+                }).catch(done);
+            });
+
             it('can convert draft post to page and back', function (done) {
                 var postId = 4;
 
@@ -731,7 +779,6 @@ describe('Post Model', function () {
                     title: 'scheduled 1',
                     markdown: 'This is some content'
                 }, context).catch(function(err) {
-                    console.log(err);
                     (err instanceof errors.ValidationError).should.eql(true);
                     eventSpy.called.should.be.false();
                     done();
@@ -749,6 +796,22 @@ describe('Post Model', function () {
                     eventSpy.calledTwice.should.be.true();
                     eventSpy.firstCall.calledWith('post.added').should.be.true();
                     eventSpy.secondCall.calledWith('post.scheduled').should.be.true();
+                    done();
+                }).catch(done);
+            });
+
+            it('add scheduled page with published_at 10 minutes in future -> we expect success', function (done) {
+                PostModel.add({
+                    status: 'scheduled',
+                    page: 1,
+                    published_at: moment().add(10, 'minute'),
+                    title: 'scheduled 1',
+                    markdown: 'This is some content'
+                }, context).then(function(post) {
+                    should.exist(post);
+                    eventSpy.calledTwice.should.be.true();
+                    eventSpy.firstCall.calledWith('page.added').should.be.true();
+                    eventSpy.secondCall.calledWith('page.scheduled').should.be.true();
                     done();
                 }).catch(done);
             });

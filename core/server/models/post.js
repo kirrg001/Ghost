@@ -59,7 +59,7 @@ Post = ghostBookshelf.Model.extend({
             model.wasPublished = model.updated('status') === 'published';
             model.resourceTypeChanging = model.get('page') !== model.updated('page');
 
-            // Handle added and deleted for changing resource
+            // Handle added and deleted for post -> page or page -> post
             if (model.resourceTypeChanging) {
                 if (model.wasPublished) {
                     model.emitChange('unpublished', true);
@@ -73,7 +73,20 @@ Post = ghostBookshelf.Model.extend({
                 }
             } else {
                 if (model.statusChanging) {
-                    model.emitChange(model.isPublished ? 'published' : 'unpublished');
+                    // CASE: was published before and is now e.q. draft or scheduled
+                    if (model.wasPublished) {
+                        model.emitChange('unpublished');
+                    }
+
+                    // CASE: was draft or scheduled before and is now e.q. published
+                    if (model.isPublished) {
+                        model.emitChange('published');
+                    }
+
+                    // CASE: was draft or published before and is now e.q. scheduled
+                    if (model.get('status') === 'scheduled') {
+                        model.emitChange('scheduled');
+                    }
                 } else {
                     if (model.isPublished) {
                         model.emitChange('published.edited');
@@ -103,33 +116,31 @@ Post = ghostBookshelf.Model.extend({
             i,
             // Variables to make the slug checking more readable
             newTitle    = this.get('title'),
+            newStatus   = this.get('status'),
             prevTitle   = this._previousAttributes.title,
             prevSlug    = this._previousAttributes.slug,
-            currentStatus  = this.get('status'),
             tagsToCheck = this.get('tags'),
             publishedAt = this.get('published_at');
 
 
-        if (currentStatus === 'scheduled') {
+        // both page and post can get scheduled
+        if (newStatus === 'scheduled') {
             // CASE: published_at is empty, not possible for case schedule
             if (!publishedAt) {
                 return Promise.reject(new errors.ValidationError(
-                    i18n.t('errors.models.post.valueCannotBeBlank', { key: 'published_at' }),
-                    { key: 'published_at' }
+                    i18n.t('errors.models.post.valueCannotBeBlank', { key: 'published_at' })
                 ));
             }
             // CASE published_at is in the past
             else if (moment(publishedAt).isBefore(moment())) {
                 return Promise.reject(new errors.ValidationError(
-                    i18n.t('errors.models.post.valueCannotBeBlank', { key: 'published_at' }),
-                    { key: 'published_at' }
+                    i18n.t('errors.models.post.expectedPublishedAtInFuture')
                 ));
             }
             // CASE published_at is in not enough in the future
             else if (moment(publishedAt).isBefore(moment().add(5, 'minutes'))) {
                 return Promise.reject(new errors.ValidationError(
-                    i18n.t('errors.models.post.valueCannotBeBlank', { key: 'published_at' }),
-                    { key: 'published_at' }
+                    i18n.t('errors.models.post.expectedPublishedAtInFuture')
                 ));
             }
         }
@@ -147,7 +158,6 @@ Post = ghostBookshelf.Model.extend({
             self.myTags.push(item);
         });
 
-        // TODO: why is this here?
         ghostBookshelf.Model.prototype.saving.call(this, model, attr, options);
 
         this.set('html', converter.makeHtml(this.get('markdown')));
@@ -158,12 +168,12 @@ Post = ghostBookshelf.Model.extend({
 
         // ### Business logic for published_at and published_by
         // If the current status is 'published' and published_at is not set, set it to now
-        if (this.get('status') === 'published' && !publishedAt) {
+        if (newStatus === 'published' && !publishedAt) {
             this.set('published_at', moment.utc().toDate());
         }
 
         // If the current status is 'published' and the status has just changed ensure published_by is set correctly
-        if (currentStatus === 'published' && this.hasChanged('status')) {
+        if (newStatus === 'published' && this.hasChanged('status')) {
             // unless published_by is set and we're importing, set published_by to contextUser
             if (!(this.get('published_by') && options.importing)) {
                 this.set('published_by', this.contextUser(options));
@@ -176,7 +186,7 @@ Post = ghostBookshelf.Model.extend({
         }
 
         // If a title is set, not the same as the old title, a draft post, and has never been published
-        if (prevTitle !== undefined && newTitle !== prevTitle && currentStatus === 'draft' && !publishedAt) {
+        if (prevTitle !== undefined && newTitle !== prevTitle && newStatus === 'draft' && !publishedAt) {
             // Pass the new slug through the generator to strip illegal characters, detect duplicates
             return ghostBookshelf.Model.generateSlug(Post, this.get('title'),
                     {status: 'all', transacting: options.transacting, importing: options.importing})
