@@ -200,7 +200,7 @@
             "post": {
                 "untitled": "(Untitled)",
                 "valueCannotBeBlank": "Value in {key} cannot be blank.",
-                "expectedPublishedAtInFuture": "Expected published_at be in the future.",
+                "expectedPublishedAtInFuture": "Expected published_at to be in the future.",
                 "noUserFound": "No user found",
                 "notEnoughPermission": "You do not have permission to perform this action",
                 "tagUpdates": {
