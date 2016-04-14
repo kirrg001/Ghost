@@ -133,11 +133,11 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
 
     // Get the user from the options object
     contextUser: function contextUser(options) {
-        // Default to context user
         if (options.context && options.context.user) {
             return options.context.user;
-        // Other wise use the internal override
         } else if (options.context && options.context.internal) {
+            return 1;
+        } else if (options.context && options.context.client) {
             return 1;
         } else {
             errors.logAndThrowError(new Error(i18n.t('errors.models.base.index.missingContext')));
@@ -240,7 +240,11 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     findAll: function findAll(options) {
         options = this.filterOptions(options, 'findAll');
         options.withRelated = _.union(options.withRelated, options.include);
-        return this.forge().fetchAll(options).then(function then(result) {
+
+        var itemCollection = this.forge(null, {context: options.context});
+        itemCollection.applyDefaultAndCustomFilters(options);
+
+        return itemCollection.fetchAll(options).then(function then(result) {
             if (options.include) {
                 _.each(result.models, function each(item) {
                     item.include = options.include;
@@ -290,7 +294,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         this.processOptions(options);
 
         // Add Filter behaviour
-        itemCollection.applyFilters(options);
+        itemCollection.applyDefaultAndCustomFilters(options);
 
         // Handle related objects
         // TODO: this should just be done for all methods @ the API level
