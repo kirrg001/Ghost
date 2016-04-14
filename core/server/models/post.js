@@ -148,15 +148,15 @@ Post = ghostBookshelf.Model.extend({
                 return Promise.reject(new errors.ValidationError(
                     i18n.t('errors.models.post.valueCannotBeBlank', {key: 'published_at'})
                 ));
-            } else if (!moment(publishedAt).isValid()) {
+            } else if (!moment.utc(publishedAt).isValid()) {
                 return Promise.reject(new errors.ValidationError(
                     i18n.t('errors.models.post.valueCannotBeBlank', {key: 'published_at'})
                 ));
-            } else if (moment(publishedAt).isBefore(moment())) {
+            } else if (moment.utc(publishedAt).isBefore(moment.utc())) {
                 return Promise.reject(new errors.ValidationError(
                     i18n.t('errors.models.post.expectedPublishedAtInFuture')
                 ));
-            } else if (moment(publishedAt).isBefore(moment().add(5, 'minutes'))) {
+            } else if (moment.utc(publishedAt).isBefore(moment.utc().add(5, 'minutes'))) {
                 return Promise.reject(new errors.ValidationError(
                     i18n.t('errors.models.post.expectedPublishedAtInFuture')
                 ));
