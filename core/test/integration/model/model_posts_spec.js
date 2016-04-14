@@ -1,14 +1,16 @@
 /*globals describe, before, beforeEach, afterEach, it */
 var testUtils       = require('../../utils'),
     should          = require('should'),
-    sequence        = require('../../../server/utils/sequence'),
+    moment          = require('moment'),
     _               = require('lodash'),
     sinon           = require('sinon'),
 
     // Stuff we are testing
+    sequence        = require('../../../server/utils/sequence'),
     ghostBookshelf  = require('../../../server/models/base'),
     PostModel       = require('../../../server/models/post').Post,
     events          = require('../../../server/events'),
+    errors          = require('../../../server/errors'),
     DataGenerator   = testUtils.DataGenerator,
     context         = testUtils.context.owner,
     sandbox         = sinon.sandbox.create(),
@@ -662,6 +664,91 @@ describe('Post Model', function () {
                     eventSpy.firstCall.calledWith('post.added').should.be.true();
                     eventSpy.secondCall.calledWith('post.published').should.be.true();
 
+                    done();
+                }).catch(done);
+            });
+
+            it('add draft post without published_at -> we expect no auto insert of published_at', function (done) {
+                PostModel.add({
+                    status: 'draft',
+                    title: 'draft 1',
+                    markdown: 'This is some content'
+                }, context).then(function (newPost) {
+                    should.exist(newPost);
+                    should.not.exist(newPost.get('published_at'));
+                    eventSpy.calledOnce.should.be.true();
+                    eventSpy.firstCall.calledWith('post.added').should.be.true();
+                    done();
+                }).catch(done);
+            });
+
+            it('add draft post with published_at -> we expect published_at to exist', function (done) {
+                PostModel.add({
+                    status: 'draft',
+                    published_at: moment().toDate(),
+                    title: 'draft 1',
+                    markdown: 'This is some content'
+                }, context).then(function (newPost) {
+                    should.exist(newPost);
+                    should.exist(newPost.get('published_at'));
+                    eventSpy.calledOnce.should.be.true();
+                    eventSpy.firstCall.calledWith('post.added').should.be.true();
+                    done();
+                }).catch(done);
+            });
+
+            it('add scheduled post without published_at -> we expect an error', function (done) {
+                PostModel.add({
+                    status: 'scheduled',
+                    title: 'scheduled 1',
+                    markdown: 'This is some content'
+                }, context).catch(function(err) {
+                    should.exist(err);
+                    (err instanceof errors.ValidationError).should.eql(true);
+                    eventSpy.called.should.be.false();
+                    done();
+                });
+            });
+
+            it('add scheduled post with published_at not in future-> we expect an error', function (done) {
+                PostModel.add({
+                    status: 'scheduled',
+                    published_at: moment().subtract(1, 'minute'),
+                    title: 'scheduled 1',
+                    markdown: 'This is some content'
+                }, context).catch(function(err) {
+                    should.exist(err);
+                    (err instanceof errors.ValidationError).should.eql(true);
+                    eventSpy.called.should.be.false();
+                    done();
+                });
+            });
+
+            it('add scheduled post with published_at 1 minutes in future -> we expect an error', function (done) {
+                PostModel.add({
+                    status: 'scheduled',
+                    published_at: moment().add(1, 'minute'),
+                    title: 'scheduled 1',
+                    markdown: 'This is some content'
+                }, context).catch(function(err) {
+                    console.log(err);
+                    (err instanceof errors.ValidationError).should.eql(true);
+                    eventSpy.called.should.be.false();
+                    done();
+                });
+            });
+
+            it('add scheduled post with published_at 10 minutes in future -> we expect success', function (done) {
+                PostModel.add({
+                    status: 'scheduled',
+                    published_at: moment().add(10, 'minute'),
+                    title: 'scheduled 1',
+                    markdown: 'This is some content'
+                }, context).then(function(post) {
+                    should.exist(post);
+                    eventSpy.calledTwice.should.be.true();
+                    eventSpy.firstCall.calledWith('post.added').should.be.true();
+                    eventSpy.secondCall.calledWith('post.scheduled').should.be.true();
                     done();
                 }).catch(done);
             });
