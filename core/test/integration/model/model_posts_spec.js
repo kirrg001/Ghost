@@ -547,6 +547,41 @@ describe('Post Model', function () {
                 }).catch(done);
             });
 
+            it('can convert draft to schedule AND post to page and back', function (done) {
+                PostModel.findOne({status: 'draft'}).then(function (results) {
+                    var post;
+                    should.exist(results);
+                    post = results.toJSON();
+                    post.status.should.equal('draft');
+
+                    return PostModel.edit({
+                        page: 1,
+                        status: 'scheduled',
+                        published_at: moment().add(10, 'days')
+                    }, _.extend({}, context, {id: post.id}));
+                }).then(function (edited) {
+                    should.exist(edited);
+                    edited.attributes.status.should.equal('scheduled');
+                    edited.attributes.page.should.equal(true);
+                    eventSpy.callCount.should.be.eql(3);
+                    eventSpy.firstCall.calledWith('post.deleted').should.be.true();
+                    eventSpy.secondCall.calledWith('page.added').should.be.true();
+                    eventSpy.thirdCall.calledWith('page.scheduled').should.be.true();
+
+                    return PostModel.edit({page: 0}, _.extend({}, context, {id: edited.id}));
+                }).then(function (edited) {
+                    should.exist(edited);
+                    edited.attributes.status.should.equal('scheduled');
+                    edited.attributes.page.should.equal(false);
+                    eventSpy.callCount.should.equal(7);
+                    eventSpy.getCall(3).calledWith('page.unscheduled').should.be.true();
+                    eventSpy.getCall(4).calledWith('page.deleted').should.be.true();
+                    eventSpy.getCall(5).calledWith('post.added').should.be.true();
+                    eventSpy.getCall(6).calledWith('post.scheduled').should.be.true();
+                    done();
+                }).catch(done);
+            });
+
             it('can convert published post to page and back', function (done) {
                 var postId = 1;
 

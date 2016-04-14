@@ -56,7 +56,9 @@ Post = ghostBookshelf.Model.extend({
         this.on('updated', function onUpdated(model) {
             model.statusChanging = model.get('status') !== model.updated('status');
             model.isPublished = model.get('status') === 'published';
+            model.isScheduled = model.get('status') === 'scheduled';
             model.wasPublished = model.updated('status') === 'published';
+            model.wasScheduled = model.updated('status') === 'scheduled';
             model.resourceTypeChanging = model.get('page') !== model.updated('page');
 
             // Handle added and deleted for post -> page or page -> post
@@ -65,11 +67,19 @@ Post = ghostBookshelf.Model.extend({
                     model.emitChange('unpublished', true);
                 }
 
+                if (model.wasScheduled) {
+                    model.emitChange('unscheduled', true);
+                }
+
                 model.emitChange('deleted', true);
                 model.emitChange('added');
 
                 if (model.isPublished) {
                     model.emitChange('published');
+                }
+
+                if (model.isScheduled) {
+                    model.emitChange('scheduled');
                 }
             } else {
                 if (model.statusChanging) {
@@ -84,7 +94,7 @@ Post = ghostBookshelf.Model.extend({
                     }
 
                     // CASE: was draft or published before and is now e.q. scheduled
-                    if (model.get('status') === 'scheduled') {
+                    if (model.isScheduled) {
                         model.emitChange('scheduled');
                     }
                 } else {
