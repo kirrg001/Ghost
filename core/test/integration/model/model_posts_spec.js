@@ -512,6 +512,29 @@ describe('Post Model', function () {
                 }).catch(done);
             });
 
+            it('scheduled -> scheduled with updated published_at', function (done) {
+                PostModel.findOne({status: 'scheduled'}).then(function (results) {
+                    var post;
+
+                    should.exist(results);
+                    post = results.toJSON();
+                    post.status.should.equal('scheduled');
+
+                    return PostModel.edit({
+                        status: 'scheduled',
+                        published_at: moment().add(20, 'days')
+                    }, _.extend({}, context, {id: post.id}));
+                }).then(function (edited) {
+                    should.exist(edited);
+                    edited.attributes.status.should.equal('scheduled');
+                    eventSpy.callCount.should.eql(2);
+                    eventSpy.firstCall.calledWith('post.rescheduled').should.be.true();
+                    eventSpy.secondCall.calledWith('post.edited').should.be.true();
+
+                    done();
+                }).catch(done);
+            });
+
             it('published -> scheduled and expect update of published_at', function (done) {
                 var postId = 1;
 
