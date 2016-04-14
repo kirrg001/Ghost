@@ -97,6 +97,11 @@ Post = ghostBookshelf.Model.extend({
                     if (model.isScheduled) {
                         model.emitChange('scheduled');
                     }
+
+                    // CASE: from scheduled to something
+                    if (model.wasScheduled && !model.isScheduled) {
+                        model.emitChange('unscheduled');
+                    }
                 } else {
                     if (model.isPublished) {
                         model.emitChange('published.edited');

@@ -445,7 +445,7 @@ describe('Post Model', function () {
                 });
             });
 
-            it('draft -> scheduled with invalid published_at update', function (done) {
+            it('draft -> scheduled: invalid published_at update', function (done) {
                 PostModel.findOne({status: 'draft'}).then(function (results) {
                     var post;
 
@@ -464,7 +464,7 @@ describe('Post Model', function () {
                 });
             });
 
-            it('draft -> scheduled and expect update of published_at', function (done) {
+            it('draft -> scheduled: expect update of published_at', function (done) {
                 var newPublishedAt = moment().add(1, 'day').toDate();
 
                 PostModel.findOne({status: 'draft'}).then(function (results) {
@@ -484,6 +484,28 @@ describe('Post Model', function () {
                     edited.attributes.published_at.toISOString().should.equal(newPublishedAt.toISOString());
                     eventSpy.calledTwice.should.be.true();
                     eventSpy.firstCall.calledWith('post.scheduled').should.be.true();
+                    eventSpy.secondCall.calledWith('post.edited').should.be.true();
+
+                    done();
+                }).catch(done);
+            });
+
+            it('scheduled -> draft: expect unschedule', function (done) {
+                PostModel.findOne({status: 'scheduled'}).then(function (results) {
+                    var post;
+
+                    should.exist(results);
+                    post = results.toJSON();
+                    post.status.should.equal('scheduled');
+
+                    return PostModel.edit({
+                        status: 'draft'
+                    }, _.extend({}, context, {id: post.id}));
+                }).then(function (edited) {
+                    should.exist(edited);
+                    edited.attributes.status.should.equal('draft');
+                    eventSpy.callCount.should.eql(2);
+                    eventSpy.firstCall.calledWith('post.unscheduled').should.be.true();
                     eventSpy.secondCall.calledWith('post.edited').should.be.true();
 
                     done();
