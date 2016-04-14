@@ -23,6 +23,10 @@ Client = ghostBookshelf.Model.extend({
 
     trustedDomains: function trustedDomains() {
         return this.hasMany('ClientTrustedDomain', 'client_id');
+    },
+
+    permissions: function permissions() {
+        return this.belongsToMany('Permission', 'permissions_clients');
     }
 }, {
     /**

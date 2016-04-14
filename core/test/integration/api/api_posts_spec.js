@@ -2,8 +2,7 @@
 var testUtils     = require('../../utils'),
     should        = require('should'),
     _             = require('lodash'),
-
-    // Stuff we are testing
+    errors        = require('../../../server/errors'),
     PostAPI       = require('../../../server/api/posts');
 
 describe('Post API', function () {
@@ -550,6 +549,26 @@ describe('Post API', function () {
 
                 done();
             });
+        });
+    });
+
+    describe('Edit', function () {
+        it('can edit own post', function (done) {
+            PostAPI.edit({posts:[{status: 'test'}]}, {context: {user: 1}, id: 1}).then(function (results) {
+                should.exist(results.posts);
+                done();
+            }).catch(done);
+        });
+
+        it('cannot edit others post', function (done) {
+            testUtils.fixtures.insertOne('users', 'createUser', 4)
+                .then(function (result) {
+                    PostAPI.edit({posts: [{status: 'test'}]}, {context: {user: result[0]}, id: 1}).catch(function (err) {
+                        should.exist(err);
+                        (err instanceof errors.NoPermissionError).should.eql(true);
+                        done();
+                    });
+                });
         });
     });
 

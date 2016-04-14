@@ -25,11 +25,11 @@ function hasActionsMap() {
 function parseContext(context) {
     // Parse what's passed to canThis.beginCheck for standard user and app scopes
     var parsed = {
-            internal: false,
-            user: null,
-            app: null,
-            public: true
-        };
+        internal: false,
+        user: null,
+        app: null,
+        public: true
+    };
 
     if (context && (context === 'internal' || context.internal)) {
         parsed.internal = true;
@@ -44,6 +44,10 @@ function parseContext(context) {
     if (context && context.app) {
         parsed.app = context.app;
         parsed.public = false;
+    }
+
+    if (context && context.client) {
+        parsed.client = context.client;
     }
 
     return parsed;
@@ -119,6 +123,7 @@ CanThisResult.prototype.buildObjectTypeHandlers = function (objTypes, actType, c
         permission: Models.Permission,
         setting:    Models.Settings
     };
+
     // Iterate through the object types, i.e. ['post', 'tag', 'user']
     return _.reduce(objTypes, function (objTypeHandlers, objType) {
         // Grab the TargetModel through the objectTypeModelMap
@@ -141,11 +146,14 @@ CanThisResult.prototype.buildObjectTypeHandlers = function (objTypes, actType, c
                 // It's a model, get the id
                 modelId = modelOrId.id;
             }
+
             // Wait for the user loading to finish
             return permissionLoad.then(function (loadedPermissions) {
                 // Iterate through the user permissions looking for an affirmation
                 var userPermissions = loadedPermissions.user ? loadedPermissions.user.permissions : null,
                     appPermissions = loadedPermissions.app ? loadedPermissions.app.permissions : null,
+                    clientPermissions = loadedPermissions.client ? loadedPermissions.client.permissions : null,
+                    hasClientPermission,
                     hasUserPermission,
                     hasAppPermission,
                     checkPermission = function (perm) {
@@ -183,11 +191,20 @@ CanThisResult.prototype.buildObjectTypeHandlers = function (objTypes, actType, c
                     hasAppPermission = _.any(appPermissions, checkPermission);
                 }
 
+                // Check client permissions if they were passed
+                if (!_.isNull(clientPermissions)) {
+                    hasClientPermission = _.any(clientPermissions, checkPermission);
+                }
+
                 // Offer a chance for the TargetModel to override the results
                 if (TargetModel && _.isFunction(TargetModel.permissible)) {
                     return TargetModel.permissible(
                         modelId, actType, context, loadedPermissions, hasUserPermission, hasAppPermission
                     );
+                }
+
+                if (hasClientPermission) {
+                    return;
                 }
 
                 if (hasUserPermission && hasAppPermission) {
@@ -206,9 +223,9 @@ CanThisResult.prototype.beginCheck = function (context) {
     var self = this,
         userPermissionLoad,
         appPermissionLoad,
+        clientPermissionLoad,
         permissionsLoad;
 
-    // Get context.user and context.app
     context = parseContext(context);
 
     if (!hasActionsMap()) {
@@ -231,11 +248,20 @@ CanThisResult.prototype.beginCheck = function (context) {
         appPermissionLoad = Promise.resolve(null);
     }
 
+    // Kick off loading of effective client permissions if necessary
+    if (context.client) {
+        clientPermissionLoad = effectivePerms.client(context.client);
+    } else {
+        // Resolve null if no context.app
+        clientPermissionLoad = Promise.resolve(null);
+    }
+
     // Wait for both user and app permissions to load
-    permissionsLoad = Promise.all([userPermissionLoad, appPermissionLoad]).then(function (result) {
+    permissionsLoad = Promise.all([userPermissionLoad, appPermissionLoad, clientPermissionLoad]).then(function (result) {
         return {
             user: result[0],
-            app: result[1]
+            app: result[1],
+            client: result[2]
         };
     });
 

@@ -34,6 +34,7 @@ describe('Public API', function () {
                     if (err) {
                         return done(err);
                     }
+                    
                     done();
                 });
         }).catch(done);

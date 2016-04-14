@@ -179,7 +179,9 @@ Post = ghostBookshelf.Model.extend({
 
         ghostBookshelf.Model.prototype.saving.call(this, model, attr, options);
 
-        this.set('html', converter.makeHtml(toString(this.get('markdown'))));
+        if (this.get('markdown')) {
+            this.set('html', converter.makeHtml(toString(this.get('markdown'))));
+        }
 
         // disabling sanitization until we can implement a better version
         title = this.get('title') || i18n.t('errors.models.post.untitled');
@@ -394,6 +396,10 @@ Post = ghostBookshelf.Model.extend({
         return this.isPublicContext() ? 'status:published' : null;
     },
     defaultFilters: function defaultFilters() {
+        if (this.isInternalContext()) {
+            return null;
+        }
+
         return this.isPublicContext() ? 'page:false' : 'page:false+status:published';
     }
 }, {
@@ -458,7 +464,7 @@ Post = ghostBookshelf.Model.extend({
             validOptions = {
                 findOne: ['columns', 'importing', 'withRelated', 'require'],
                 findPage: ['page', 'limit', 'columns', 'filter', 'order', 'status', 'staticPages'],
-                findAll: ['columns'],
+                findAll: ['columns', 'filter'],
                 add: ['importing']
             };
 
@@ -630,12 +636,13 @@ Post = ghostBookshelf.Model.extend({
         var self = this,
             postModel = postModelOrId,
             origArgs;
-
+        
         // If we passed in an id instead of a model, get the model
         // then check the permissions
         if (_.isNumber(postModelOrId) || _.isString(postModelOrId)) {
             // Grab the original args without the first one
             origArgs = _.toArray(arguments).slice(1);
+
             // Get the actual post model
             return this.findOne({id: postModelOrId, status: 'all'}).then(function then(foundPostModel) {
                 // Build up the original args but substitute with actual model

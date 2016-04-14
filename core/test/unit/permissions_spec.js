@@ -73,6 +73,7 @@ describe('Permissions', function () {
                 internal: false,
                 user: null,
                 app: null,
+                client: 'thing',
                 public: true
             });
         });

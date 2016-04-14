@@ -249,6 +249,11 @@
                     "name": "Delete clients",
                     "action_type": "destroy",
                     "object_type": "client"
+                },
+                {
+                    "name": "Edit Schedule",
+                    "action_type": "edit",
+                    "object_type": "schedule"
                 }
             ]
         }

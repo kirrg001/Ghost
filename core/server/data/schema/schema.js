@@ -92,6 +92,11 @@ module.exports = {
         app_id: {type: 'integer', nullable: false},
         permission_id: {type: 'integer', nullable: false}
     },
+    permissions_clients: {
+        id: {type: 'increments', nullable: false, primary: true},
+        client_id: {type: 'integer', nullable: false},
+        permission_id: {type: 'integer', nullable: false}
+    },
     settings: {
         id: {type: 'increments', nullable: false, primary: true},
         uuid: {type: 'string', maxlength: 36, nullable: false, validations: {isUUID: true}},
