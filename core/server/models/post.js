@@ -142,29 +142,21 @@ Post = ghostBookshelf.Model.extend({
             tagsToCheck = this.get('tags'),
             publishedAt = this.get('published_at');
 
-
         // both page and post can get scheduled
         if (newStatus === 'scheduled') {
-            // CASE: published_at is empty, not possible for case schedule
             if (!publishedAt) {
                 return Promise.reject(new errors.ValidationError(
                     i18n.t('errors.models.post.valueCannotBeBlank', {key: 'published_at'})
                 ));
-            }
-            // CASE: invalid input
-            else if (!moment(publishedAt).isValid()) {
+            } else if (!moment(publishedAt).isValid()) {
                 return Promise.reject(new errors.ValidationError(
-                    i18n.t('errors.models.post.valueCannotBeBlank', { key: 'published_at' })
+                    i18n.t('errors.models.post.valueCannotBeBlank', {key: 'published_at'})
                 ));
-            }
-            // CASE published_at is in the past
-            else if (moment(publishedAt).isBefore(moment())) {
+            } else if (moment(publishedAt).isBefore(moment())) {
                 return Promise.reject(new errors.ValidationError(
                     i18n.t('errors.models.post.expectedPublishedAtInFuture')
                 ));
-            }
-            // CASE published_at is in not enough in the future
-            else if (moment(publishedAt).isBefore(moment().add(5, 'minutes'))) {
+            } else if (moment(publishedAt).isBefore(moment().add(5, 'minutes'))) {
                 return Promise.reject(new errors.ValidationError(
                     i18n.t('errors.models.post.expectedPublishedAtInFuture')
                 ));
@@ -238,7 +230,6 @@ Post = ghostBookshelf.Model.extend({
             }
         }
     },
-
 
     creating: function creating(model, attr, options) {
         options = options || {};

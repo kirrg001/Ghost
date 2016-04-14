@@ -438,7 +438,7 @@ describe('Post Model', function () {
                     return PostModel.edit({
                         status: 'scheduled'
                     }, _.extend({}, context, {id: post.id}));
-                }).catch(function(err) {
+                }).catch(function (err) {
                     should.exist(err);
                     (err instanceof errors.ValidationError).should.eql(true);
                     done();
@@ -457,7 +457,7 @@ describe('Post Model', function () {
                         status: 'scheduled',
                         published_at: '328432423'
                     }, _.extend({}, context, {id: post.id}));
-                }).catch(function(err) {
+                }).catch(function (err) {
                     should.exist(err);
                     (err instanceof errors.ValidationError).should.eql(true);
                     done();
@@ -871,7 +871,7 @@ describe('Post Model', function () {
                     status: 'scheduled',
                     title: 'scheduled 1',
                     markdown: 'This is some content'
-                }, context).catch(function(err) {
+                }, context).catch(function (err) {
                     should.exist(err);
                     (err instanceof errors.ValidationError).should.eql(true);
                     eventSpy.called.should.be.false();
@@ -885,7 +885,7 @@ describe('Post Model', function () {
                     published_at: moment().subtract(1, 'minute'),
                     title: 'scheduled 1',
                     markdown: 'This is some content'
-                }, context).catch(function(err) {
+                }, context).catch(function (err) {
                     should.exist(err);
                     (err instanceof errors.ValidationError).should.eql(true);
                     eventSpy.called.should.be.false();
@@ -899,7 +899,7 @@ describe('Post Model', function () {
                     published_at: moment().add(1, 'minute'),
                     title: 'scheduled 1',
                     markdown: 'This is some content'
-                }, context).catch(function(err) {
+                }, context).catch(function (err) {
                     (err instanceof errors.ValidationError).should.eql(true);
                     eventSpy.called.should.be.false();
                     done();
@@ -912,7 +912,7 @@ describe('Post Model', function () {
                     published_at: moment().add(10, 'minute'),
                     title: 'scheduled 1',
                     markdown: 'This is some content'
-                }, context).then(function(post) {
+                }, context).then(function (post) {
                     should.exist(post);
                     eventSpy.calledTwice.should.be.true();
                     eventSpy.firstCall.calledWith('post.added').should.be.true();
@@ -928,7 +928,7 @@ describe('Post Model', function () {
                     published_at: moment().add(10, 'minute'),
                     title: 'scheduled 1',
                     markdown: 'This is some content'
-                }, context).then(function(post) {
+                }, context).then(function (post) {
                     should.exist(post);
                     eventSpy.calledTwice.should.be.true();
                     eventSpy.firstCall.calledWith('page.added').should.be.true();
