@@ -7,6 +7,7 @@ var express     = require('express'),
     compress    = require('compression'),
     uuid        = require('node-uuid'),
     Promise     = require('bluebird'),
+    lodash      = require('lodash'),
     i18n        = require('./i18n'),
     api         = require('./api'),
     config      = require('./config'),
@@ -21,7 +22,7 @@ var express     = require('express'),
     xmlrpc      = require('./data/xml/xmlrpc'),
     GhostServer = require('./ghost-server'),
     validateThemes = require('./utils/validate-themes'),
-
+    scheduling     = require('./scheduling'),
     dbHash;
 
 function initDbHashAndFirstRun() {
@@ -80,6 +81,9 @@ function init(options) {
         // Initialize the permissions actions and objects
         // NOTE: Must be done before initDbHashAndFirstRun calls
         return permissions.init();
+    }).then(function () {
+        // scheduling module can create x schedulers with different adapters
+        return scheduling.init(lodash.extend(config.scheduling, {apiUrl: config.apiUrl()}));
     }).then(function () {
         return Promise.join(
             // Check for or initialise a dbHash.

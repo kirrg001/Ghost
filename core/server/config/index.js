@@ -87,6 +87,8 @@ ConfigManager.prototype.init = function (rawConfig) {
 
 /**
  * Allows you to set the config object.
+ * @TODO: always merge config from file into default config?
+ *
  * @param {Object} config Only accepts an object at the moment.
  */
 ConfigManager.prototype.set = function (config) {
@@ -179,6 +181,12 @@ ConfigManager.prototype.set = function (config) {
             availableApps:    this._config.paths.availableApps || {},
             clientAssets:     path.join(corePath, '/built/assets/')
         },
+        scheduling: _.merge({
+            postScheduling: {
+                loadPath: path.join(contentPath, '/scheduling/'),
+                scheduler: path.join(corePath, '/server/scheduling/SchedulingDefault')
+            }
+        }, this._config.scheduling),
         storage: {
             active: activeStorage
         },
