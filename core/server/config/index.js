@@ -185,7 +185,7 @@ ConfigManager.prototype.set = function (config) {
             interval: 1000 * 60 * 5,
             postScheduling: {
                 url: this._config.url,
-                loadPath: path.join(contentPath, '/scheduling/post-scheduling/'),
+                loadPath: path.join(contentPath, '/scheduling/'),
                 scheduler: path.join(corePath, '/server/scheduling/SchedulingDefault')
             }
         }, this._config.scheduling),

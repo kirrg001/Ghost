@@ -8,9 +8,9 @@ var _ = require('lodash'),
 /**
  * publish a scheduled post
  */
-exports.publishPost = function publishPost(object, options) {
+exports.publishPost = function publishPost(options) {
     options = options || {};
-
+    
     // CASE: only the scheduler client is allowed to publish (hardcoded because of missing client permission system)
     if (!options.context || !options.context.client || options.context.client !== 'ghost-scheduler') {
         return Promise.reject(new errors.NoPermissionError());

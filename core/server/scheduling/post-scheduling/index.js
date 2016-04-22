@@ -1,18 +1,22 @@
 var Promise = require('bluebird'),
     utils = require(__dirname + '/../utils'),
-    events = require(__dirname + '/../../events'),
-    errors = require(__dirname + '/../../errors'),
+    config = require(__dirname + '/../../config'),
+    events = require(config.paths.corePath + '/server/events'),
+    errors = require(config.paths.corePath + '/server/errors'),
     _private = {};
 
 _private.normalize = function normalize(options) {
-    var object = options.object,
-        url = options.url;
+    var object = options.object;
+
+    try {
+        object = object.toJSON();
+    } catch (err) {}
 
     return {
         time: object.published_at,
-        url: url + '/schedules/posts/' + object.id,
+        url: 'http:' + config.apiUrl() + '/schedules/posts/' + object.id + '?client_id=ghost-scheduler&client_secret=8da23db4e748',
         extra: {
-            httpMethod: 'PUT'
+            method: 'PUT'
         }
     };
 };

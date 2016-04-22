@@ -190,6 +190,7 @@ addHeaders = function addHeaders(apiMethod, req, res, result) {
  */
 http = function http(apiMethod) {
     return function apiHandler(req, res, next) {
+        console.log(req.client);
         // We define 2 properties for using as arguments in API calls:
         var object = req.body,
             options = _.extend({}, req.file, req.query, req.params, {

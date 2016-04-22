@@ -18,6 +18,10 @@ apiRoutes = function apiRoutes(middleware) {
             middleware.api.authenticateUser,
             middleware.api.requiresAuthorizedUser,
             middleware.api.cors
+        ],
+        authenticateClient = [
+            middleware.api.authenticateClient,
+            middleware.api.cors
         ];
 
     // alias delete with del
@@ -41,7 +45,7 @@ apiRoutes = function apiRoutes(middleware) {
     router.del('/posts/:id', authenticatePrivate, api.http(api.posts.destroy));
 
     // ## Schedules
-    router.put('/schedules/posts/:id', authenticatePrivate, api.http(api.schedules.publishPost));
+    router.put('/schedules/posts/:id', authenticateClient, api.http(api.schedules.publishPost));
 
     // ## Settings
     router.get('/settings', authenticatePrivate, api.http(api.settings.browse));

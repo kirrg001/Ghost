@@ -65,6 +65,7 @@ auth = {
                 delete req.body.client_id;
                 delete req.body.client_secret;
 
+                /*
                 if (!client || client.type !== 'ua') {
                     errors.logError(
                         i18n.t('errors.middleware.auth.clientAuthenticationFailed'),
@@ -72,7 +73,7 @@ auth = {
                         i18n.t('errors.middleware.auth.forInformationRead', {url: 'http://api.ghost.org/docs/client-authentication'})
                     );
                     return errors.handleAPIError(new errors.UnauthorizedError(i18n.t('errors.middleware.auth.accessDenied')), req, res, next);
-                }
+                }*/
 
                 req.client = client;
 

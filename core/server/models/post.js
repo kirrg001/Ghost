@@ -157,7 +157,7 @@ Post = ghostBookshelf.Model.extend({
                 return Promise.reject(new errors.ValidationError(
                     i18n.t('errors.models.post.expectedPublishedAtInFuture')
                 ));
-            } else if (moment(publishedAt).isBefore(moment().add(5, 'minutes'))) {
+            } else if (moment(publishedAt).isBefore(moment().add(1, 'minutes'))) {
                 return Promise.reject(new errors.ValidationError(
                     i18n.t('errors.models.post.expectedPublishedAtInFuture')
                 ));
@@ -636,7 +636,7 @@ Post = ghostBookshelf.Model.extend({
         var self = this,
             postModel = postModelOrId,
             origArgs;
-        
+
         // If we passed in an id instead of a model, get the model
         // then check the permissions
         if (_.isNumber(postModelOrId) || _.isString(postModelOrId)) {

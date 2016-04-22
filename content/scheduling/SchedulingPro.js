@@ -6,7 +6,7 @@ var Promise = require('bluebird'),
     errors = require(config.paths.corePath + '/server/errors'),
     SchedulingBase = require(config.paths.corePath + '/server/scheduling/SchedulingBase'),
     _private = {
-        ghostProSchedulerUrl: 'http://localhost:1111'
+        ghostProSchedulerUrl: 'http://localhost:3000'
     };
 
 /**
