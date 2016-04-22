@@ -48,6 +48,7 @@ SchedulingDefault.prototype.unschedule = function (object) {
 
 /**
  * each timestamp key entry can have multiple jobs
+ * measure how slow/fast
  */
 SchedulingDefault.prototype._addJob = function (object) {
     var timestamp = moment(object.time).valueOf();
@@ -123,7 +124,7 @@ SchedulingDefault.prototype._run = function () {
 };
 
 /**
- * @TODO: check memory with many many jobs
+ * @TODO: check memory with many many jobs, take a heap
  */
 SchedulingDefault.prototype._execute = function (jobs) {
     var keys = Object.keys(jobs),
