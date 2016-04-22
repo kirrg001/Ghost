@@ -124,7 +124,9 @@ SchedulingDefault.prototype._run = function () {
 };
 
 /**
- * @TODO: check memory with many many jobs, take a heap
+ * @TODO:
+ * - todo use setImmediate?
+ * - check memory with many many jobs, take a heap
  */
 SchedulingDefault.prototype._execute = function (jobs) {
     var keys = Object.keys(jobs),
