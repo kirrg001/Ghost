@@ -125,7 +125,8 @@ SchedulingDefault.prototype._run = function () {
 
 /**
  * @TODO:
- * - todo use setImmediate?
+ * - use setImmediate?
+ * - spawn a process?
  * - check memory with many many jobs, take a heap
  */
 SchedulingDefault.prototype._execute = function (jobs) {
