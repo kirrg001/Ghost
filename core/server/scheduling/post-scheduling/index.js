@@ -14,7 +14,8 @@ _private.normalize = function normalize(options) {
         time: object.get('published_at'),
         url: apiUrl + 'schedules/posts/' + object.get('id') + '?client_id=' + client.get('slug') + '&client_secret=' + client.get('secret'),
         extra: {
-            httpMethod: 'PUT'
+            httpMethod: 'PUT',
+            oldTime: object.updated('published_at')
         }
     };
 };

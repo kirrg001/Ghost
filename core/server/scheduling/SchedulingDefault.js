@@ -6,6 +6,17 @@ var util = require('util'),
     SchedulingBase = require('./SchedulingBase');
 
 /**
+ * @TODO
+ * - job should already scheduled (on bootstrap)
+ * - test run takes a little too long
+ * - delete job use case --> url ping would fail, 404 ignore
+ * - unpublish post --> diff is too small? ---> check in endpoint if post is scheduled?
+ * - integrate ping
+ * - request all scheduled posts
+ */
+
+
+/**
  * jobs is a sorted list by time attribute
  */
 function SchedulingDefault(options) {
@@ -16,12 +27,12 @@ function SchedulingDefault(options) {
     this.offsetInMinutes = 10;
 
     this.allJobs = {};
+    this.deletedJobs = {};
     this._run();
 }
 
 util.inherits(SchedulingDefault, SchedulingBase);
 
-// @TODO: request all scheduled posts
 SchedulingDefault.prototype.bootstrap = function () {
     return Promise.resolve();
 };
@@ -38,17 +49,19 @@ SchedulingDefault.prototype.schedule = function (object) {
  * add to list
  */
 SchedulingDefault.prototype.reschedule = function (object) {
+    this._deleteJob({time: object.extra.oldTime, url: object.url});
+    this._addJob(object);
 };
 
 /**
  * remove from list
  */
 SchedulingDefault.prototype.unschedule = function (object) {
+    this._deleteJob(object);
 };
 
 /**
  * each timestamp key entry can have multiple jobs
- * measure how slow/fast
  */
 SchedulingDefault.prototype._addJob = function (object) {
     var timestamp = moment(object.time).valueOf();
@@ -82,22 +95,10 @@ SchedulingDefault.prototype._addJob = function (object) {
     this.allJobs = sortedJobs;
 };
 
-/**
- * delete jobs by time and url?
- */
-SchedulingDefault.prototype._deleteJob = function () {
-
+SchedulingDefault.prototype._deleteJob = function (object) {
+    this.deletedJobs[object.url + object.time] = true;
 };
 
-/**
- * - sleep 5 minutes and move jobs from big list to next jobs (jobs which will be executed in next 6 minutes
- * - do not sleep when called for first time!!!!!
- * - sleep 5minutes
- * - setTimeout is not a promise that it will run in exactly 5 minutes
- * - then look which items needs to be scheduled in the next 5 minutes
- * - are there any items we missed (how is this possible?), on bootstrap we already check this
- * - when runner awakes it can happen that in the next 5 minutes there is a job exactly in the next second, so the jobs should be already sorted
- */
 SchedulingDefault.prototype._run = function () {
     var self = this,
         timeout = null;
@@ -124,10 +125,7 @@ SchedulingDefault.prototype._run = function () {
 };
 
 /**
- * @TODO:
- * - use setImmediate?
- * - spawn a process?
- * - check memory with many many jobs, take a heap
+ * setTimeout is not accurate, but we can live with that fact and use immediate feature to qualify
  */
 SchedulingDefault.prototype._execute = function (jobs) {
     var keys = Object.keys(jobs),
@@ -135,32 +133,43 @@ SchedulingDefault.prototype._execute = function (jobs) {
 
     keys.forEach(function (timestamp) {
         var timeout = null,
-            interval = null,
             diff = moment(Number(timestamp)).diff(moment());
 
-        // awake 1 second before job needs to be executed
+        // awake a little before
         timeout = setTimeout(function () {
             clearTimeout(timeout);
 
-            // go closer step by step
-            interval = setInterval(function () {
-                if (moment().diff(moment(Number(timestamp))) >= -100) {
-                    var toExecute = jobs[timestamp];
-                    delete jobs[timestamp];
+            (function retry() {
+                var immediate = setImmediate(function () {
+                    // xms buffer to execute URL ping
+                    if (moment().diff(moment(Number(timestamp))) >= -50) {
+                        var toExecute = jobs[timestamp];
+                        delete jobs[timestamp];
 
-                    toExecute.forEach(function (job) {
-                        self._pingUrl(job);
-                    });
+                        toExecute.forEach(function (job) {
+                            if (self.deletedJobs[job.url + job.time]) {
+                                delete self.deletedJobs[job.url + job.time];
+                                return;
+                            }
 
-                    clearInterval(interval);
-                }
-            }, 100);
-        }, diff - 1000);
+                            self._pingUrl(job);
+                        });
+
+                        return clearImmediate(immediate);
+                    }
+
+                    retry();
+                });
+            })();
+        }, diff - 200);
     });
 };
 
 SchedulingDefault.prototype._pingUrl = function (object) {
+    var url = object.url,
+        httpMethod = object.extra.httpMethod;
 
+    // request[httpMethod](url);
 };
 
 module.exports = SchedulingDefault;

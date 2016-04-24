@@ -62,7 +62,7 @@ Post = ghostBookshelf.Model.extend({
             model.wasScheduled = model.updated('status') === 'scheduled';
             model.resourceTypeChanging = model.get('page') !== model.updated('page');
             model.needsReschedule = model.get('published_at') !== model.updated('published_at');
-
+            
             // Handle added and deleted for post -> page or page -> post
             if (model.resourceTypeChanging) {
                 if (model.wasPublished) {

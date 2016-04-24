@@ -19,7 +19,7 @@ describe('Scheduling Default Adapter', function () {
     });
 
     describe('success', function () {
-        it('addJob', function () {
+        it('addJob (schedule)', function () {
             sinon.stub(scope.adapter, '_run');
             sinon.stub(scope.adapter, '_execute');
 
@@ -86,14 +86,16 @@ describe('Scheduling Default Adapter', function () {
         });
 
         it('execute', function (done) {
-            var pinged = 0;
+            var pinged = 0,
+                jobs = 3;
 
+            sinon.stub(scope.adapter, '_run');
             sinon.stub(scope.adapter, '_pingUrl', function () {
                 pinged = pinged + 1;
             });
 
-            var timestamps = lodash.map(lodash.range(5), function (i) {
-                    return moment().add(1, 'seconds').add(i, 'seconds').valueOf();
+            var timestamps = lodash.map(lodash.range(jobs), function (i) {
+                    return moment().add(1, 'seconds').add(i * 100, 'milliseconds').valueOf();
                 }),
                 nextJobs = {};
 
@@ -104,10 +106,45 @@ describe('Scheduling Default Adapter', function () {
             scope.adapter._execute(nextJobs);
 
             (function retry() {
-                if (pinged !== 5) {
-                    return setTimeout(retry, 1000);
+                if (pinged !== jobs) {
+                    return setTimeout(retry, 100);
                 }
 
+                scope.adapter._run.restore();
+                scope.adapter._pingUrl.restore();
+                done();
+            })();
+        });
+
+        it('delete job (unschedule)', function (done) {
+            sinon.stub(scope.adapter, '_run');
+            sinon.stub(scope.adapter, '_pingUrl');
+
+            // add 3 jobs to delete
+            var jobs = {};
+            jobs[moment().add(500, 'milliseconds').valueOf()] = [{url: '/first', time: 1234}];
+            jobs[moment().add(550, 'milliseconds').valueOf()] = [{url: '/first', time: 1235}];
+            jobs[moment().add(600, 'milliseconds').valueOf()] = [{url: '/second', time: 1236}];
+
+            lodash.map(jobs, function(value) {
+                scope.adapter._deleteJob(value[0]);
+            });
+
+            // add another, which will be pinged
+            jobs[moment().add(650, 'milliseconds').valueOf()] = [{url: '/third', time: 1237}];
+
+            // simulate execute is called
+            scope.adapter._execute(jobs);
+
+            (function retry() {
+                if (Object.keys(scope.adapter.deletedJobs).length) {
+                    return setTimeout(retry, 100);
+                }
+
+                Object.keys(scope.adapter.deletedJobs).length.should.eql(0);
+                scope.adapter._pingUrl.calledOnce.should.eql(true);
+                scope.adapter._run.restore();
+                scope.adapter._pingUrl.restore();
                 done();
             })();
         });
