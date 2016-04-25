@@ -8,7 +8,6 @@ var util = require('util'),
 /**
  * @TODO
  * - job should already scheduled (on bootstrap)
- * - test run takes a little too long
  * - delete job use case --> url ping would fail, 404 ignore
  * - unpublish post --> diff is too small? ---> check in endpoint if post is scheduled?
  * - integrate ping
@@ -141,6 +140,8 @@ SchedulingDefault.prototype._execute = function (jobs) {
 
             (function retry() {
                 var immediate = setImmediate(function () {
+                    clearImmediate(immediate)
+
                     // xms buffer to execute URL ping
                     if (moment().diff(moment(Number(timestamp))) >= -50) {
                         var toExecute = jobs[timestamp];
@@ -155,7 +156,7 @@ SchedulingDefault.prototype._execute = function (jobs) {
                             self._pingUrl(job);
                         });
 
-                        return clearImmediate(immediate);
+                        return;
                     }
 
                     retry();
