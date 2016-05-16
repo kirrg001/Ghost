@@ -89,6 +89,13 @@ describe('Acceptance: Settings - General', function () {
                 expect(find('input#permalinks').prop('checked'), 'date permalinks checkbox').to.be.false;
             });
 
+            fillIn('#settings-general input[name="general[title]"]', 'New Blog Title');
+            click('.view-header .btn.btn-blue');
+
+            andThen(() => {
+                expect(document.title, 'page title').to.equal('Settings - General - New Blog Title');
+            });
+
             click('.blog-logo');
 
             andThen(() => {
@@ -125,6 +132,21 @@ describe('Acceptance: Settings - General', function () {
                 expect(find('#activeTheme select option').length, 'available themes').to.equal(1);
                 expect(find('#activeTheme select option').text().trim()).to.equal('Blog - 1.0');
             });
+        });
+
+        it('renders timezone selector correctly', function () {
+            visit('/settings/general');
+
+            andThen(() => {
+                expect(currentURL(), 'currentURL').to.equal('/settings/general');
+
+                expect(find('#activeTimezone select option').length, 'available timezones').to.equal(65);
+                expect(find('#activeTimezone option:selected').text().trim()).to.equal('(GMT) Greenwich Mean Time : Dublin, Edinburgh, London');
+            });
+        });
+
+        it('handles private blog settings correctly', function () {
+            visit('/settings/general');
 
             // handles private blog settings correctly
             andThen(() => {
