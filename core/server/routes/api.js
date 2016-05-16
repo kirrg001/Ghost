@@ -41,7 +41,7 @@ apiRoutes = function apiRoutes(middleware) {
     router.del('/posts/:id', authenticatePrivate, api.http(api.posts.destroy));
 
     // ## Schedules
-    router.put('/schedules/posts/:id', authenticatePublic, api.http(api.schedules.publishPost));
+    router.put('/schedules/posts/:id', [middleware.api.authenticateClient, middleware.api.authenticateUser], api.http(api.schedules.publishPost));
 
     // ## Settings
     router.get('/settings', authenticatePrivate, api.http(api.settings.browse));
