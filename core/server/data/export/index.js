@@ -1,5 +1,6 @@
 var _           = require('lodash'),
     Promise     = require('bluebird'),
+    moment      = require('moment'),
     db          = require('../../data/db'),
     commands    = require('../schema').commands,
     versioning  = require('../schema').versioning,
@@ -60,7 +61,7 @@ doExport = function doExport() {
     }).then(function formatData(tableData) {
         var exportData = {
             meta: {
-                exported_on: new Date().getTime(),
+                exported_on: moment().valueOf(),
                 version: version
             },
             data: {

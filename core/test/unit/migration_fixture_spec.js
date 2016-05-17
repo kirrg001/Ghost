@@ -732,11 +732,12 @@ describe('Fixtures', function () {
                     sequenceStub.firstCall.args[0][0].should.be.a.Function().with.property('name', 'runVersionTasks');
 
                     sequenceStub.secondCall.calledWith(sinon.match.array, sinon.match.object, loggerStub).should.be.true();
-                    sequenceStub.secondCall.args[0].should.be.an.Array().with.lengthOf(4);
+                    sequenceStub.secondCall.args[0].should.be.an.Array().with.lengthOf(5);
                     sequenceStub.secondCall.args[0][0].should.be.a.Function().with.property('name', 'updateGhostClientsSecrets');
                     sequenceStub.secondCall.args[0][1].should.be.a.Function().with.property('name', 'addGhostFrontendClient');
                     sequenceStub.secondCall.args[0][2].should.be.a.Function().with.property('name', 'addClientPermissions');
                     sequenceStub.secondCall.args[0][3].should.be.a.Function().with.property('name', 'addSubscriberPermissions');
+                    sequenceStub.secondCall.args[0][4].should.be.a.Function().with.property('name', 'transformDatesIntoUTC');
 
                     // Reset
                     sequenceReset();
@@ -747,7 +748,7 @@ describe('Fixtures', function () {
             describe('Tasks:', function () {
                 it('should have tasks for 005', function () {
                     should.exist(fixtures005);
-                    fixtures005.should.be.an.Array().with.lengthOf(4);
+                    fixtures005.should.be.an.Array().with.lengthOf(5);
                 });
 
                 describe('01-update-ghost-client-secrets', function () {

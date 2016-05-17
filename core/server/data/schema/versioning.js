@@ -90,6 +90,7 @@ function getVersionTasks(version, relPath, logInfo) {
     try {
         tasks = require(path.join(relPath, version));
     } catch (e) {
+        //@TODO: this is not defined in case of error (reproduce: create new migration folder 007 and force migration)
         logInfo('No tasks found for version', version);
     }
 

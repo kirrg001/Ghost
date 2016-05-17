@@ -1,9 +1,16 @@
 // # Ghost Startup
 // Orchestrates the startup of Ghost when run from command line.
+
 var express,
     ghost,
     parentApp,
-    errors;
+    errors,
+    moment = require('moment-timezone');
+
+/**
+ * force UTC
+ */
+moment.tz.setDefault('UTC');
 
 // Make sure dependencies are installed and file system permissions are correct.
 require('./core/server/utils/startup-check').check();

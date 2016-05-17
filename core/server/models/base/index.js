@@ -101,17 +101,46 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         this.set('updated_by', this.contextUser(options));
     },
 
-    // Base prototype properties will go here
-    // Fix problems with dates
-    fixDates: function fixDates(attrs) {
+    /**
+     * before we insert dates into the database, we have to normalize
+     * date format is in each db the same
+     * moment format will not use the local JS Date
+     */
+    fixDatesWhenSave: function fixDates(attrs) {
         var self = this;
 
         _.each(attrs, function each(value, key) {
             if (value !== null
                     && schema.tables[self.tableName].hasOwnProperty(key)
                     && schema.tables[self.tableName][key].type === 'dateTime') {
-                // convert dateTime value into a native javascript Date object
-                attrs[key] = moment(value).toDate();
+                attrs[key] = moment(value).format('YYYY-MM-DD HH:mm:ss');
+            }
+        });
+
+        return attrs;
+    },
+
+    /**
+     * all drivers (pg, sqlite, mysql) behave different
+     * sqlite: returns the raw database UTC value, because sqlite does not support timezones at all
+     * pg: has an active UTC session through knex, pg driver will return UTC date (wheee)
+     * mysql:
+     *   - we store UTC, but when we get the values from the DB, the driver wraps the UTC value into a local JS Date
+     *   - something similar then this: https://github.com/tgriesser/knex/issues/524
+     */
+    fixDatesWhenFetch: function fixDates(attrs) {
+        var self = this;
+
+        _.each(attrs, function each(value, key) {
+            if (value !== null
+                && schema.tables[self.tableName].hasOwnProperty(key)
+                && schema.tables[self.tableName][key].type === 'dateTime') {
+
+                if (config.database.client === 'sqlite3' || config.database.client === 'pg') {
+                    attrs[key] = moment(value).toISOString();
+                } else {
+                    attrs[key] = moment(value).tz(moment.tz.guess()).format('YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
+                }
             }
         });
 
@@ -148,12 +177,12 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
 
     // format date before writing to DB, bools work
     format: function format(attrs) {
-        return this.fixDates(attrs);
+        return this.fixDatesWhenSave(attrs);
     },
 
     // format data and bool when fetching from DB
     parse: function parse(attrs) {
-        return this.fixBools(this.fixDates(attrs));
+        return this.fixBools(this.fixDatesWhenFetch(attrs));
     },
 
     toJSON: function toJSON(options) {
