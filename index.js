@@ -1,9 +1,13 @@
 // # Ghost Startup
 // Orchestrates the startup of Ghost when run from command line.
+
 var express,
     ghost,
     parentApp,
     errors;
+
+// always require first
+require('./core/server/monkey-patch');
 
 // Make sure dependencies are installed and file system permissions are correct.
 require('./core/server/utils/startup-check').check();

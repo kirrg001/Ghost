@@ -6,5 +6,7 @@ module.exports = [
     // add client permissions and permission_role relations
     require('./03-add-client-permissions'),
     // add subscriber permissions and permission_role relations
-    require('./04-add-subscriber-permissions')
+    require('./04-add-subscriber-permissions'),
+    // Modify all non UTC dates
+    require('./05-transform-dates-into-UTC')
 ];
