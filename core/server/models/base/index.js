@@ -192,6 +192,10 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     // Get a specific updated attribute value
     updated: function updated(attr) {
         return this.updatedAttributes()[attr];
+    },
+
+    hasPropertyChanged: function hasPropertyChanged(property) {
+        return this.previous(property) === this.get(property);
     }
 }, {
     // ## Data Utility Functions

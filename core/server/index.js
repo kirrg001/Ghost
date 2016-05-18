@@ -22,7 +22,6 @@ var express     = require('express'),
     slack       = require('./data/slack'),
     GhostServer = require('./ghost-server'),
     validateThemes = require('./utils/validate-themes'),
-
     dbHash;
 
 function initDbHashAndFirstRun() {
