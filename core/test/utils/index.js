@@ -33,8 +33,8 @@ var Promise       = require('bluebird'),
 
 /** TEST FIXTURES **/
 fixtures = {
-    insertPosts: function insertPosts() {
-        return Promise.resolve(db.knex('posts').insert(DataGenerator.forKnex.posts)).then(function () {
+    insertPosts: function insertPosts(posts) {
+        return Promise.resolve(db.knex('posts').insert(posts || DataGenerator.forKnex.posts)).then(function () {
             return db.knex('tags').insert(DataGenerator.forKnex.tags);
         }).then(function () {
             return db.knex('posts_tags').insert(DataGenerator.forKnex.posts_tags);

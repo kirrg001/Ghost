@@ -287,6 +287,7 @@ DataGenerator.forKnex = (function () {
             created_at: new Date(),
             created_by: 1,
             published_at: new Date(),
+            title: 'post',
             published_by: 1
         });
     }
