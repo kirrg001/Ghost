@@ -60,7 +60,7 @@ Post = ghostBookshelf.Model.extend({
             model.wasPublished = model.updated('status') === 'published';
             model.wasScheduled = model.updated('status') === 'scheduled';
             model.resourceTypeChanging = model.get('page') !== model.updated('page');
-            model.needsReschedule = model.get('published_at') !== model.updated('published_at');
+            model.needsReschedule = model.hasDateChanged('published_at') && model.isScheduled;
 
             // Handle added and deleted for post -> page or page -> post
             if (model.resourceTypeChanging) {
@@ -100,7 +100,7 @@ Post = ghostBookshelf.Model.extend({
                     }
 
                     // CASE: from scheduled to something
-                    if (model.wasScheduled && !model.isScheduled) {
+                    if (model.wasScheduled && !model.isScheduled && !model.isPublished) {
                         model.emitChange('unscheduled');
                     }
                 } else {
@@ -137,13 +137,22 @@ Post = ghostBookshelf.Model.extend({
             // Variables to make the slug checking more readable
             newTitle    = this.get('title'),
             newStatus   = this.get('status'),
+            olderStatus = this.previous('status'),
             prevTitle   = this._previousAttributes.title,
             prevSlug    = this._previousAttributes.slug,
             tagsToCheck = this.get('tags'),
             publishedAt = this.get('published_at'),
             tags = [];
 
-        // both page and post can get scheduled
+        // CASE: disallow published -> scheduled
+        // @TODO: remove when we have versioning based on updated_at
+        if (newStatus !== olderStatus && newStatus === 'scheduled' && olderStatus === 'published') {
+            return Promise.reject(new errors.ValidationError(
+                i18n.t('errors.models.post.isAlreadyPublished', {key: 'status'})
+            ));
+        }
+
+        // CASE: both page and post can get scheduled
         if (newStatus === 'scheduled') {
             if (!publishedAt) {
                 return Promise.reject(new errors.ValidationError(
@@ -157,7 +166,7 @@ Post = ghostBookshelf.Model.extend({
                 return Promise.reject(new errors.ValidationError(
                     i18n.t('errors.models.post.expectedPublishedAtInFuture')
                 ));
-            } else if (moment(publishedAt).isBefore(moment().add(5, 'minutes'))) {
+            } else if (this.hasChanged('published_at') && moment(publishedAt).isBefore(moment().add(2, 'minutes'))) {
                 return Promise.reject(new errors.ValidationError(
                     i18n.t('errors.models.post.expectedPublishedAtInFuture')
                 ));
@@ -183,7 +192,9 @@ Post = ghostBookshelf.Model.extend({
 
         ghostBookshelf.Model.prototype.saving.call(this, model, attr, options);
 
-        this.set('html', converter.makeHtml(_.toString(this.get('markdown'))));
+        if (this.get('markdown')) {
+            this.set('html', converter.makeHtml(_.toString(this.get('markdown'))));
+        }
 
         // disabling sanitization until we can implement a better version
         title = this.get('title') || i18n.t('errors.models.post.untitled');
@@ -447,11 +458,11 @@ Post = ghostBookshelf.Model.extend({
         // the status provided.
         if (options.status && options.status !== 'all') {
             // make sure that status is valid
-            options.status = _.contains(['published', 'draft'], options.status) ? options.status : 'published';
+            options.status = _.contains(['published', 'draft', 'scheduled'], options.status) ? options.status : 'published';
             options.where.statements.push({prop: 'status', op: '=', value: options.status});
             delete options.status;
         } else if (options.status === 'all') {
-            options.where.statements.push({prop: 'status', op: 'IN', value: ['published', 'draft']});
+            options.where.statements.push({prop: 'status', op: 'IN', value: ['published', 'draft', 'scheduled']});
             delete options.status;
         }
 
