@@ -3,7 +3,7 @@ var _                = require('lodash'),
     pipeline         = require('../utils/pipeline'),
     dataProvider     = require('../models'),
     settings         = require('./settings'),
-    mail             = require('./mail'),
+    mail             = require('./../mail'),
     globalUtils      = require('../utils'),
     utils            = require('./utils'),
     errors           = require('../errors'),
@@ -171,7 +171,7 @@ authentication = {
                     '/ghost/reset/' +
                     globalUtils.encodeBase64URLsafe(data.resetToken) + '/';
 
-            return mail.generateContent({
+            return mail.utils.generateContent({
                 data: {
                     resetUrl: resetUrl
                 },
@@ -413,7 +413,7 @@ authentication = {
                 ownerEmail: setupUser.email
             };
 
-            return mail.generateContent({data: data, template: 'welcome'})
+            return mail.utils.generateContent({data: data, template: 'welcome'})
                 .then(function then(content) {
                     var message = {
                             to: setupUser.email,

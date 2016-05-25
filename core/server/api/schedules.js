@@ -7,6 +7,8 @@ var _ = require('lodash'),
     i18n = require(config.paths.corePath + '/server/i18n'),
     errors = require(config.paths.corePath + '/server/errors'),
     apiPosts = require(config.paths.corePath + '/server/api/posts'),
+    mail = require(config.paths.corePath + '/server/mail'),
+    api = require(config.paths.corePath + '/server/api'),
     utils = require('./utils');
 
 /**
@@ -82,4 +84,88 @@ exports.getScheduledPosts = function readPosts(options) {
                 });
         }
     ], options);
+};
+
+/**
+ * @TODO:
+ * - add mailgun settings
+ *
+ * @TODO: wait that GQL supports dates for all databases
+ * @TODO: database date query will not work when we merge UTC force, because we normalize the datetime values in the DB
+ */
+exports.sendNewsletter = function sendNewsletter(object, options) {
+    var from = config.newsletter.lastExecutedAt || moment().subtract(30, 'days'),
+        to = new Date(),
+        mailgun = new mail.Mailgun({
+            apiKey: config.mail.options.auth.apiKey,
+            domain: config.mail.options.auth.domain,
+            tag: config.mail.options.auth.tag
+        });
+
+    // CASE: only the scheduler client is allowed to publish (hardcoded because of missing client permission system)
+    if (!options.context || !options.context.client || options.context.client !== 'ghost-scheduler') {
+        return Promise.reject(new errors.NoPermissionError());
+    }
+
+    options.context = {internal: true};
+    options.limit = 5;
+
+    if (['mysql', 'pg'].indexOf(config.database.client) !== -1) {
+        options.filter = '+created_at:>=\'' + moment(from).format('YYYY-MM-DD HH:mm:ss') + '\'';
+    } else {
+        options.filter += '+created_at:>=' + moment(from).valueOf();
+    }
+
+    if (['mysql', 'pg'].indexOf(config.database.client) !== -1) {
+        options.filter += '+created_at:<=\'' + moment(to).format('YYYY-MM-DD HH:mm:ss') + '\'';
+    } else {
+        options.filter += '+created_at:<=' + moment(to).valueOf();
+    }
+
+    return dataProvider.Posts.findAll(options)
+        .then(function (result) {
+            if (!result.length) {
+                return Promise.resolve();
+            }
+
+            return Promise.all(lodash.map(result, function (model) {
+                return mail.utils.generateContent({
+                    template: 'newsletter/post',
+                    data: model.toJSON()
+                });
+            })).then(function (posts) {
+                return lodash.reduce(posts, function (first, second) {
+                    return first.html + second.html;
+                });
+            });
+        })
+        .then(function (html) {
+            if (!html) {
+                return Promise.resolve();
+            }
+
+            return mail.utils.generateContent({
+                template: 'newsletter/index',
+                data: {
+                    posts: html
+                }
+            });
+        })
+        .then(function (result) {
+            return dataProvider.Subscribers.findAll({filter: 'status:subscribed'})
+                .then(function (subscribers) {
+                    return mailgun.send({
+                        title: 'Newsletter',
+                        from: config.account.mail.from || config.mail.from,
+                        to: subscribers.toJSON(),
+                        text: result.text,
+                        html: result.html
+                    });
+                });
+        })
+        .then(function () {
+            // @TODO: does this work?
+            // if we update lastExecutedAt, event is triggered and the newsletter is scheduled again for the next upcomming date
+            return api.Settings.edit({settings: [{newsletter: {lastExecutedAt: to}}]}, options);
+        })
 };
