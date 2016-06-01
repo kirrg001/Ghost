@@ -27,7 +27,6 @@ events.on('settings.activeTimezone.edited', function (settingModel) {
             }
 
             return Promise.all(results.map(function (post) {
-                console.log('modify', post.get('published_at'), timezoneOffset);
                 var newPublishedAtMoment = moment(post.get('published_at')).add(timezoneOffset, 'minutes');
 
                 /**
