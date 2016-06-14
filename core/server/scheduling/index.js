@@ -8,5 +8,5 @@ var _ = require('lodash'),
 exports.init = function init(options) {
     options = options || {};
 
-    return postScheduling.init(_.pick(options, 'postScheduling', 'apiUrl'));
+    return postScheduling.init(options);
 };
