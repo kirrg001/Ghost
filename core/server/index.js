@@ -11,6 +11,7 @@ var express = require('express'),
     config = require('./config'),
     errors = require('./errors'),
     middleware = require('./middleware'),
+    logging = require('./logging'),
     migrations = require('./data/migration'),
     versioning = require('./data/schema/versioning'),
     models = require('./models'),
@@ -119,6 +120,11 @@ function init(options) {
 
         // ## Middleware and Routing
         middleware(parentApp);
+
+        // TODO: make configurable
+        logging.default.init({
+            transports: ['file']
+        });
 
         // Log all theme errors and warnings
         validateThemes(config.paths.themePath)

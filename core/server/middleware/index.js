@@ -2,9 +2,9 @@ var bodyParser      = require('body-parser'),
     compress        = require('compression'),
     config          = require('../config'),
     errors          = require('../errors'),
+    logging         = require('../logging'),
     express         = require('express'),
     hbs             = require('express-hbs'),
-    logger          = require('morgan'),
     path            = require('path'),
     routes          = require('../routes'),
     serveStatic     = require('express').static,
@@ -59,8 +59,7 @@ middleware = {
 };
 
 setupMiddleware = function setupMiddleware(blogApp) {
-    var logging = config.logging,
-        corePath = config.paths.corePath,
+    var corePath = config.paths.corePath,
         adminApp = express(),
         adminHbs = hbs.create();
 
@@ -91,14 +90,35 @@ setupMiddleware = function setupMiddleware(blogApp) {
     // (X-Forwarded-Proto header will be checked, if present)
     blogApp.enable('trust proxy');
 
-    // Logging configuration
-    if (logging !== false) {
-        if (blogApp.get('env') !== 'development') {
-            blogApp.use(logger('combined', logging));
-        } else {
-            blogApp.use(logger('dev', logging));
-        }
-    }
+    adminApp.use(function(req, res, next) {
+        res.once('finish', function() {
+            // CASE: error
+            if (req.err) {
+                logging.default.error({ req: req, res: res, err: req.err });
+            }
+            // CASE: 200
+            else {
+                logging.default.request({ req: req, res: res });
+            }
+        });
+
+        next();
+    });
+
+    blogApp.use(function(req, res, next) {
+        res.once('finish', function() {
+            // CASE: error
+            if (req.err) {
+                logging.default.error({ req: req, res: res, err: req.err });
+            }
+            // CASE: 200
+            else {
+                logging.default.request({ req: req, res: res });
+            }
+        });
+
+        next();
+    });
 
     // Preload link headers
     if (config.preloadHeaders) {
