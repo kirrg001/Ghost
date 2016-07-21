@@ -123,8 +123,17 @@ function init(options) {
 
         // TODO: make configurable
         logging.default.init({
-            transports: ['file']
+            transports: ['stdout'],
+            level: 'debug'
         });
+
+        // @TODO: test plain message
+        // @TODO: test error with help/context
+        //logging.default.info('heheheheheheh');
+
+        logging.default.error({err: new errors.DatabaseVersion('ooops', 'context', 'help') });
+
+        // logging.default.error({err: new errors.DatabaseVersion('ooops', 'context', 'help') });
 
         // Log all theme errors and warnings
         validateThemes(config.paths.themePath)

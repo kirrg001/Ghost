@@ -1,5 +1,7 @@
 var bunyan = require('bunyan'),
-    lodash = require('lodash'),
+    bunyanFormat = require('bunyan-format'),
+    formatOut = bunyanFormat({ outputMode: 'long', color: true }),
+    _ = require('lodash'),
     moment = require('moment'),
     PrettyStream = require('./PrettyStream'),
     __private__ = {
@@ -8,17 +10,26 @@ var bunyan = require('bunyan'),
     };
 
 
+__private__.removeCredentials = function (obj) {
+    var newObj = {};
+
+    _.each(obj, function (value, key) {
+        if (!key.match(/pin|password|authorization|cookie/gi)) {
+            newObj[key] = value;
+        }
+    });
+
+    return newObj;
+};
+
 /**
  * we manually report an error if uncaught because...
  * if in req serializer error --> it would get reported to req.stack
  */
 __private__.serializers = {
-    meta: function(obj) {
-        return obj;
-    },
-    req: function(req) {
+    req: function (req) {
         return {
-            'headers': req.headers,
+            'headers': __private__.removeCredentials(req.headers),
             'body': req.body,
             'query': req.query,
             'url': req.url,
@@ -28,15 +39,17 @@ __private__.serializers = {
             'statusCode': req.statusCode
         };
     },
-    res: function(res) {
+    res: function (res) {
         return {
             _headers: res._headers,
             statusCode: res.statusCode
         };
     },
-    err: function(err) {
+    err: function (err) {
         return {
             name: err.name,
+            help: err.help,
+            context: err.context,
             stack: err.stack
         };
     }
@@ -44,27 +57,36 @@ __private__.serializers = {
 
 
 __private__.log = {
-    info: function(options) {
+    info: function (options) {
         var req = options.req,
             res = options.res;
 
-        lodash.each(__private__.loggers, function(logger) {
+        _.each(__private__.loggers, function (logger) {
             logger.log.info({
-                meta: __private__.meta,
                 req: req,
                 res: res,
                 index: '[' + __private__.env + '-' + __private__.indexName + '-]' + moment().format('YYYY.MM.DD')
             });
         });
     },
-    error: function(options) {
+    debug: function (options) {
+        var req = options.req,
+            res = options.res;
+
+        _.each(__private__.loggers, function (logger) {
+            logger.log.debug({
+                req: req,
+                res: res
+            });
+        });
+    },
+    error: function (options) {
         var req = options.req,
             res = options.res,
             err = options.err;
 
-        lodash.each(__private__.loggers, function(logger) {
+        _.each(__private__.loggers, function (logger) {
             logger.log.error({
-                meta: __private__.meta,
                 req: req,
                 res: res,
                 err: err,
@@ -75,11 +97,11 @@ __private__.log = {
 };
 
 
-var prettyStdOut = new PrettyStream({ printOnly: Object.keys(__private__.serializers) });
+var prettyStdOut = new PrettyStream({printOnly: Object.keys(__private__.serializers)});
 prettyStdOut.pipe(process.stdout);
 
 
-exports.init = function(options) {
+exports.init = function (options) {
     var streams = [],
         transports = options.transports,
         level = options.level || 'info',
@@ -92,7 +114,7 @@ exports.init = function(options) {
     __private__.meta = meta;
     __private__.indexName = indexName;
 
-    lodash.each(transports, function(transport) {
+    _.each(transports, function (transport) {
         if (transport === 'file') {
             streams.push({
                 name: 'file',
@@ -107,7 +129,7 @@ exports.init = function(options) {
             streams.push({
                 name: 'stdout',
                 stream: {
-                    stream: prettyStdOut,
+                    stream: formatOut,
                     level: level
                 }
             });
@@ -115,7 +137,7 @@ exports.init = function(options) {
     });
 
     // the env defines which streams are available
-    lodash.each(streams, function(stream) {
+    _.each(streams, function (stream) {
         __private__.loggers[stream.name] = {
             name: stream.name,
             log: bunyan.createLogger({
@@ -129,10 +151,10 @@ exports.init = function(options) {
 
 
 // simple message on stdout
-exports.info = function() {
+exports.info = function () {
     var print = '';
 
-    lodash.each(arguments, function(value) {
+    _.each(arguments, function (value) {
         print += value;
         print += ' ';
     });
@@ -140,19 +162,34 @@ exports.info = function() {
     __private__.loggers['stdout'].log.info(print);
 };
 
+// simple message on stdout
+exports.warn = function () {
+    var print = '';
 
-exports.error = function(options) {
+    _.each(arguments, function (value) {
+        print += value;
+        print += ' ';
+    });
+
+    __private__.loggers['stdout'].log.warn(print);
+};
+
+exports.debug = function (options) {
+    __private__.loggers['stdout'].log.debug(options);
+};
+
+exports.error = function (options) {
     var err = options.err,
         req = options.req,
         res = options.res;
 
-    __private__.log.error({ err: err, req: req, res: res });
+    __private__.log.error({err: err, req: req, res: res});
 };
 
 
-exports.request = function(options) {
+exports.request = function (options) {
     var req = options.req,
         res = options.res;
 
-    __private__.log.info({ req: req, res: res });
+    __private__.log.info({req: req, res: res});
 };

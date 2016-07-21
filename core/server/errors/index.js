@@ -281,7 +281,10 @@ errors = {
     handleAPIError: function errorHandler(err, req, res, next) {
         /*jshint unused:false */
         var httpErrors = this.formatHttpErrors(err);
-        this.logError(err);
+        //this.logError(err);
+
+        req.err = err;
+
         // Send a properly formatted HTTP response containing the errors
         res.status(httpErrors.statusCode).json({errors: httpErrors.errors});
     },
