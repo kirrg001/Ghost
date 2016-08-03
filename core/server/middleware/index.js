@@ -92,14 +92,16 @@ setupMiddleware = function setupMiddleware(blogApp) {
     passport.use(new ClientPasswordStrategy(authStrategies.clientPasswordStrategy));
     passport.use(new BearerStrategy(authStrategies.bearerStrategy));
 
-    //@TODO: how to access client credentials
+    /*
     passport.use(new GoogleOAuth2Strategy({
         clientID: '1073208478572-i0qq8cre1fdej10iukp7r56s9injmq18.apps.googleusercontent.com',
         clientSecret: 'OS829NtMMh-U0ZWI840dEFWW',
         callbackURL: 'http://localhost:2368/ghost',
         passReqToCallback: true
     }, authStrategies.ghostStrategy));
+    */
 
+    //@TODO: how to access client credentials
     passport.use(new GhostOAuth2Strategy({
         clientID: '1073208478572-i0qq8cre1fdej10iukp7r56s9injmq18.apps.googleusercontent.com',
         clientSecret: 'OS829NtMMh-U0ZWI840dEFWW',
