@@ -158,7 +158,8 @@ apiRoutes = function apiRoutes(middleware) {
 
     router.post('/authentication/ghost', [
         middleware.api.authenticateClient,
-        middleware.api.authenticateGhostUser
+        middleware.api.authenticateGhostUser,
+        api.http(api.authentication.createTokens)
     ]);
 
     router.post('/authentication/revoke', authenticatePrivate, api.http(api.authentication.revoke));

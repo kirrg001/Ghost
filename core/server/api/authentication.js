@@ -129,6 +129,34 @@ function setupTasks(setupData) {
  * **See:** [API Methods](index.js.html#api%20methods)
  */
 authentication = {
+    createTokens: function createTokens(data, options) {
+        var localAccessToken = globalUtils.uid(256),
+            localRefreshToken = globalUtils.uid(256),
+            accessExpires = Date.now() + globalUtils.ONE_HOUR_MS,
+            refreshExpires = Date.now() + globalUtils.ONE_WEEK_MS,
+            client = options.context.client_id,
+            user = options.context.user;
+
+        return dataProvider.Accesstoken.add({
+            token: localAccessToken,
+            user_id: user,
+            client_id: client,
+            expires: accessExpires
+        }).then(function () {
+            return dataProvider.Refreshtoken.add({
+                token: localRefreshToken,
+                user_id: user,
+                client_id: client,
+                expires: refreshExpires
+            });
+        }).then(function () {
+            return {
+                access_token: localAccessToken,
+                refresh_token: localRefreshToken,
+                expires_in: accessExpires
+            }
+        });
+    },
 
     /**
      * @description generate a reset token for a given email address

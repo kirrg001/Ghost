@@ -112,8 +112,11 @@ auth = {
         //@TODO: change when ember has changed
         req.query.code = req.body.username.authorizationCode;
 
-        //@TODO: replace with ghost
-        passport.authenticate('google', {session: false, failWithError: false}, function authenticate(err, user, info) {
+        if (!req.query.code) {
+            return errors.handleAPIError(new errors.UnauthorizedError(i18n.t('errors.middleware.auth.accessDenied')), req, res, next);
+        }
+
+        passport.authenticate('ghost', {session: false, failWithError: false}, function authenticate(err, user, info) {
             if (err) {
                 return next(err);
             }
@@ -122,8 +125,9 @@ auth = {
                 return errors.handleAPIError(new errors.UnauthorizedError(i18n.t('errors.middleware.auth.accessDenied')), req, res, next);
             }
 
-            // info contains tokens
-            res.json(info);
+            req.authInfo = info;
+            req.user = user;
+            next();
         })(req, res, next);
     },
 

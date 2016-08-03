@@ -61,53 +61,29 @@ strategies = {
 
     /**
      * Ghost Strategy
-     * description is coming soon...
+     * patronusRefreshToken: will be null for now, because we don't need it right now
      */
-    ghostStrategy: function ghostStrategy(req, ghostAccessToken, ghostRefreshToken, profile, done) {
-        //@TODO: when ghost passport plugin is finished it will return the email in profile
-        profile.email = 'katharina.irrgang@gmail.com';
-
-        //@TODO: oauth middleware is doing the same...
-        var localAccessToken = utils.uid(256),
-            localRefreshToken = utils.uid(256),
-            accessExpires = Date.now() + utils.ONE_HOUR_MS,
-            refreshExpires = Date.now() + utils.ONE_WEEK_MS,
-            user;
+    ghostStrategy: function ghostStrategy(req, patronusAccessToken, patronusRefreshToken, profile, done) {
+        var user;
 
         models.User.findOne({email: profile.email})
             .then(function (_user) {
                 user = _user;
 
                 if (!user) {
-                    throw new errors.NotFoundError();
+                    return done(null, false);
                 }
 
-                return models.User.edit({ghost_token: ghostAccessToken}, {id: user.id});
+                return models.User.edit({patronus_access_token: patronusAccessToken}, {id: user.id});
             })
             .then(function (_user) {
                 user = _user;
 
                 if (!user) {
-                    throw new errors.NotFoundError();
+                    return done(null, false);
                 }
 
-                return models.Accesstoken.add({
-                    token: localAccessToken,
-                    user_id: user.id,
-                    client_id: req.client.id,
-                    expires: accessExpires
-                });
-            })
-            .then(function () {
-                return models.Refreshtoken.add({
-                    token: localRefreshToken,
-                    user_id: user.id,
-                    client_id: req.client.id,
-                    expires: refreshExpires
-                });
-            })
-            .then(function () {
-                done(null, user, {access_token: localAccessToken, refresh_token: localRefreshToken});
+                done(null, user, profile);
             })
             .catch(function (err) {
                 done(err);

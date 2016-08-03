@@ -39,6 +39,7 @@ var bodyParser      = require('body-parser'),
     BearerStrategy          = require('passport-http-bearer').Strategy,
     // @TODO: replace with ghost passport
     GoogleOAuth2Strategy    = require('passport-google-oauth2').Strategy,
+    GhostOAuth2Strategy     = require('passport-ghost').Strategy,
 
     middleware,
     setupMiddleware;
@@ -91,12 +92,21 @@ setupMiddleware = function setupMiddleware(blogApp) {
     passport.use(new ClientPasswordStrategy(authStrategies.clientPasswordStrategy));
     passport.use(new BearerStrategy(authStrategies.bearerStrategy));
 
-    //@TODO: put to config
+    //@TODO: how to access client credentials
     passport.use(new GoogleOAuth2Strategy({
         clientID: '1073208478572-i0qq8cre1fdej10iukp7r56s9injmq18.apps.googleusercontent.com',
         clientSecret: 'OS829NtMMh-U0ZWI840dEFWW',
         callbackURL: 'http://localhost:2368/ghost',
         passReqToCallback: true
+    }, authStrategies.ghostStrategy));
+
+    passport.use(new GhostOAuth2Strategy({
+        clientID: '1073208478572-i0qq8cre1fdej10iukp7r56s9injmq18.apps.googleusercontent.com',
+        clientSecret: 'OS829NtMMh-U0ZWI840dEFWW',
+        callbackURL: 'http://localhost:2368/ghost',
+        passReqToCallback: true,
+        tokenURL: 'http://localhost:8080/oauth2/token',
+        userProfileURL: 'http://localhost:8080/oauth2/userinfo'
     }, authStrategies.ghostStrategy));
 
     oauth.init();
