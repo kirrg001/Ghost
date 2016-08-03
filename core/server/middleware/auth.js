@@ -109,8 +109,7 @@ auth = {
     },
 
     authenticateGhostUser: function authenticateGhostUser(req, res, next) {
-        //@TODO: change when ember has changed
-        req.query.code = req.body.username.authorizationCode;
+        req.query.code = req.body.authorizationCode;
 
         if (!req.query.code) {
             return errors.handleAPIError(new errors.UnauthorizedError(i18n.t('errors.middleware.auth.accessDenied')), req, res, next);
