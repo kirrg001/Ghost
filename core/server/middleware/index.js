@@ -37,6 +37,8 @@ var bodyParser      = require('body-parser'),
 
     ClientPasswordStrategy  = require('passport-oauth2-client-password').Strategy,
     BearerStrategy          = require('passport-http-bearer').Strategy,
+    // @TODO: replace with ghost passport
+    GoogleOAuth2Strategy    = require('passport-google-oauth2').Strategy,
 
     middleware,
     setupMiddleware;
@@ -50,6 +52,7 @@ middleware = {
     api: {
         authenticateClient: auth.authenticateClient,
         authenticateUser: auth.authenticateUser,
+        authenticateGhostUser: auth.authenticateGhostUser,
         requiresAuthorizedUser: auth.requiresAuthorizedUser,
         requiresAuthorizedUserPublicAPI: auth.requiresAuthorizedUserPublicAPI,
         errorHandler: errors.handleAPIError,
@@ -87,6 +90,15 @@ setupMiddleware = function setupMiddleware(blogApp) {
     // Initialize Auth Handlers & OAuth middleware
     passport.use(new ClientPasswordStrategy(authStrategies.clientPasswordStrategy));
     passport.use(new BearerStrategy(authStrategies.bearerStrategy));
+
+    //@TODO: put to config
+    passport.use(new GoogleOAuth2Strategy({
+        clientID: '1073208478572-i0qq8cre1fdej10iukp7r56s9injmq18.apps.googleusercontent.com',
+        clientSecret: 'OS829NtMMh-U0ZWI840dEFWW',
+        callbackURL: 'http://localhost:2368/ghost',
+        passReqToCallback: true
+    }, authStrategies.ghostStrategy));
+
     oauth.init();
 
     // Make sure 'req.secure' is valid for proxied requests

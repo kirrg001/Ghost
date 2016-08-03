@@ -1,8 +1,8 @@
-var passport    = require('passport'),
-    errors      = require('../errors'),
-    events      = require('../events'),
-    labs        = require('../utils/labs'),
-    i18n        = require('../i18n'),
+var passport = require('passport'),
+    errors = require('../errors'),
+    events = require('../events'),
+    labs = require('../utils/labs'),
+    i18n = require('../i18n'),
 
     auth;
 
@@ -106,6 +106,25 @@ auth = {
                 return errors.handleAPIError(new errors.UnauthorizedError(i18n.t('errors.middleware.auth.accessDenied')), req, res, next);
             }
         )(req, res, next);
+    },
+
+    authenticateGhostUser: function authenticateGhostUser(req, res, next) {
+        //@TODO: change when ember has changed
+        req.query.code = req.body.username.authorizationCode;
+
+        //@TODO: replace with ghost
+        passport.authenticate('google', {session: false, failWithError: false}, function authenticate(err, user, info) {
+            if (err) {
+                return next(err);
+            }
+
+            if (!user) {
+                return errors.handleAPIError(new errors.UnauthorizedError(i18n.t('errors.middleware.auth.accessDenied')), req, res, next);
+            }
+
+            // info contains tokens
+            res.json(info);
+        })(req, res, next);
     },
 
     // Workaround for missing permissions

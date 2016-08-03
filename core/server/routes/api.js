@@ -1,6 +1,7 @@
 // # API routes
 var express     = require('express'),
     api         = require('../api'),
+    passport = require('passport'),
     apiRoutes;
 
 apiRoutes = function apiRoutes(middleware) {
@@ -154,6 +155,12 @@ apiRoutes = function apiRoutes(middleware) {
         middleware.api.authenticateClient,
         middleware.oauth.generateAccessToken
     );
+
+    router.post('/authentication/ghost', [
+        middleware.api.authenticateClient,
+        middleware.api.authenticateGhostUser
+    ]);
+
     router.post('/authentication/revoke', authenticatePrivate, api.http(api.authentication.revoke));
 
     // ## Uploads

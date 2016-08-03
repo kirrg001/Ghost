@@ -1,4 +1,6 @@
 var models = require('../models'),
+    utils  = require('../utils'),
+    errors  = require('../errors'),
     strategies;
 
 strategies = {
@@ -54,6 +56,61 @@ strategies = {
                 } else {
                     return done(null, false);
                 }
+            });
+    },
+
+    /**
+     * Ghost Strategy
+     * description is coming soon...
+     */
+    ghostStrategy: function ghostStrategy(req, ghostAccessToken, ghostRefreshToken, profile, done) {
+        //@TODO: when ghost passport plugin is finished it will return the email in profile
+        profile.email = 'katharina.irrgang@gmail.com';
+
+        //@TODO: oauth middleware is doing the same...
+        var localAccessToken = utils.uid(256),
+            localRefreshToken = utils.uid(256),
+            accessExpires = Date.now() + utils.ONE_HOUR_MS,
+            refreshExpires = Date.now() + utils.ONE_WEEK_MS,
+            user;
+
+        models.User.findOne({email: profile.email})
+            .then(function (_user) {
+                user = _user;
+
+                if (!user) {
+                    throw new errors.NotFoundError();
+                }
+
+                return models.User.edit({ghost_token: ghostAccessToken}, {id: user.id});
+            })
+            .then(function (_user) {
+                user = _user;
+
+                if (!user) {
+                    throw new errors.NotFoundError();
+                }
+
+                return models.Accesstoken.add({
+                    token: localAccessToken,
+                    user_id: user.id,
+                    client_id: req.client.id,
+                    expires: accessExpires
+                });
+            })
+            .then(function () {
+                return models.Refreshtoken.add({
+                    token: localRefreshToken,
+                    user_id: user.id,
+                    client_id: req.client.id,
+                    expires: refreshExpires
+                });
+            })
+            .then(function () {
+                done(null, user, {access_token: localAccessToken, refresh_token: localRefreshToken});
+            })
+            .catch(function (err) {
+                done(err);
             });
     }
 };
