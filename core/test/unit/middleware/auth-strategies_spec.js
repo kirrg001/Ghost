@@ -211,7 +211,7 @@ describe('Auth Strategies', function () {
 
         it('with invite, but with wrong invite token', function (done) {
             var patronusAccessToken = '12345',
-                req = {body: {token: 'nein'}},
+                req = {body: {inviteToken: 'nein'}},
                 profile = {email: 'kate@ghost.org'};
 
             userByEmailStub.returns(Promise.resolve(null));
@@ -232,7 +232,7 @@ describe('Auth Strategies', function () {
 
         it('with correct invite token, but expired', function (done) {
             var patronusAccessToken = '12345',
-                req = {body: {token: 'token'}},
+                req = {body: {inviteToken: 'token'}},
                 profile = {email: 'kate@ghost.org'};
 
             userByEmailStub.returns(Promise.resolve(null));
@@ -258,7 +258,7 @@ describe('Auth Strategies', function () {
 
         it('with correct invite token', function (done) {
             var patronusAccessToken = '12345',
-                req = {body: {token: 'token'}},
+                req = {body: {inviteToken: 'token'}},
                 profile = {email: 'kate@ghost.org'},
                 user = {id: 2};
 

@@ -74,9 +74,10 @@ strategies = {
      * @TODO: validate profile?
      */
     ghostStrategy: function ghostStrategy(req, patronusAccessToken, patronusRefreshToken, profile, done) {
-        var inviteToken = req.body.token,
+        var inviteToken = req.body.inviteToken,
             options = {context: {internal: true}};
 
+        console.log(profile);
         return models.User.getByEmail(profile.email_address, options)
             .then(function (user) {
                 if (user) {
