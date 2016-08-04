@@ -71,12 +71,13 @@ strategies = {
      * @TODO: case protect self invite (check first if invite token exists)
      * @TODO: delete pwd when we have deleted the old code
      * @TODO: forward type (invite, signup)
+     * @TODO: validate profile?
      */
     ghostStrategy: function ghostStrategy(req, patronusAccessToken, patronusRefreshToken, profile, done) {
         var inviteToken = req.body.token,
             options = {context: {internal: true}};
 
-        return models.User.getByEmail(profile.email, options)
+        return models.User.getByEmail(profile.email_address, options)
             .then(function (user) {
                 if (user) {
                     return Promise.resolve(user);
@@ -102,7 +103,7 @@ strategies = {
                     })
                     .then(function (user) {
                         return user;
-                    })
+                    });
             })
             .then(function (user) {
                 return models.User.edit({patronus_access_token: patronusAccessToken}, {id: user.id});
