@@ -1,6 +1,7 @@
-var models = require('../models'),
-    utils  = require('../utils'),
-    errors  = require('../errors'),
+var Promise = require('bluebird'),
+    models = require('../models'),
+    utils = require('../utils'),
+    errors = require('../errors'),
     strategies;
 
 strategies = {
@@ -62,23 +63,51 @@ strategies = {
     /**
      * Ghost Strategy
      * patronusRefreshToken: will be null for now, because we don't need it right now
+     *
+     * Two cases handled:
+     * - invite token
+     * - no invite token (which is normal auth)
+     *
+     * @TODO: case protect self invite (check first if invite token exists)
+     * @TODO: delete pwd when we have deleted the old code
+     * @TODO: forward type (invite, signup)
      */
     ghostStrategy: function ghostStrategy(req, patronusAccessToken, patronusRefreshToken, profile, done) {
-        var user;
+        var inviteToken = req.body.token,
+            options = {context: {internal: true}};
 
-        models.User.findOne({email: profile.email})
-            .then(function (_user) {
-                user = _user;
+        return models.User.getByEmail(profile.email, options)
+            .then(function (user) {
+                if (user) {
+                    return Promise.resolve(user);
+                }
 
-                if (!user) {
+                if (!inviteToken) {
                     return done(null, false);
                 }
 
+                return models.Invite.findOne({token: inviteToken}, options)
+                    .then(function (invite) {
+                        if (invite.get('expires') < Date.now()) {
+                            return done(null, false);
+                        }
+
+                        //@TODO: profile.name
+                        return models.User.add({
+                            email: profile.email,
+                            name: 'wursti',
+                            password: utils.uid(50),
+                            roles: [invite.get('role_id')]
+                        }, options);
+                    })
+                    .then(function (user) {
+                        return user;
+                    })
+            })
+            .then(function (user) {
                 return models.User.edit({patronus_access_token: patronusAccessToken}, {id: user.id});
             })
-            .then(function (_user) {
-                user = _user;
-
+            .then(function (user) {
                 if (!user) {
                     return done(null, false);
                 }
