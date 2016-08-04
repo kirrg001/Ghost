@@ -77,9 +77,6 @@ strategies = {
         var inviteToken = req.body.inviteToken,
             options = {context: {internal: true}};
 
-        //@TODO: reconsider how we are doing that
-        inviteToken = utils.decodeBase64URLsafe(inviteToken);
-
         console.log(profile);
 
         return models.User.getByEmail(profile.email_address, options)
@@ -91,6 +88,9 @@ strategies = {
                 if (!inviteToken) {
                     return done(null, false);
                 }
+
+                //@TODO: reconsider how we are doing that
+                inviteToken = utils.decodeBase64URLsafe(inviteToken);
 
                 console.log(inviteToken);
                 return models.Invite.findOne({token: inviteToken}, options)
