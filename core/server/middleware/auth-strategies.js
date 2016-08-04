@@ -77,7 +77,11 @@ strategies = {
         var inviteToken = req.body.inviteToken,
             options = {context: {internal: true}};
 
+        //@TODO: reconsider how we are doing that
+        inviteToken = utils.decodeBase64URLsafe(inviteToken);
+
         console.log(profile);
+
         return models.User.getByEmail(profile.email_address, options)
             .then(function (user) {
                 if (user) {
@@ -88,15 +92,18 @@ strategies = {
                     return done(null, false);
                 }
 
+                console.log(inviteToken);
                 return models.Invite.findOne({token: inviteToken}, options)
                     .then(function (invite) {
+                        console.log(invite);
+
                         if (invite.get('expires') < Date.now()) {
                             return done(null, false);
                         }
 
                         //@TODO: profile.name
                         return models.User.add({
-                            email: profile.email,
+                            email: profile.email_address,
                             name: 'wursti',
                             password: utils.uid(50),
                             roles: [invite.get('role_id')]
