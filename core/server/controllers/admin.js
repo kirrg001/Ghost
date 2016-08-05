@@ -17,7 +17,8 @@ adminControllers = {
             var configuration,
                 fetch = {
                     configuration: api.configuration.read().then(function (res) { return res.configuration[0]; }),
-                    client: api.clients.read({slug: 'ghost-admin'}).then(function (res) { return res.clients[0]; })
+                    client: api.clients.read({slug: 'ghost-admin'}).then(function (res) { return res.clients[0]; }),
+                    patronus: api.clients.read({slug: 'patronus'}).then(function (res) { return res.clients[0]; })
                 };
 
             return Promise.props(fetch).then(function renderIndex(result) {
@@ -25,6 +26,7 @@ adminControllers = {
 
                 configuration.clientId = {value: result.client.slug, type: 'string'};
                 configuration.clientSecret = {value: result.client.secret, type: 'string'};
+                configuration.patronusId = {value: result.patronus.uuid, type: 'string'};
 
                 res.render('default', {
                     configuration: configuration
