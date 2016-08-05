@@ -19,7 +19,7 @@ exports.init = function (options) {
         }
 
         var ghostOAuth2Strategy = new GhostOAuth2Strategy({
-            callbackURL: config.getBaseUrl() + '/ghost',
+            callbackURL: config.getBaseUrl() + '/ghost/',
             tokenURL: 'http://localhost:8080/oauth2/token',
             registerURL: 'http://localhost:8080/oauth2/client',
             userProfileURL: 'http://localhost:8080/oauth2/userinfo',
