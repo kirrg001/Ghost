@@ -76,7 +76,7 @@ describe('redirectToSetup', function () {
         });
 
         res = {redirect: sinon.spy()};
-        req.path = '/ghost/';
+        req.path = '/';
         req.query = {code: 'authCode'};
 
         next = sinon.spy(function () {
