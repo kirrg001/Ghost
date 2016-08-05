@@ -92,16 +92,14 @@ strategies = {
                 //@TODO: reconsider how we are doing that
                 inviteToken = utils.decodeBase64URLsafe(inviteToken);
 
-                console.log(inviteToken);
                 return models.Invite.findOne({token: inviteToken}, options)
                     .then(function (invite) {
-                        console.log(invite);
-
                         if (invite.get('expires') < Date.now()) {
                             return done(null, false);
                         }
 
                         //@TODO: profile.name
+                        //@TODO: remove invite
                         return models.User.add({
                             email: profile.email_address,
                             name: 'wursti',

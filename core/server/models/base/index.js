@@ -429,6 +429,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     add: function add(data, options) {
         data = this.filterData(data);
         options = this.filterOptions(options, 'add');
+
         var model = this.forge(data);
 
         // We allow you to disable timestamps when importing posts so that the new posts `updated_at` value is the same
