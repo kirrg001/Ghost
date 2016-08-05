@@ -69,4 +69,22 @@ describe('redirectToSetup', function () {
 
         redirectToSetup(req, res, next);
     });
+
+    it('should not redirect oauth authorization requests', function (done) {
+        sandbox.stub(api.authentication, 'isSetup', function () {
+            return Promise.resolve({setup: [{status: false}]});
+        });
+
+        res = {redirect: sinon.spy()};
+        req.path = '/ghost/';
+        req.query = {code: 'authCode'};
+
+        next = sinon.spy(function () {
+            next.called.should.be.true();
+            res.redirect.called.should.be.false();
+            done();
+        });
+
+        redirectToSetup(req, res, next);
+    });
 });
