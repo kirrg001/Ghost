@@ -1,8 +1,9 @@
 var should = require('should'),
     sinon = require('sinon'),
     Promise = require('bluebird'),
+    _ = require('lodash'),
 
-    authStrategies = require('../../../server/middleware/auth-strategies'),
+    authStrategies = require('../../../server/auth/auth-strategies'),
     Models = require('../../../server/models'),
     errors = require('../../../server/errors'),
     globalUtils = require('../../../server/utils'),
@@ -200,10 +201,11 @@ describe('Auth Strategies', function () {
     });
 
     describe('Ghost Strategy', function () {
-        var userByEmailStub, inviteStub, userAddStub, userEditStub;
+        var userByEmailStub, inviteStub, userAddStub, userEditStub, userFindOneStub;
 
         beforeEach(function () {
             userByEmailStub = sandbox.stub(Models.User, 'getByEmail');
+            userFindOneStub = sandbox.stub(Models.User, 'findOne');
             userAddStub = sandbox.stub(Models.User, 'add');
             userEditStub = sandbox.stub(Models.User, 'edit');
             inviteStub = sandbox.stub(Models.Invite, 'findOne');
@@ -212,7 +214,7 @@ describe('Auth Strategies', function () {
         it('with invite, but with wrong invite token', function (done) {
             var patronusAccessToken = '12345',
                 req = {body: {inviteToken: 'nein'}},
-                profile = {email: 'kate@ghost.org'};
+                profile = {email_address: 'kate@ghost.org'};
 
             userByEmailStub.returns(Promise.resolve(null));
             inviteStub.returns(Promise.reject(new errors.NotFoundError()));
@@ -233,7 +235,7 @@ describe('Auth Strategies', function () {
         it('with correct invite token, but expired', function (done) {
             var patronusAccessToken = '12345',
                 req = {body: {inviteToken: 'token'}},
-                profile = {email: 'kate@ghost.org'};
+                profile = {email_address: 'kate@ghost.org'};
 
             userByEmailStub.returns(Promise.resolve(null));
             inviteStub.returns(Promise.resolve(Models.Invite.forge({
@@ -259,7 +261,7 @@ describe('Auth Strategies', function () {
         it('with correct invite token', function (done) {
             var patronusAccessToken = '12345',
                 req = {body: {inviteToken: 'token'}},
-                profile = {email: 'kate@ghost.org'},
+                profile = {email_address: 'kate@ghost.org'},
                 user = {id: 2};
 
             userByEmailStub.returns(Promise.resolve(null));
@@ -280,6 +282,33 @@ describe('Auth Strategies', function () {
                     next.firstCall.args.length.should.eql(3);
                     should.equal(next.firstCall.args[0], null);
                     next.firstCall.args[1].should.eql(user);
+                    next.firstCall.args[2].should.eql(profile);
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('setup', function (done) {
+            var patronusAccessToken = '12345',
+                req = {body: {}},
+                profile = {email_address: 'kate@ghost.org'},
+                owner = {id: 2};
+
+            userByEmailStub.returns(Promise.resolve(null));
+            userFindOneStub.returns(Promise.resolve(_.merge({}, {status: 'inactive'}, owner)));
+            //userAddStub.returns(Promise.resolve(owner));
+            userEditStub.withArgs({status: 'active', email: 'kate@ghost.org'}, { context: { internal: true }, id: 2}).returns(Promise.resolve(owner));
+            userEditStub.withArgs({patronus_access_token: patronusAccessToken}, { context: { internal: true }, id: 2}).returns(Promise.resolve(owner));
+
+            authStrategies.ghostStrategy(req, patronusAccessToken, null, profile, next)
+                .then(function () {
+                    userByEmailStub.calledOnce.should.be.true();
+                    inviteStub.calledOnce.should.be.false();
+
+                    next.called.should.be.true();
+                    next.firstCall.args.length.should.eql(3);
+                    should.equal(next.firstCall.args[0], null);
+                    next.firstCall.args[1].should.eql(owner);
                     next.firstCall.args[2].should.eql(profile);
                     done();
                 })
