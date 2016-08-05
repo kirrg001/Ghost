@@ -103,8 +103,6 @@ setupMiddleware = function setupMiddleware(blogApp) {
 
     //@TODO: how to access client credentials
     passport.use(new GhostOAuth2Strategy({
-        clientID: '1073208478572-i0qq8cre1fdej10iukp7r56s9injmq18.apps.googleusercontent.com',
-        clientSecret: 'OS829NtMMh-U0ZWI840dEFWW',
         callbackURL: 'http://localhost:2368/ghost',
         passReqToCallback: true,
         tokenURL: 'http://localhost:8080/oauth2/token',
