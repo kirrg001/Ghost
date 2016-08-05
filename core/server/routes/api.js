@@ -1,6 +1,7 @@
 // # API routes
 var express     = require('express'),
     api         = require('../api'),
+    auth        = require('../auth'),
     passport = require('passport'),
     apiRoutes;
 
@@ -153,7 +154,7 @@ apiRoutes = function apiRoutes(middleware) {
     router.post('/authentication/token',
         middleware.spamPrevention.signin,
         middleware.api.authenticateClient,
-        middleware.oauth.generateAccessToken
+        auth.oauth.generateAccessToken
     );
 
     router.post('/authentication/ghost', [

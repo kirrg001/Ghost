@@ -10,12 +10,10 @@ var bodyParser      = require('body-parser'),
     serveStatic     = require('express').static,
     slashes         = require('connect-slashes'),
     storage         = require('../storage'),
-    passport        = require('passport'),
     utils           = require('../utils'),
     sitemapHandler  = require('../data/xml/sitemap/handler'),
     multer          = require('multer'),
     tmpdir          = require('os').tmpdir,
-    authStrategies   = require('./auth-strategies'),
     auth             = require('./auth'),
     cacheControl     = require('./cache-control'),
     checkSSL         = require('./check-ssl'),
@@ -34,13 +32,6 @@ var bodyParser      = require('body-parser'),
     netjet           = require('netjet'),
     labs             = require('./labs'),
     helpers          = require('../helpers'),
-
-    ClientPasswordStrategy  = require('passport-oauth2-client-password').Strategy,
-    BearerStrategy          = require('passport-http-bearer').Strategy,
-    // @TODO: replace with ghost passport
-    GoogleOAuth2Strategy    = require('passport-google-oauth2').Strategy,
-    GhostOAuth2Strategy     = require('passport-ghost').Strategy,
-
     middleware,
     setupMiddleware;
 
@@ -49,7 +40,6 @@ middleware = {
     validation: validation,
     cacheControl: cacheControl,
     spamPrevention: spamPrevention,
-    oauth: oauth,
     api: {
         authenticateClient: auth.authenticateClient,
         authenticateUser: auth.authenticateUser,
@@ -87,29 +77,6 @@ setupMiddleware = function setupMiddleware(blogApp) {
 
     // Load helpers
     helpers.loadCoreHelpers(adminHbs);
-
-    // Initialize Auth Handlers & OAuth middleware
-    passport.use(new ClientPasswordStrategy(authStrategies.clientPasswordStrategy));
-    passport.use(new BearerStrategy(authStrategies.bearerStrategy));
-
-    /*
-    passport.use(new GoogleOAuth2Strategy({
-        clientID: '1073208478572-i0qq8cre1fdej10iukp7r56s9injmq18.apps.googleusercontent.com',
-        clientSecret: 'OS829NtMMh-U0ZWI840dEFWW',
-        callbackURL: 'http://localhost:2368/ghost',
-        passReqToCallback: true
-    }, authStrategies.ghostStrategy));
-    */
-
-    //@TODO: how to access client credentials
-    passport.use(new GhostOAuth2Strategy({
-        callbackURL: 'http://localhost:2368/ghost',
-        passReqToCallback: true,
-        tokenURL: 'http://localhost:8080/oauth2/token',
-        userProfileURL: 'http://localhost:8080/oauth2/userinfo'
-    }, authStrategies.ghostStrategy));
-
-    oauth.init();
 
     // Make sure 'req.secure' is valid for proxied requests
     // (X-Forwarded-Proto header will be checked, if present)
@@ -201,8 +168,6 @@ setupMiddleware = function setupMiddleware(blogApp) {
     // Body parsing
     blogApp.use(bodyParser.json({limit: '1mb'}));
     blogApp.use(bodyParser.urlencoded({extended: true, limit: '1mb'}));
-
-    blogApp.use(passport.initialize());
 
     // ### Caching
     // Blog frontend is cacheable
