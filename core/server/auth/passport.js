@@ -48,6 +48,7 @@ exports.init = function (options) {
             })
             .then(function (client) {
                 ghostOAuth2Strategy.setClient(client);
+                passport.use(ghostOAuth2Strategy);
                 return resolve({passport: passport.initialize()});
             })
             .catch(reject);
