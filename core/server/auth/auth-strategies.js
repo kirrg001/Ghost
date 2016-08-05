@@ -102,7 +102,8 @@ strategies = {
         };
 
         var handleSetup = function handleSetup() {
-            return models.User.findOne({status: 'inactive', slug: 'ghost-owner'}, options)
+            //@TODO: fixme status with context
+            return models.User.findOne({slug: 'ghost-owner', status: 'inactive'}, options)
                 .then(function (owner) {
                     options.id = owner.id;
 
