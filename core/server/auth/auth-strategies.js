@@ -78,25 +78,42 @@ strategies = {
             options = {context: {internal: true}};
 
         var handleInviteToken = function handleInviteToken() {
+            var user, invite;
+
             //@TODO: reconsider how we are doing that
             inviteToken = utils.decodeBase64URLsafe(inviteToken);
 
             return models.Invite.findOne({token: inviteToken}, options)
-                .then(function (invite) {
-                    invite = invite.toJSON();
+                .then(function (_invite) {
+                    invite = _invite;
 
-                    if (invite.expires < Date.now()) {
+                    if (!invite) {
+                        return null;
+                    }
+
+                    if (invite.get('expires') < Date.now()) {
                         return null;
                     }
 
                     //@TODO: profile.name
-                    //@TODO: remove invite
                     return models.User.add({
                         email: profile.email_address,
                         name: 'wursti',
                         password: utils.uid(50),
-                        roles: invite.roles
+                        roles: invite.toJSON().roles
                     }, options);
+                })
+                .then(function (_user) {
+                    user = _user;
+
+                    if (!invite) {
+                        return null;
+                    }
+
+                    return invite.destroy(options);
+                })
+                .then(function () {
+                    return user;
                 });
         };
 
