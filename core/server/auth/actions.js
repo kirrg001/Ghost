@@ -1,10 +1,29 @@
-var passport = require('passport');
+var passport = require('passport'),
+    Promise = require('bluebird');
 
 //@TODO: rename this to ghost strategy and offer functions
-exports.changePassword = function (options) {
-    var accessToken = options.accessToken,
-        oldPassword = options.oldPassword,
-        newPassword = options.newPassword;
+exports.changePassword = function changePassword(req, res, next) {
+    var accessToken = req.accessToken,
+        password = req.body.password[0],
+        oldPassword = password.oldPassword,
+        newPassword = password.newPassword;
 
-    return passport._strategies.ghost.changePassword(options);
+    passport._strategies.ghost.changePassword({
+        accessToken: accessToken,
+        oldPassword: oldPassword,
+        newPassword: newPassword
+    }, next);
+};
+
+exports.userProfile = function userProfile(req, res, next) {
+    var accessToken = req.accessToken;
+
+    passport._strategies.ghost.userProfile(accessToken, function (err, profile) {
+        if (err) {
+            return next(err);
+        }
+
+        req.profile = profile;
+        next();
+    });
 };

@@ -69,7 +69,7 @@ strategies = {
      * - no invite token (which is normal auth)
      *
      * @TODO: case protect self invite (check first if invite token exists)
-     * @TODO: delete pwd when we have deleted the old code
+     * @TODO: password_digest is send from patronus - tell
      * @TODO: forward type (invite, signup)
      * @TODO: validate profile?
      */

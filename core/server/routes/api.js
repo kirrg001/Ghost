@@ -1,5 +1,6 @@
 // # API routes
 var express = require('express'),
+    _ = require('lodash'),
     api = require('../api'),
     auth = require('../auth'),
     models = require('../models'),
@@ -24,12 +25,18 @@ apiRoutes = function apiRoutes(middleware) {
             middleware.api.cors
         ],
         //@TODO middleware
-        authenticateMethod = function(authenticateNext) {
-            return function (req, res, next) {
-                if (config.auth.type !== 'patronus') {
-                    return next();
-                }
+        authType = function (nextHandlers) {
+            var executeNextHandler = function (nextHandlers, req, res, next) {
+                nextHandlers.pop()(req, res, function (err) {
+                    if (err) {
+                        return next(err);
+                    }
 
+                    executeNextHandler(nextHandlers, req, res, next);
+                });
+            };
+
+            var fetchPatronusToken = function fetchPatronusToken(req, res, next) {
                 models.User.findOne({id: req.user.id})
                     .then(function (user) {
                         if (!user) {
@@ -44,16 +51,21 @@ apiRoutes = function apiRoutes(middleware) {
 
                         //@TODO: owner
                         //@TODO: why do we only return req.user.id from auth middleware
-                        return authenticateNext({
-                            oldPassword: req.body.password[0].oldPassword,
-                            newPassword: req.body.password[0].newPassword,
-                            accessToken: user.get('patronus_access_token')
-                        });
-                    })
-                    .then(function () {
-                        res.json({});
+                        req.accessToken = user.get('patronus_access_token');
+                        next();
                     })
                     .catch(next);
+            };
+
+            return function (req, res, next) {
+                if (config.auth.type !== 'patronus') {
+                    nextHandlers['patronus'].reverse();
+                    return executeNextHandler(nextHandlers['password'], req, res, next);
+                }
+
+                nextHandlers['patronus'].reverse();
+                nextHandlers['patronus'].push(fetchPatronusToken);
+                executeNextHandler(nextHandlers['patronus'], req, res, next);
             }
         };
 
@@ -95,14 +107,87 @@ apiRoutes = function apiRoutes(middleware) {
     // ## Users
     router.get('/users', authenticatePublic, api.http(api.users.browse));
 
-    router.get('/users/:id', authenticatePublic, api.http(api.users.read));
-    router.get('/users/slug/:slug', authenticatePublic, api.http(api.users.read));
-    router.get('/users/email/:email', authenticatePublic, api.http(api.users.read));
+    router.get('/users/:id',
+        authenticatePublic,
+        authType({
+            patronus: [
+                auth.actions.userProfile,
+                function readUser(req, res, next) {
+                    api.users.read(_.merge({}, {context: {internal: true}}, req.query))
+                        .then(function (response) {
+                            req.users = response.users;
+                            next();
+                        })
+                        .catch(next);
+                },
+                function sendResponse(req, res, next) {
+                    res.json({users: req.users, profile: req.profile});
+                }
+            ],
+            password: [
+                api.http(api.users.read)
+            ]
+        })
+    );
+    router.get('/users/slug/:slug',
+        authenticatePublic,
+        authType({
+            patronus: [
+                auth.actions.userProfile,
+                function readUser(req, res, next) {
+                    api.users.read(_.merge({}, {context: {internal: true}}, req.query))
+                        .then(function (response) {
+                            req.users = response.users;
+                            next();
+                        })
+                        .catch(next);
+                },
+                function sendResponse(req, res, next) {
+                    res.json({users: req.users, profile: req.profile});
+                }
+            ],
+            password: [
+                api.http(api.users.read)
+            ]
+        })
+    );
+    router.get('/users/email/:email',
+        authenticatePublic,
+        authType({
+            patronus: [
+                auth.actions.userProfile,
+                function readUser(req, res, next) {
+                    api.users.read(_.merge({}, {context: {internal: true}}, req.query))
+                        .then(function (response) {
+                            req.users = response.users;
+                            next();
+                        })
+                        .catch(next);
+                },
+                function sendResponse(req, res, next) {
+                    res.json({users: req.users, profile: req.profile});
+                }
+            ],
+            password: [
+                api.http(api.users.read)
+            ]
+        })
+    );
 
+    //@TODO: better strategy is to register different handlers if auth type is patronus (ghost 1.0.0)
     router.put('/users/password',
         authenticatePrivate,
-        authenticateMethod(auth.actions.changePassword),
-        api.http(api.users.changePassword)
+        authType({
+            patronus: [
+                auth.actions.changePassword,
+                function sendResponse(req, res) {
+                    res.json({});
+                }
+            ],
+            password: [
+                api.http(api.users.read)
+            ]
+        })
     );
 
     router.put('/users/owner', authenticatePrivate, api.http(api.users.transferOwnership));
