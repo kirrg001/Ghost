@@ -1,8 +1,9 @@
 // # API routes
-var express     = require('express'),
-    api         = require('../api'),
-    auth        = require('../auth'),
-    config      = require('../config'),
+var express = require('express'),
+    api = require('../api'),
+    auth = require('../auth'),
+    models = require('../models'),
+    config = require('../config'),
     passport = require('passport'),
     apiRoutes;
 
@@ -22,13 +23,37 @@ apiRoutes = function apiRoutes(middleware) {
             middleware.api.requiresAuthorizedUser,
             middleware.api.cors
         ],
+        //@TODO middleware
         authenticateMethod = function(authenticateNext) {
             return function (req, res, next) {
                 if (config.auth.type !== 'patronus') {
                     return next();
                 }
 
-                authenticateNext(req, res, next);
+                models.User.findOne({id: req.user.id})
+                    .then(function (user) {
+                        if (!user) {
+                            //@TODO: replace
+                            return next(new Error('no user found'));
+                        }
+
+                        if (!user.get('patronus_access_token')) {
+                            //@TODO: replace
+                            return next(new Error('access denied'));
+                        }
+
+                        //@TODO: owner
+                        //@TODO: why do we only return req.user.id from auth middleware
+                        return authenticateNext({
+                            oldPassword: req.body.password[0].oldPassword,
+                            newPassword: req.body.password[0].newPassword,
+                            accessToken: user.get('patronus_access_token')
+                        });
+                    })
+                    .then(function () {
+                        res.json({});
+                    })
+                    .catch(next);
             }
         };
 
@@ -105,7 +130,7 @@ apiRoutes = function apiRoutes(middleware) {
     router.get('/subscribers/:id', middleware.api.labs.subscribers, authenticatePrivate, api.http(api.subscribers.read));
     router.post('/subscribers', middleware.api.labs.subscribers, authenticatePublic, api.http(api.subscribers.add));
     router.put('/subscribers/:id', middleware.api.labs.subscribers, authenticatePrivate, api.http(api.subscribers.edit));
-    router.del('/subscribers/:id',  middleware.api.labs.subscribers, authenticatePrivate, api.http(api.subscribers.destroy));
+    router.del('/subscribers/:id', middleware.api.labs.subscribers, authenticatePrivate, api.http(api.subscribers.destroy));
 
     // ## Roles
     router.get('/roles/', authenticatePrivate, api.http(api.roles.browse));

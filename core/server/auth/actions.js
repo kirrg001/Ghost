@@ -1,7 +1,10 @@
 var passport = require('passport');
 
-exports.changePassword = function (req, res, next) {
-    console.log("LOL");
+//@TODO: rename this to ghost strategy and offer functions
+exports.changePassword = function (options) {
+    var accessToken = options.accessToken,
+        oldPassword = options.oldPassword,
+        newPassword = options.newPassword;
 
-    next();
+    return passport._strategies.ghost.changePassword(options);
 };

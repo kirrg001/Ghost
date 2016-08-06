@@ -107,7 +107,6 @@ strategies = {
                 .then(function (owner) {
                     options.id = owner.id;
 
-                    console.log(profile);
                     return models.User.edit({
                         email: profile.email_address,
                         status: 'active'
@@ -136,6 +135,8 @@ strategies = {
                 }
 
                 options.id = user.id;
+
+                //@TODO: only store for owner?
                 return models.User.edit({patronus_access_token: patronusAccessToken}, options);
             })
             .then(function (user) {

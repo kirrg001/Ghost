@@ -24,6 +24,7 @@ exports.init = function (options) {
             tokenURL: 'http://localhost:8080/oauth2/token',
             registerURL: 'http://localhost:8080/oauth2/client',
             userProfileURL: 'http://localhost:8080/oauth2/userinfo',
+            changePasswordURL: 'http://localhost:8080/oauth2/password',
             passReqToCallback: true
         }, authStrategies.ghostStrategy);
 
