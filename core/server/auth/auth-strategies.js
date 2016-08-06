@@ -83,9 +83,13 @@ strategies = {
 
             return models.Invite.findOne({token: inviteToken}, options)
                 .then(function (invite) {
-                    if (invite.get('expires') < Date.now()) {
+                    invite = invite.toJSON();
+
+                    if (invite.expires < Date.now()) {
                         return null;
                     }
+
+                    console.log(invite.roles);
 
                     //@TODO: profile.name
                     //@TODO: remove invite
@@ -93,11 +97,8 @@ strategies = {
                         email: profile.email_address,
                         name: 'wursti',
                         password: utils.uid(50),
-                        roles: [invite.get('role_id')]
+                        roles: invite.roles
                     }, options);
-                })
-                .then(function (user) {
-                    return user;
                 });
         };
 

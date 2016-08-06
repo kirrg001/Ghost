@@ -26,13 +26,13 @@ apiRoutes = function apiRoutes(middleware) {
         ],
         //@TODO middleware
         authType = function (nextHandlers) {
-            var executeNextHandler = function (nextHandlers, req, res, next) {
-                nextHandlers.pop()(req, res, function (err) {
+            var executeNextHandler = function (handlers, req, res, next) {
+                handlers.pop()(req, res, function (err) {
                     if (err) {
                         return next(err);
                     }
 
-                    executeNextHandler(nextHandlers, req, res, next);
+                    executeNextHandler(handlers, req, res, next);
                 });
             };
 
@@ -58,14 +58,16 @@ apiRoutes = function apiRoutes(middleware) {
             };
 
             return function (req, res, next) {
+                var nextHandlersClone = _.cloneDeep(nextHandlers);
+
                 if (config.auth.type !== 'patronus') {
-                    nextHandlers['patronus'].reverse();
-                    return executeNextHandler(nextHandlers['password'], req, res, next);
+                    nextHandlersClone['patronus'].reverse();
+                    return executeNextHandler(nextHandlersClone['password'], req, res, next);
                 }
 
-                nextHandlers['patronus'].reverse();
-                nextHandlers['patronus'].push(fetchPatronusToken);
-                executeNextHandler(nextHandlers['patronus'], req, res, next);
+                nextHandlersClone['patronus'].reverse();
+                nextHandlersClone['patronus'].push(fetchPatronusToken);
+                executeNextHandler(nextHandlersClone['patronus'], req, res, next);
             }
         };
 
@@ -113,7 +115,7 @@ apiRoutes = function apiRoutes(middleware) {
             patronus: [
                 auth.actions.userProfile,
                 function readUser(req, res, next) {
-                    api.users.read(_.merge({}, {context: {internal: true}}, req.query))
+                    api.users.read(_.merge({}, {context: {internal: true}}, req.query, req.user))
                         .then(function (response) {
                             req.users = response.users;
                             next();
@@ -135,7 +137,7 @@ apiRoutes = function apiRoutes(middleware) {
             patronus: [
                 auth.actions.userProfile,
                 function readUser(req, res, next) {
-                    api.users.read(_.merge({}, {context: {internal: true}}, req.query))
+                    api.users.read(_.merge({}, {context: {internal: true}}, req.query, req.user))
                         .then(function (response) {
                             req.users = response.users;
                             next();
@@ -157,7 +159,7 @@ apiRoutes = function apiRoutes(middleware) {
             patronus: [
                 auth.actions.userProfile,
                 function readUser(req, res, next) {
-                    api.users.read(_.merge({}, {context: {internal: true}}, req.query))
+                    api.users.read(_.merge({}, {context: {internal: true}}, req.query, req.user))
                         .then(function (response) {
                             req.users = response.users;
                             next();
@@ -174,22 +176,7 @@ apiRoutes = function apiRoutes(middleware) {
         })
     );
 
-    //@TODO: better strategy is to register different handlers if auth type is patronus (ghost 1.0.0)
-    router.put('/users/password',
-        authenticatePrivate,
-        authType({
-            patronus: [
-                auth.actions.changePassword,
-                function sendResponse(req, res) {
-                    res.json({});
-                }
-            ],
-            password: [
-                api.http(api.users.read)
-            ]
-        })
-    );
-
+    router.put('/users/password', authenticatePrivate, api.http(api.users.changePassword));
     router.put('/users/owner', authenticatePrivate, api.http(api.users.transferOwnership));
     router.put('/users/:id', authenticatePrivate, api.http(api.users.edit));
     router.del('/users/:id', authenticatePrivate, api.http(api.users.destroy));
