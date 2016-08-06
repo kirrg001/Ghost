@@ -146,7 +146,7 @@ auth = {
 
                 //@TODO: owner
                 //@TODO: why do we only return req.user.id from auth middleware
-                req.accessToken = user.get('patronus_access_token');
+                req.query.accessToken = user.get('patronus_access_token');
                 next();
             })
             .catch(next);

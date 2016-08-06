@@ -1,5 +1,7 @@
 var ghost,
-    usersAPI = require('./users');
+    usersAPI = require('./users'),
+    Promise = require('bluebird'),
+    request = require('superagent');
 
 ghost = {
     getUserProfile: function getUserProfile(options) {
@@ -14,7 +16,17 @@ ghost = {
 
     //@TODO: move to moya
     getBilling: function getBilling(options) {
-        throw new Error('implement me');
+        return new Promise(function (resolve, reject) {
+            request.get('http://daisy-url/billing')
+                .query('access_token=' + options.access_token)
+                .end(function (err, response) {
+                    if (err) {
+                        return reject(err);
+                    }
+
+                    resolve(response);
+                })
+        });
     }
 };
 

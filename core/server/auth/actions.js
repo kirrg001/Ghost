@@ -3,7 +3,7 @@ var passport = require('passport'),
 
 //@TODO: ghost strategy module
 exports.userProfile = function userProfile(req, res, next) {
-    var accessToken = req.accessToken;
+    var accessToken = req.query.accessToken;
 
     passport._strategies.ghost.userProfile(accessToken, function (err, profile) {
         if (err) {
