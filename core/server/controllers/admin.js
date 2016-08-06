@@ -19,7 +19,12 @@ adminControllers = {
                     configuration: api.configuration.read().then(function (res) { return res.configuration[0]; }),
                     client: api.clients.read({slug: 'ghost-admin'}).then(function (res) { return res.clients[0]; }),
                     //@TODO: this doesn't work if type is password, because then the client does not exist and the whole initial request fails
-                    patronus: api.clients.read({slug: 'patronus'}).then(function (res) { return res.clients[0]; })
+                    patronus: api.clients.read({slug: 'patronus'})
+                        .then(function (res) { return res.clients[0]; })
+                        .catch(function (err) {
+                            //ignore
+                            return;
+                        })
                 };
 
             return Promise.props(fetch).then(function renderIndex(result) {
@@ -27,7 +32,10 @@ adminControllers = {
 
                 configuration.clientId = {value: result.client.slug, type: 'string'};
                 configuration.clientSecret = {value: result.client.secret, type: 'string'};
-                configuration.patronusId = {value: result.patronus.uuid, type: 'string'};
+
+                if (result.patronus) {
+                    configuration.patronusId = {value: result.patronus.uuid, type: 'string'};
+                }
 
                 res.render('default', {
                     configuration: configuration
