@@ -89,8 +89,6 @@ strategies = {
                         return null;
                     }
 
-                    console.log(invite.roles);
-
                     //@TODO: profile.name
                     //@TODO: remove invite
                     return models.User.add({

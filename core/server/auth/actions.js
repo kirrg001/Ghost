@@ -1,20 +1,7 @@
 var passport = require('passport'),
     Promise = require('bluebird');
 
-//@TODO: rename this to ghost strategy and offer functions
-exports.changePassword = function changePassword(req, res, next) {
-    var accessToken = req.accessToken,
-        password = req.body.password[0],
-        oldPassword = password.oldPassword,
-        newPassword = password.newPassword;
-
-    passport._strategies.ghost.changePassword({
-        accessToken: accessToken,
-        oldPassword: oldPassword,
-        newPassword: newPassword
-    }, next);
-};
-
+//@TODO: ghost strategy module
 exports.userProfile = function userProfile(req, res, next) {
     var accessToken = req.accessToken;
 
@@ -23,7 +10,7 @@ exports.userProfile = function userProfile(req, res, next) {
             return next(err);
         }
 
-        req.profile = profile;
+        req.query.profile = profile;
         next();
     });
 };

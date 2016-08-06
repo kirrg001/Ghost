@@ -20,6 +20,7 @@ var _              = require('lodash'),
     invites        = require('./invites'),
     clients        = require('./clients'),
     users          = require('./users'),
+    ghost          = require('./ghost'),
     slugs          = require('./slugs'),
     themes         = require('./themes'),
     subscribers    = require('./subscribers'),
@@ -294,7 +295,8 @@ module.exports = {
     uploads: uploads,
     slack: slack,
     themes: themes,
-    invites: invites
+    invites: invites,
+    ghost: ghost
 };
 
 /**

@@ -12,64 +12,18 @@ apiRoutes = function apiRoutes(middleware) {
     var router = express.Router(),
         // Authentication for public endpoints
         authenticatePublic = [
-            middleware.api.authenticateClient,
-            middleware.api.authenticateUser,
-            middleware.api.requiresAuthorizedUserPublicAPI,
+            auth.authenticate.authenticateClient,
+            auth.authenticate.authenticateUser,
+            auth.authorize.requiresAuthorizedUserPublicAPI,
             middleware.api.cors
         ],
         // Require user for private endpoints
         authenticatePrivate = [
-            middleware.api.authenticateClient,
-            middleware.api.authenticateUser,
-            middleware.api.requiresAuthorizedUser,
+            auth.authenticate.authenticateClient,
+            auth.authenticate.authenticateUser,
+            auth.authorize.requiresAuthorizedUser,
             middleware.api.cors
-        ],
-        //@TODO middleware
-        authType = function (nextHandlers) {
-            var executeNextHandler = function (handlers, req, res, next) {
-                handlers.pop()(req, res, function (err) {
-                    if (err) {
-                        return next(err);
-                    }
-
-                    executeNextHandler(handlers, req, res, next);
-                });
-            };
-
-            var fetchPatronusToken = function fetchPatronusToken(req, res, next) {
-                models.User.findOne({id: req.user.id})
-                    .then(function (user) {
-                        if (!user) {
-                            //@TODO: replace
-                            return next(new Error('no user found'));
-                        }
-
-                        if (!user.get('patronus_access_token')) {
-                            //@TODO: replace
-                            return next(new Error('access denied'));
-                        }
-
-                        //@TODO: owner
-                        //@TODO: why do we only return req.user.id from auth middleware
-                        req.accessToken = user.get('patronus_access_token');
-                        next();
-                    })
-                    .catch(next);
-            };
-
-            return function (req, res, next) {
-                var nextHandlersClone = _.cloneDeep(nextHandlers);
-
-                if (config.auth.type !== 'patronus') {
-                    nextHandlersClone['patronus'].reverse();
-                    return executeNextHandler(nextHandlersClone['password'], req, res, next);
-                }
-
-                nextHandlersClone['patronus'].reverse();
-                nextHandlersClone['patronus'].push(fetchPatronusToken);
-                executeNextHandler(nextHandlersClone['patronus'], req, res, next);
-            }
-        };
+        ];
 
     // alias delete with del
     router.del = router.delete;
@@ -99,7 +53,10 @@ apiRoutes = function apiRoutes(middleware) {
     router.del('/posts/:id', authenticatePrivate, api.http(api.posts.destroy));
 
     // ## Schedules
-    router.put('/schedules/posts/:id', [middleware.api.authenticateClient, middleware.api.authenticateUser], api.http(api.schedules.publishPost));
+    router.put('/schedules/posts/:id', [
+        auth.authenticate.authenticateClient,
+        auth.authenticate.authenticateUser
+    ], api.http(api.schedules.publishPost));
 
     // ## Settings
     router.get('/settings', authenticatePrivate, api.http(api.settings.browse));
@@ -110,70 +67,57 @@ apiRoutes = function apiRoutes(middleware) {
     router.get('/users', authenticatePublic, api.http(api.users.browse));
 
     router.get('/users/:id',
-        authenticatePublic,
-        authType({
-            patronus: [
-                auth.actions.userProfile,
-                function readUser(req, res, next) {
-                    api.users.read(_.merge({}, {context: {internal: true}}, req.query, req.user))
-                        .then(function (response) {
-                            req.users = response.users;
-                            next();
-                        })
-                        .catch(next);
-                },
-                function sendResponse(req, res, next) {
-                    res.json({users: req.users, profile: req.profile});
-                }
-            ],
-            password: [
+        (function () {
+            if (config.auth.type === 'patronus') {
+                return [
+                    authenticatePublic,
+                    auth.authenticate.fetchPatronusAccessToken,
+                    auth.actions.userProfile,
+                    api.http(api.ghost.getUserProfile)
+                ];
+            }
+
+            return [
+                authenticatePublic,
                 api.http(api.users.read)
-            ]
-        })
+            ];
+        })()
     );
     router.get('/users/slug/:slug',
         authenticatePublic,
-        authType({
-            patronus: [
-                auth.actions.userProfile,
-                function readUser(req, res, next) {
-                    api.users.read(_.merge({}, {context: {internal: true}}, req.query, req.user))
-                        .then(function (response) {
-                            req.users = response.users;
-                            next();
-                        })
-                        .catch(next);
-                },
-                function sendResponse(req, res, next) {
-                    res.json({users: req.users, profile: req.profile});
-                }
-            ],
-            password: [
+        (function () {
+            if (config.auth.type === 'patronus') {
+                return [
+                    authenticatePublic,
+                    auth.authenticate.fetchPatronusAccessToken,
+                    auth.actions.userProfile,
+                    api.http(api.ghost.getUserProfile)
+                ];
+            }
+
+            return [
+                authenticatePublic,
                 api.http(api.users.read)
-            ]
-        })
+            ];
+        })()
     );
     router.get('/users/email/:email',
         authenticatePublic,
-        authType({
-            patronus: [
-                auth.actions.userProfile,
-                function readUser(req, res, next) {
-                    api.users.read(_.merge({}, {context: {internal: true}}, req.query, req.user))
-                        .then(function (response) {
-                            req.users = response.users;
-                            next();
-                        })
-                        .catch(next);
-                },
-                function sendResponse(req, res, next) {
-                    res.json({users: req.users, profile: req.profile});
-                }
-            ],
-            password: [
+        (function () {
+            if (config.auth.type === 'patronus') {
+                return [
+                    authenticatePublic,
+                    auth.authenticate.fetchPatronusAccessToken,
+                    auth.actions.userProfile,
+                    api.http(api.ghost.getUserProfile)
+                ];
+            }
+
+            return [
+                authenticatePublic,
                 api.http(api.users.read)
-            ]
-        })
+            ];
+        })()
     );
 
     router.put('/users/password', authenticatePrivate, api.http(api.users.changePassword));
@@ -266,22 +210,22 @@ apiRoutes = function apiRoutes(middleware) {
     router.get('/authentication/setup', api.http(api.authentication.isSetup));
     router.post('/authentication/token',
         middleware.spamPrevention.signin,
-        middleware.api.authenticateClient,
+        auth.authenticate.authenticateClient,
         auth.oauth.generateAccessToken
     );
 
     router.post('/authentication/ghost', [
-        middleware.api.authenticateClient,
-        middleware.api.authenticateGhostUser,
+        auth.authenticate.authenticateClient,
+        auth.authenticate.authenticateGhostUser,
         api.http(api.authentication.createTokens)
     ]);
 
-    //pwd reset
-    //profile
-    // --> AS --> self and pro
-
-    //get billing
-    //--> daisy --> pro (moya!)
+    //@TODO: move to moya
+    router.get('/billing',
+        auth.authenticate.authenticateClient,
+        auth.authenticate.authenticateUser,
+        api.http(api.ghost.getBilling)
+    );
 
     router.post('/authentication/revoke', authenticatePrivate, api.http(api.authentication.revoke));
 

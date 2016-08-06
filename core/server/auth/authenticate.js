@@ -1,6 +1,7 @@
 var passport = require('passport'),
     errors = require('../errors'),
     events = require('../events'),
+    models = require('../models'),
     labs = require('../utils/labs'),
     i18n = require('../i18n'),
 
@@ -130,27 +131,25 @@ auth = {
         })(req, res, next);
     },
 
-    // Workaround for missing permissions
-    // TODO: rework when https://github.com/TryGhost/Ghost/issues/3911 is  done
-    requiresAuthorizedUser: function requiresAuthorizedUser(req, res, next) {
-        if (req.user && req.user.id) {
-            return next();
-        } else {
-            return errors.handleAPIError(new errors.NoPermissionError(i18n.t('errors.middleware.auth.pleaseSignIn')), req, res, next);
-        }
-    },
+    fetchPatronusAccessToken: function fetchPatronusAccessToken(req, res, next) {
+        models.User.findOne({id: req.user.id}, {context: {internal: true}})
+            .then(function (user) {
+                if (!user) {
+                    //@TODO: replace
+                    return next(new Error('no user found'));
+                }
 
-    // ### Require user depending on public API being activated.
-    requiresAuthorizedUserPublicAPI: function requiresAuthorizedUserPublicAPI(req, res, next) {
-        if (labs.isSet('publicAPI') === true) {
-            return next();
-        } else {
-            if (req.user && req.user.id) {
-                return next();
-            } else {
-                return errors.handleAPIError(new errors.NoPermissionError(i18n.t('errors.middleware.auth.pleaseSignIn')), req, res, next);
-            }
-        }
+                if (!user.get('patronus_access_token')) {
+                    //@TODO: replace
+                    return next(new Error('access denied'));
+                }
+
+                //@TODO: owner
+                //@TODO: why do we only return req.user.id from auth middleware
+                req.accessToken = user.get('patronus_access_token');
+                next();
+            })
+            .catch(next);
     }
 };
 
