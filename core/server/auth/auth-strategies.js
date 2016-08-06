@@ -107,6 +107,7 @@ strategies = {
                 .then(function (owner) {
                     options.id = owner.id;
 
+                    console.log(profile);
                     return models.User.edit({
                         email: profile.email_address,
                         status: 'active'

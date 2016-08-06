@@ -7,8 +7,9 @@ var ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy
     config = require('../config'),
     models = require('../models');
 
+//@TODO: if patronus is not running, node doesnt start
 exports.init = function (options) {
-    var type = options.type || 'password';
+    var type = options.type;
 
     return new Promise(function (resolve, reject) {
         passport.use(new ClientPasswordStrategy(authStrategies.clientPasswordStrategy));
@@ -44,7 +45,13 @@ exports.init = function (options) {
                             uuid: credentials.client_id,
                             secret: credentials.client_secret
                         }, {context: {internal: true}});
-                    });
+                    })
+                    .then(function (client) {
+                        return {
+                            client_id: client.get('uuid'),
+                            client_secret: client.get('secret')
+                        }
+                    })
             })
             .then(function (client) {
                 ghostOAuth2Strategy.setClient(client);

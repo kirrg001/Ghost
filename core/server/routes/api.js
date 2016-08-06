@@ -2,6 +2,7 @@
 var express     = require('express'),
     api         = require('../api'),
     auth        = require('../auth'),
+    config      = require('../config'),
     passport = require('passport'),
     apiRoutes;
 
@@ -20,7 +21,16 @@ apiRoutes = function apiRoutes(middleware) {
             middleware.api.authenticateUser,
             middleware.api.requiresAuthorizedUser,
             middleware.api.cors
-        ];
+        ],
+        authenticateMethod = function(authenticateNext) {
+            return function (req, res, next) {
+                if (config.auth.type !== 'patronus') {
+                    return next();
+                }
+
+                authenticateNext(req, res, next);
+            }
+        };
 
     // alias delete with del
     router.del = router.delete;
@@ -63,7 +73,13 @@ apiRoutes = function apiRoutes(middleware) {
     router.get('/users/:id', authenticatePublic, api.http(api.users.read));
     router.get('/users/slug/:slug', authenticatePublic, api.http(api.users.read));
     router.get('/users/email/:email', authenticatePublic, api.http(api.users.read));
-    router.put('/users/password', authenticatePrivate, api.http(api.users.changePassword));
+
+    router.put('/users/password',
+        authenticatePrivate,
+        authenticateMethod(auth.actions.changePassword),
+        api.http(api.users.changePassword)
+    );
+
     router.put('/users/owner', authenticatePrivate, api.http(api.users.transferOwnership));
     router.put('/users/:id', authenticatePrivate, api.http(api.users.edit));
     router.del('/users/:id', authenticatePrivate, api.http(api.users.destroy));
@@ -162,6 +178,13 @@ apiRoutes = function apiRoutes(middleware) {
         middleware.api.authenticateGhostUser,
         api.http(api.authentication.createTokens)
     ]);
+
+    //pwd reset
+    //profile
+    // --> AS --> self and pro
+
+    //get billing
+    //--> daisy --> pro (moya!)
 
     router.post('/authentication/revoke', authenticatePrivate, api.http(api.authentication.revoke));
 

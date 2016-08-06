@@ -121,8 +121,7 @@ function init(options) {
                 });
             });
 
-        //@TODO: read from config (type is password or patronus)
-        return auth.init({type: 'patronus'})
+        return auth.init(config.auth)
             .then(function (response) {
                 parentApp.use(response.auth);
             });

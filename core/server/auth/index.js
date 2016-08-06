@@ -1,4 +1,5 @@
 var passport = require('./passport'),
+    actions = require('./actions'),
     oauth = require('./oauth');
 
 exports.init = function (options) {
@@ -11,3 +12,4 @@ exports.init = function (options) {
 };
 
 exports.oauth = oauth;
+exports.actions = actions;

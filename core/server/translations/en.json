@@ -27,7 +27,7 @@
                 }
             },
             "clients": {
-                "clientNotFound": "Client not found"
+                "clientNotFound": "Client not found."
             }
         }
     },

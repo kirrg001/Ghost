@@ -10,6 +10,7 @@
         "contentPath": "content/"
     },
     "auth": {
+        "type": "patronus",
         "urls": {
             "tokenURL": "http://patronus.ghostfoundation.org:8080/oauth2/token",
             "registerURL": "http://patronus.ghostfoundation.org:8080/oauth2/client",
