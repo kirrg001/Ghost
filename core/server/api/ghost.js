@@ -4,7 +4,7 @@ var ghost,
     request = require('superagent');
 
 ghost = {
-    getUserProfile: function getUserProfile(options) {
+    getProfile: function getUserProfile(options) {
         return usersAPI.read(options)
             .then(function (response) {
                 return {
@@ -12,6 +12,12 @@ ghost = {
                     profile: options.profile
                 };
             })
+    },
+
+    updateProfile: function () {
+        return new Promise(function (resolve) {
+            resolve();
+        });
     },
 
     //@TODO: move to moya

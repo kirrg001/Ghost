@@ -72,8 +72,8 @@ apiRoutes = function apiRoutes(middleware) {
                 return [
                     authenticatePublic,
                     auth.authenticate.fetchPatronusAccessToken,
-                    auth.actions.userProfile,
-                    api.http(api.ghost.getUserProfile)
+                    auth.actions.getProfile,
+                    api.http(api.ghost.getProfile)
                 ];
             }
 
@@ -89,8 +89,8 @@ apiRoutes = function apiRoutes(middleware) {
                 return [
                     authenticatePublic,
                     auth.authenticate.fetchPatronusAccessToken,
-                    auth.actions.userProfile,
-                    api.http(api.ghost.getUserProfile)
+                    auth.actions.getProfile,
+                    api.http(api.ghost.getProfile)
                 ];
             }
 
@@ -106,8 +106,8 @@ apiRoutes = function apiRoutes(middleware) {
                 return [
                     authenticatePublic,
                     auth.authenticate.fetchPatronusAccessToken,
-                    auth.actions.userProfile,
-                    api.http(api.ghost.getUserProfile)
+                    auth.actions.getProfile,
+                    api.http(api.ghost.getProfile)
                 ];
             }
 
@@ -120,7 +120,27 @@ apiRoutes = function apiRoutes(middleware) {
 
     router.put('/users/password', authenticatePrivate, api.http(api.users.changePassword));
     router.put('/users/owner', authenticatePrivate, api.http(api.users.transferOwnership));
-    router.put('/users/:id', authenticatePrivate, api.http(api.users.edit));
+
+    router.put('/users/:id',
+        (function () {
+            //@TODO: finish before release or comment out
+            if (config.auth.type === 'patronus') {
+                return [
+                    authenticatePrivate,
+                    auth.authenticate.fetchPatronusAccessToken,
+                    auth.actions.updateProfile,
+                    api.http(api.ghost.updateProfile)
+                ];
+            }
+
+            return [
+                authenticatePrivate,
+                api.http(api.users.edit)
+            ];
+        })()
+    );
+
+    router.post('/users', authenticatePrivate, api.http(api.users.add));
     router.del('/users/:id', authenticatePrivate, api.http(api.users.destroy));
 
     // ## Tags
@@ -219,12 +239,14 @@ apiRoutes = function apiRoutes(middleware) {
     ]);
 
     //@TODO: move to moya
+    /*
     router.get('/billing',
         auth.authenticate.authenticateClient,
         auth.authenticate.authenticateUser,
         auth.authenticate.fetchPatronusAccessToken,
         api.http(api.ghost.getBilling)
     );
+    */
 
     router.post('/authentication/revoke', authenticatePrivate, api.http(api.authentication.revoke));
 
