@@ -70,7 +70,10 @@ _private.registerClient = function (ghostOAuth2Strategy) {
 };
 
 exports.init = function (options) {
-    var type = options.type;
+    console.log('auth options', options);
+
+    var type = options.type,
+        urls = options.urls || {};
 
     return new Promise(function (resolve, reject) {
         passport.use(new ClientPasswordStrategy(authStrategies.clientPasswordStrategy));
@@ -82,10 +85,10 @@ exports.init = function (options) {
 
         var ghostOAuth2Strategy = new GhostOAuth2Strategy({
             callbackURL: config.getBaseUrl() + '/ghost/',
-            tokenURL: 'http://localhost:8080/oauth2/token',
-            registerURL: 'http://localhost:8080/oauth2/client',
-            userProfileURL: 'http://localhost:8080/oauth2/userinfo',
-            changePasswordURL: 'http://localhost:8080/oauth2/password',
+            tokenURL: urls.tokenURL || 'http://localhost:8080/oauth2/token',
+            registerURL: urls.registerURL || 'http://localhost:8080/oauth2/client',
+            userProfileURL: urls.userProfileURL || 'http://localhost:8080/oauth2/userinfo',
+            changePasswordURL: urls.changePasswordURL || 'http://localhost:8080/oauth2/password',
             passReqToCallback: true
         }, authStrategies.ghostStrategy);
 
