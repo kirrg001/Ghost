@@ -232,6 +232,7 @@ http = function http(apiMethod) {
                 context: {
                     user: ((req.user && req.user.id) || (req.user && req.user.id === 0)) ? req.user.id : null,
                     client: (req.client && req.client.slug) ? req.client.slug : null,
+                    //@TODO: client_id?
                     client_id: (req.client && req.client.id) ? req.client.id : null
                 }
             });
