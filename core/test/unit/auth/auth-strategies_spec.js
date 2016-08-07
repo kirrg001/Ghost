@@ -262,16 +262,18 @@ describe('Auth Strategies', function () {
             var patronusAccessToken = '12345',
                 req = {body: {inviteToken: 'token'}},
                 profile = {email_address: 'kate@ghost.org'},
-                user = {id: 2};
+                user = {id: 2},
+                inviteModel = Models.Invite.forge({
+                    id: 1,
+                    token: 'token',
+                    expires: Date.now() + 1000
+                });
 
             userByEmailStub.returns(Promise.resolve(null));
             userAddStub.returns(Promise.resolve(user));
             userEditStub.returns(Promise.resolve(user));
-            inviteStub.returns(Promise.resolve(Models.Invite.forge({
-                id: 1,
-                token: 'token',
-                expires: Date.now() + 1000
-            })));
+            inviteStub.returns(Promise.resolve(inviteModel));
+            sandbox.stub(inviteModel, 'destroy').returns(Promise.resolve());
 
             authStrategies.ghostStrategy(req, patronusAccessToken, null, profile, next)
                 .then(function () {

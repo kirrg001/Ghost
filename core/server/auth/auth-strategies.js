@@ -86,7 +86,6 @@ strategies = {
             return models.Invite.findOne({token: inviteToken}, options)
                 .then(function (_invite) {
                     invite = _invite;
-
                     if (!invite) {
                         return null;
                     }
@@ -105,7 +104,7 @@ strategies = {
                 .then(function (_user) {
                     user = _user;
 
-                    if (!invite) {
+                    if (!invite || !user) {
                         return null;
                     }
 

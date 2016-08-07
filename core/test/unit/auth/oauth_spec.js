@@ -2,7 +2,7 @@ var sinon            = require('sinon'),
     should           = require('should'),
     Promise          = require('bluebird'),
 
-    oAuth            = require('../../../server/middleware/oauth'),
+    oAuth            = require('../../../server/auth/oauth'),
     Models           = require('../../../server/models');
 
 describe('OAuth', function () {
