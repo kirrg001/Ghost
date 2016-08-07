@@ -123,7 +123,9 @@ apiRoutes = function apiRoutes(middleware) {
 
     router.put('/users/:id',
         (function () {
-            //@TODO: finish before release or comment out
+            /*
+            //@TODO: is allowed: update email, update name
+            //@TODO: figure out later
             if (config.auth.type === 'patronus') {
                 return [
                     authenticatePrivate,
@@ -132,6 +134,7 @@ apiRoutes = function apiRoutes(middleware) {
                     api.http(api.ghost.updateProfile)
                 ];
             }
+            */
 
             return [
                 authenticatePrivate,

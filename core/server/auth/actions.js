@@ -15,6 +15,7 @@ exports.getProfile = function userProfile(req, res, next) {
     });
 };
 
+/*
 exports.updateProfile = function userProfile(req, res, next) {
     var accessToken = req.query.accessToken;
 
@@ -27,3 +28,4 @@ exports.updateProfile = function userProfile(req, res, next) {
         next();
     });
 };
+*/
