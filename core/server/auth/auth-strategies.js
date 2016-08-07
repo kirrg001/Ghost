@@ -95,10 +95,9 @@ strategies = {
                         return null;
                     }
 
-                    //@TODO: profile.name
                     return models.User.add({
                         email: profile.email_address,
-                        name: 'wursti',
+                        name: profile.email_address,
                         password: utils.uid(50),
                         roles: invite.toJSON().roles
                     }, options);
