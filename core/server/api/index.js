@@ -6,6 +6,7 @@
 
 var _              = require('lodash'),
     Promise        = require('bluebird'),
+    stream         = require('stream'),
     config         = require('../config'),
     configuration  = require('./configuration'),
     db             = require('./db'),
@@ -198,6 +199,13 @@ addHeaders = function addHeaders(apiMethod, req, res, result) {
             });
     }
 
+    if (apiMethod === themes.download) {
+        res.set({
+            'Content-disposition': 'attachment; filename=theme.zip',
+            'Content-Type': 'application/zip'
+        });
+    }
+
     return contentDisposition;
 };
 
@@ -236,10 +244,16 @@ http = function http(apiMethod) {
             if (req.method === 'DELETE') {
                 return res.status(204).end();
             }
+
             // Keep CSV header and formatting
             if (res.get('Content-Type') && res.get('Content-Type').indexOf('text/csv') === 0) {
                 return res.status(200).send(response);
             }
+
+            if (response instanceof stream.Readable) {
+                return response.pipe(res);
+            }
+
             // Send a properly formatting HTTP response containing the data with correct headers
             res.json(response || {});
         }).catch(function onAPIError(error) {

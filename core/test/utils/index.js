@@ -241,6 +241,8 @@ fixtures = {
         // grab 3 more users
         var extraUsers = DataGenerator.Content.users.slice(2, 5);
 
+        console.log();
+
         extraUsers = _.map(extraUsers, function (user) {
             return DataGenerator.forKnex.createUser(_.extend({}, user, {
                 email: 'a' + user.email,
@@ -518,6 +520,7 @@ setup = function setup() {
 doAuth = function doAuth() {
     var options = arguments,
         request = arguments[0],
+        userIndex = arguments[1],
         fixtureOps;
 
     // Remove request from this list
@@ -533,7 +536,7 @@ doAuth = function doAuth() {
     fixtureOps = getFixtureOps(options);
 
     return sequence(fixtureOps).then(function () {
-        return login(request);
+        return login(request, userIndex);
     });
 };
 
