@@ -255,12 +255,10 @@ themes = {
                 return {themes: [theme]};
             })
             .finally(function () {
-                //remove uploaded zip
+                //remove uploaded zip from multer
                 fs.removeSync(zip.path);
 
-                //remove extracted dir
-                //@TODO: theme.path is a relative path?
-                //@TODO: recursive dir remove, because /uuid/zip-name
+                //remove extracted dir from gscan
                 if (theme) {
                     fs.removeSync(theme.path);
                 }
