@@ -520,7 +520,6 @@ setup = function setup() {
 doAuth = function doAuth() {
     var options = arguments,
         request = arguments[0],
-        userIndex = arguments[1],
         fixtureOps;
 
     // Remove request from this list
@@ -536,7 +535,7 @@ doAuth = function doAuth() {
     fixtureOps = getFixtureOps(options);
 
     return sequence(fixtureOps).then(function () {
-        return login(request, userIndex);
+        return login(request);
     });
 };
 
