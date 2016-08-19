@@ -101,7 +101,16 @@ apiRoutes = function apiRoutes(middleware) {
 
     // ## Themes
     router.get('/themes', authenticatePrivate, api.http(api.themes.browse));
+    router.post('/themes/upload',
+        authenticatePrivate,
+        middleware.upload.single('theme'),
+        middleware.validation.upload({type: 'themes'}),
+        api.http(api.themes.upload)
+    );
+
+    router.get('/themes/download', authenticatePrivate, api.http(api.themes.download));
     router.put('/themes/:name', authenticatePrivate, api.http(api.themes.edit));
+    //router.del('/themes/:name', authenticatePrivate, api.http(api.themes.destroy));
 
     // ## Notifications
     router.get('/notifications', authenticatePrivate, api.http(api.notifications.browse));
