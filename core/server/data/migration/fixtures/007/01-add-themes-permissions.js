@@ -1,4 +1,5 @@
 var utils = require('../utils'),
+    permissions = require('../../../../permissions'),
     resource = 'theme';
 
 function getPermissions() {
@@ -26,5 +27,7 @@ module.exports = function addThemePermissions(options, logger) {
         return utils.addFixturesForRelation(relationToAdd, options);
     }).then(function (result) {
         printResult(logger, result, 'Adding permissions_roles fixtures for ' + resource + 's');
+    }).then(function () {
+        return permissions.init(options);
     });
 };
