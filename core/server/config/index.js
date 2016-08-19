@@ -78,12 +78,6 @@ ConfigManager.prototype.init = function (rawConfig) {
     // just the object appropriate for this NODE_ENV
     self.set(rawConfig);
 
-    return this.loadThemesAndApps();
-};
-
-ConfigManager.prototype.loadThemesAndApps = function () {
-    var self = this;
-
     return Promise.all([readThemes(self._config.paths.themePath), readDirectory(self._config.paths.appPath)]).then(function (paths) {
         self._config.paths.availableThemes = paths[0];
         self._config.paths.availableApps = paths[1];
