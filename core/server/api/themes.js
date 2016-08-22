@@ -127,6 +127,33 @@ themes = {
                 var stream = fs.createReadStream(zipPath);
                 return stream;
             })
+    },
+
+    //@TODO: replace sync operations
+    destroy: function destroy(options) {
+        var name = options.name, theme;
+
+        return utils.handlePermissions('themes', 'destroy')(options)
+            .then(function () {
+                if (name === 'casper') {
+                    throw new errors.ValidationError(i18n.t('errors.api.themes.overrideCasper'));
+                }
+
+                theme = config.paths.availableThemes[name];
+
+                if (!theme) {
+                    throw new errors.NotFoundError(i18n.t('errors.api.themes.themeDoesNotExist'));
+                }
+
+                fs.removeSync(config.paths.themePath + '/' + name);
+                fs.removeSync(config.paths.themePath + '/' + name + '.zip');
+
+                return config.loadThemes();
+
+            })
+            .then(function () {
+                return settings.updateSettingsCache();
+            });
     }
 };
 

@@ -129,6 +129,19 @@ describe('Themes API', function () {
                     done();
                 });
         });
+
+        it('delete theme uuid', function (done) {
+            request.del(testUtils.API.getApiQuery('themes/valid'))
+                .set('Authorization', 'Bearer ' + scope.ownerAccessToken)
+                .expect(204)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    done();
+                });
+        });
     });
 
     describe('error cases', function () {
@@ -156,6 +169,32 @@ describe('Themes API', function () {
                     res.statusCode.should.eql(422);
                     res.body.errors.length.should.eql(1);
                     res.body.errors[0].message.should.eql('Please rename your zip, it\'s not allowed to override the default casper theme.');
+                    done();
+                });
+        });
+
+        it('delete casper', function (done) {
+            request.del(testUtils.API.getApiQuery('themes/casper'))
+                .set('Authorization', 'Bearer ' + scope.ownerAccessToken)
+                .expect(422)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    done();
+                });
+        });
+
+        it('delete not existent theme', function (done) {
+            request.del(testUtils.API.getApiQuery('themes/not-existent'))
+                .set('Authorization', 'Bearer ' + scope.ownerAccessToken)
+                .expect(404)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+
                     done();
                 });
         });
@@ -200,6 +239,19 @@ describe('Themes API', function () {
                     res.statusCode.should.eql(403);
                     done();
                 });
+            });
+
+            it('no permissions to delete theme', function (done) {
+                request.del(testUtils.API.getApiQuery('themes/test'))
+                    .set('Authorization', 'Bearer ' + scope.editorAccessToken)
+                    .expect(403)
+                    .end(function (err, res) {
+                        if (err) {
+                            return done(err);
+                        }
+
+                        done();
+                    });
             });
 
             it('no permissions to download theme', function (done) {
