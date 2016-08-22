@@ -45,11 +45,19 @@ themes = {
                     var validationErrors = [];
 
                     _.each(theme.results.error, function (error) {
-                        // @TODO: error.failures
-                        console.log(error.failures);
-                        validationErrors.push(new errors.ValidationError(i18n.t('errors.api.themes.invalidTheme', {reason: error.rule})));
-                    });
+                        if (error.failures) {
+                            _.each(error.failures, function (childError) {
+                                validationErrors.push(new errors.ValidationError(i18n.t('errors.api.themes.invalidTheme', {
+                                    reason: childError.ref
+                                })));
+                            });
+                        }
 
+                        validationErrors.push(new errors.ValidationError(i18n.t('errors.api.themes.invalidTheme', {
+                            reason: error.rule
+                        })));
+                    });
+                    
                     throw validationErrors;
                 }
             })
