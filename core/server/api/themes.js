@@ -25,7 +25,7 @@ themes = {
             path: options.path,
             name: options.originalname,
             shortName: options.originalname.split('.zip')[0]
-        }, theme, store = storage.getStorage();
+        }, theme, store = storage.getStorage('themes');
 
         // Check if zip name is casper.zip
         if (zip.name === 'casper.zip') {
@@ -94,7 +94,7 @@ themes = {
     download: function download(options) {
         var themeName = options.name,
             theme = config.paths.availableThemes[themeName],
-            adapter = storage.getStorage();
+            adapter = storage.getStorage('themes');
 
         if (!theme) {
             return Promise.reject(new errors.BadRequestError(i18n.t('errors.api.themes.invalidRequest')));
