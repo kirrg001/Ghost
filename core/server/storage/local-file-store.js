@@ -63,33 +63,20 @@ LocalFileStore.prototype.serve = function (options) {
     if (options.isTheme) {
         return function downloadTheme(req, res, next) {
             var themeName = options.name,
-                themePath = config.paths.themePath + '/' + themeName,
                 zipName = themeName + '.zip',
                 zipPath = config.paths.themePath + '/' + zipName,
                 stream;
 
-            self.exists(zipPath)
-                .then(function (exists) {
-                    // CASE: zip it!
-                    if (!exists) {
-                        return execFileAsPromise('zip', ['-r', '-j', zipPath, themePath]);
-                    }
-                })
-                .then(function () {
-                    res.set({
-                        'Content-disposition': 'attachment; filename={themeName}.zip'.replace('{themeName}', themeName),
-                        'Content-Type': 'application/zip'
-                    });
+            res.set({
+                'Content-disposition': 'attachment; filename={themeName}.zip'.replace('{themeName}', themeName),
+                'Content-Type': 'application/zip'
+            });
 
-                    stream = fs.createReadStream(zipPath);
-                    stream.pipe(res);
-                })
-                .catch(function (err) {
-                    next(err);
-                });
+            stream = fs.createReadStream(zipPath);
+            stream.pipe(res);
         }
     } else {
-        // CASE: Serve images
+        // CASE: serve images
         // For some reason send divides the max age number by 1000
         // Fallthrough: false ensures that if an image isn't found, it automatically 404s
         return serveStatic(config.paths.imagesPath, {maxAge: utils.ONE_YEAR_MS, fallthrough: false});
