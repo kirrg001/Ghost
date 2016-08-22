@@ -34,7 +34,7 @@ LocalFileStore.prototype.save = function (image, targetDir) {
         // The src for the image must be in URI format, not a file system path, which in Windows uses \
         // For local file system storage can use relative path so add a slash
         var fullUrl = (config.paths.subdir + '/' + config.paths.imagesRelPath + '/' +
-            path.relative(config.paths.imagesPath, targetFilename)).replace(new RegExp('\\' + path.sep, 'g'), '/');
+        path.relative(config.paths.imagesPath, targetFilename)).replace(new RegExp('\\' + path.sep, 'g'), '/');
         return fullUrl;
     }).catch(function (e) {
         errors.logError(e);
@@ -53,6 +53,7 @@ LocalFileStore.prototype.exists = function (filename) {
 
 // middleware for serving the files
 LocalFileStore.prototype.serve = function (options) {
+    var self = this;
     options = options || {};
 
     // CASE: serve themes
@@ -67,25 +68,25 @@ LocalFileStore.prototype.serve = function (options) {
                 zipPath = config.paths.themePath + '/' + zipName,
                 stream;
 
-            res.set({
-                'Content-disposition': 'attachment; filename={themeName}.zip'.replace('{themeName}', themeName),
-                'Content-Type': 'application/zip'
-            });
-
-            // we generate a zip only when user wants to download a theme
-            if (!fs.existsSync(zipPath)) {
-                execFile('zip', ['-r', '-j', zipPath, themePath], function (err) {
-                    if (err) {
-                        return next(err);
+            self.exists(zipPath)
+                .then(function (exists) {
+                    // CASE: zip it!
+                    if (!exists) {
+                        return execFileAsPromise('zip', ['-r', '-j', zipPath, themePath]);
                     }
+                })
+                .then(function () {
+                    res.set({
+                        'Content-disposition': 'attachment; filename={themeName}.zip'.replace('{themeName}', themeName),
+                        'Content-Type': 'application/zip'
+                    });
 
                     stream = fs.createReadStream(zipPath);
                     stream.pipe(res);
+                })
+                .catch(function (err) {
+                    next(err);
                 });
-            } else {
-                stream = fs.createReadStream(zipPath);
-                stream.pipe(res);
-            }
         }
     } else {
         // CASE: Serve images

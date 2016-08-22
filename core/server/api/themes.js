@@ -27,7 +27,7 @@ themes = {
             shortName: options.originalname.split('.zip')[0]
         }, theme, storageAdapter = storage.getStorage('themes');
 
-        // Check if zip name is casper.zip
+        // check if zip name is casper.zip
         if (zip.name === 'casper.zip') {
             throw new errors.ValidationError(i18n.t('errors.api.themes.overrideCasper'));
         }
@@ -40,10 +40,13 @@ themes = {
                 theme = _theme;
                 theme = gscan.format(theme);
 
+                // CASE: theme validation failed
                 if (theme.results.error.length) {
                     var validationErrors = [];
 
                     _.each(theme.results.error, function (error) {
+                        // @TODO: error.failures
+                        console.log(error.failures);
                         validationErrors.push(new errors.ValidationError(i18n.t('errors.api.themes.invalidTheme', {reason: error.rule})));
                     });
 
@@ -56,6 +59,7 @@ themes = {
             .then(function (zipExists) {
                 // override theme, remove zip and extracted folder
                 if (zipExists) {
+                    // @TODO: storageAdapter.delete
                     fs.removeSync(config.paths.themePath + '/' + zip.shortName);
                 }
 
@@ -81,10 +85,10 @@ themes = {
                 return {themes: [_.find(settings.availableThemes.value, {name: zip.shortName})]};
             })
             .finally(function () {
-                //remove uploaded zip from multer
+                // remove uploaded zip from multer
                 fs.removeSync(zip.path);
 
-                //remove extracted dir from gscan
+                // remove extracted dir from gscan
                 if (theme) {
                     fs.removeSync(theme.path);
                 }
