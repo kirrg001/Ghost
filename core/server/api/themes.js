@@ -40,37 +40,46 @@ themes = {
                 theme = _theme;
                 theme = gscan.format(theme);
 
-                // CASE: theme validation failed
-                if (theme.results.error.length) {
-                    var validationErrors = [];
-
-                    _.each(theme.results.error, function (error) {
-                        if (error.failures) {
-                            _.each(error.failures, function (childError) {
-                                validationErrors.push(new errors.ValidationError(i18n.t('errors.api.themes.invalidTheme', {
-                                    reason: childError.ref
-                                })));
-                            });
-                        }
-
-                        validationErrors.push(new errors.ValidationError(i18n.t('errors.api.themes.invalidTheme', {
-                            reason: error.rule
-                        })));
-                    });
-                    
-                    throw validationErrors;
+                if (!theme.results.error.length) {
+                    return;
                 }
+
+                var validationErrors = [];
+                _.each(theme.results.error, function (error) {
+                    if (error.failures) {
+                        _.each(error.failures, function (childError) {
+                            validationErrors.push(new errors.ValidationError(i18n.t('errors.api.themes.invalidTheme', {
+                                reason: childError.ref
+                            })));
+                        });
+                    }
+
+                    validationErrors.push(new errors.ValidationError(i18n.t('errors.api.themes.invalidTheme', {
+                        reason: error.rule
+                    })));
+                });
+
+                throw validationErrors;
             })
             .then(function () {
                 return storageAdapter.exists(config.paths.themePath + '/' + zip.shortName);
             })
-            .then(function (zipExists) {
-                // override theme, remove zip and extracted folder
-                if (zipExists) {
-                    // @TODO: storageAdapter.delete
-                    fs.removeSync(config.paths.themePath + '/' + zip.shortName);
+            .then(function (themeExists) {
+                // delete existing theme
+                if (themeExists) {
+                    return storageAdapter.delete(zip.shortName, config.paths.themePath);
                 }
-
+            })
+            .then(function () {
+                return storageAdapter.exists(config.paths.themePath + '/' + zip.name);
+            })
+            .then(function (zipExists) {
+                // delete existing theme zip
+                if (zipExists) {
+                    return storageAdapter.delete(zip.name, config.paths.themePath);
+                }
+            })
+            .then(function () {
                 // store extracted theme
                 return storageAdapter.save({
                     name: zip.shortName,
@@ -93,12 +102,20 @@ themes = {
                 return {themes: [_.find(settings.availableThemes.value, {name: zip.shortName})]};
             })
             .finally(function () {
-                // remove uploaded zip from multer
-                fs.removeSync(zip.path);
+                // remove zip upload from multer
+                // happens in background
+                Promise.promisify(fs.removeSync)(zip.path)
+                    .catch(function (err) {
+                        errors.logError(err);
+                    });
 
                 // remove extracted dir from gscan
+                // happens in background
                 if (theme) {
-                    fs.removeSync(theme.path);
+                    Promise.promisify(fs.removeSync)(theme.path)
+                        .catch(function (err) {
+                            errors.logError(err);
+                        });
                 }
             })
     },
@@ -118,9 +135,12 @@ themes = {
             });
     },
 
-    //@TODO: replace sync operations
+    /**
+     * remove theme zip
+     * remove theme folder
+     */
     destroy: function destroy(options) {
-        var name = options.name, theme;
+        var name = options.name, theme, storageAdapter = storage.getStorage('themes');
 
         return utils.handlePermissions('themes', 'destroy')(options)
             .then(function () {
@@ -134,11 +154,13 @@ themes = {
                     throw new errors.NotFoundError(i18n.t('errors.api.themes.themeDoesNotExist'));
                 }
 
-                fs.removeSync(config.paths.themePath + '/' + name);
-                fs.removeSync(config.paths.themePath + '/' + name + '.zip');
-
+                return storageAdapter.delete({path: config.paths.themePath + '/' + name});
+            })
+            .then(function () {
+                return storageAdapter.delete({path: config.paths.themePath + '/' + name + '.zip'});
+            })
+            .then(function () {
                 return config.loadThemes();
-
             })
             .then(function () {
                 return settings.updateSettingsCache();

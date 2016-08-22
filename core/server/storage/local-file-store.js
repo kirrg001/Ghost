@@ -96,8 +96,14 @@ LocalFileStore.prototype.serve = function (options) {
     }
 };
 
-LocalFileStore.prototype.delete = function () {
-    return Promise.reject('not implemented');
+// @TODO: add to required fn's
+LocalFileStore.prototype.delete = function (fileName, targetDir) {
+    targetDir = targetDir || this.getTargetDir(config.paths.imagesPath);
+
+    var self = this,
+        path = targetDir + '/' + fileName;
+
+    return Promise.promisify(fs.remove)(path)
 };
 
 module.exports = LocalFileStore;
