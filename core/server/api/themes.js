@@ -25,7 +25,7 @@ themes = {
             path: options.path,
             name: options.originalname,
             shortName: options.originalname.split('.zip')[0]
-        }, theme, store = storage.getStorage('themes');
+        }, theme, storageAdapter = storage.getStorage('themes');
 
         // Check if zip name is casper.zip
         if (zip.name === 'casper.zip') {
@@ -51,7 +51,7 @@ themes = {
                 }
             })
             .then(function () {
-                return store.exists(config.paths.themePath + '/' + zip.shortName);
+                return storageAdapter.exists(config.paths.themePath + '/' + zip.shortName);
             })
             .then(function (zipExists) {
                 // override theme, remove zip and extracted folder
@@ -60,7 +60,7 @@ themes = {
                 }
 
                 // store extracted theme
-                return store.save({
+                return storageAdapter.save({
                     name: zip.shortName,
                     path: theme.path
                 }, config.paths.themePath);
@@ -94,7 +94,7 @@ themes = {
     download: function download(options) {
         var themeName = options.name,
             theme = config.paths.availableThemes[themeName],
-            adapter = storage.getStorage('themes');
+            storageAdapter = storage.getStorage('themes');
 
         if (!theme) {
             return Promise.reject(new errors.BadRequestError(i18n.t('errors.api.themes.invalidRequest')));
@@ -102,7 +102,7 @@ themes = {
 
         return utils.handlePermissions('themes', 'read')(options)
             .then(function () {
-                return adapter.serve({isTheme: true, name: themeName});
+                return storageAdapter.serve({isTheme: true, name: themeName});
             });
     },
 
