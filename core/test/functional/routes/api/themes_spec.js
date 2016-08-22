@@ -139,6 +139,8 @@ describe('Themes API', function () {
                         return done(err);
                     }
 
+                    fs.existsSync(config.paths.themePath + '/valid').should.eql(false);
+                    fs.existsSync(config.paths.themePath + '/valid.zip').should.eql(false);
                     done();
                 });
         });

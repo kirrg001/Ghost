@@ -178,7 +178,10 @@ themes = {
      * remove theme folder
      */
     destroy: function destroy(options) {
-        var name = options.name, theme, storageAdapter = storage.getStorage('themes');
+        var name = options.name,
+            zipName = name + '.zip',
+            theme,
+            storageAdapter = storage.getStorage('themes');
 
         return utils.handlePermissions('themes', 'destroy')(options)
             .then(function () {
@@ -192,10 +195,10 @@ themes = {
                     throw new errors.NotFoundError(i18n.t('errors.api.themes.themeDoesNotExist'));
                 }
 
-                return storageAdapter.delete({path: config.paths.themePath + '/' + name});
+                return storageAdapter.delete(name, config.paths.themePath);
             })
             .then(function () {
-                return storageAdapter.delete({path: config.paths.themePath + '/' + name + '.zip'});
+                return storageAdapter.delete(zipName, config.paths.themePath);
             })
             .then(function () {
                 return config.loadThemes();
