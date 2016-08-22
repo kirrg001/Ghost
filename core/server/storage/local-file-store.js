@@ -6,6 +6,7 @@ var serveStatic = require('express').static,
     path        = require('path'),
     util        = require('util'),
     Promise     = require('bluebird'),
+    execFile    = require('child_process').execFile,
     errors      = require('../errors'),
     config      = require('../config'),
     utils       = require('../utils'),
@@ -51,10 +52,47 @@ LocalFileStore.prototype.exists = function (filename) {
 };
 
 // middleware for serving the files
-LocalFileStore.prototype.serve = function () {
-    // For some reason send divides the max age number by 1000
-    // Fallthrough: false ensures that if an image isn't found, it automatically 404s
-    return serveStatic(config.paths.imagesPath, {maxAge: utils.ONE_YEAR_MS, fallthrough: false});
+LocalFileStore.prototype.serve = function (options) {
+    options = options || {};
+
+    // CASE: serve themes
+    // serveStatic can't be used to serve themes, because
+    // 1. it doesn't play well with our api.http wrapper
+    // 2. it download files depending on the route (see `send` npm module)
+    if (options.isTheme) {
+        return function downloadTheme(req, res, next) {
+            var themeName = options.name,
+                themePath = config.paths.themePath + '/' + themeName,
+                zipName = themeName + '.zip',
+                zipPath = config.paths.themePath + '/' + zipName,
+                stream;
+
+            res.set({
+                'Content-disposition': 'attachment; filename={themeName}.zip'.replace('{themeName}', themeName),
+                'Content-Type': 'application/zip'
+            });
+
+            // we generate a zip only when user wants to download a theme
+            if (!fs.existsSync(zipPath)) {
+                execFile('zip', ['-r', '-j', zipPath, themePath], function (err) {
+                    if (err) {
+                        return next(err);
+                    }
+
+                    stream = fs.createReadStream(zipPath);
+                    stream.pipe(res);
+                });
+            } else {
+                stream = fs.createReadStream(zipPath);
+                stream.pipe(res);
+            }
+        }
+    } else {
+        // CASE: Serve images
+        // For some reason send divides the max age number by 1000
+        // Fallthrough: false ensures that if an image isn't found, it automatically 404s
+        return serveStatic(config.paths.imagesPath, {maxAge: utils.ONE_YEAR_MS, fallthrough: false});
+    }
 };
 
 LocalFileStore.prototype.delete = function () {

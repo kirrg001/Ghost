@@ -7,7 +7,6 @@ var Promise = require('bluebird'),
     config = require('../config'),
     errors = require('../errors'),
     storage = require('../storage'),
-    execFile = require('child_process').execFile,
     settings = require('./settings'),
     pipeline = require('../utils/pipeline'),
     utils = require('./utils'),
@@ -95,9 +94,7 @@ themes = {
     download: function download(options) {
         var themeName = options.name,
             theme = config.paths.availableThemes[themeName],
-            themePath = config.paths.themePath + '/' + themeName,
-            zipName = themeName + '.zip',
-            zipPath = config.paths.themePath + '/' + zipName;
+            adapter = storage.getStorage();
 
         if (!theme) {
             return Promise.reject(new errors.BadRequestError(i18n.t('errors.api.themes.invalidRequest')));
@@ -105,24 +102,8 @@ themes = {
 
         return utils.handlePermissions('themes', 'read')(options)
             .then(function () {
-                if (fs.existsSync(zipPath)) {
-                    return Promise.resolve();
-                }
-
-                return new Promise(function (resolve, reject) {
-                    execFile('zip', ['-r', '-j', zipPath, themePath], function (err) {
-                        if (err) {
-                            return reject(err);
-                        }
-
-                        resolve();
-                    });
-                });
-            })
-            .then(function () {
-                var stream = fs.createReadStream(zipPath);
-                return stream;
-            })
+                return adapter.serve({isTheme: true, name: themeName});
+            });
     },
 
     //@TODO: replace sync operations
