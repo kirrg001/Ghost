@@ -4,6 +4,7 @@
 var express,
     ghost,
     parentApp,
+    utils,
     errors;
 
 require('./core/server/overrides');
@@ -15,6 +16,7 @@ require('./core/server/utils/startup-check').check();
 express = require('express');
 ghost = require('./core');
 errors = require('./core/server/errors');
+utils = require('./core/server/utils');
 
 // Create our parent express app instance.
 parentApp = express();
@@ -22,7 +24,7 @@ parentApp = express();
 // Call Ghost to get an instance of GhostServer
 ghost().then(function (ghostServer) {
     // Mount our Ghost instance on our desired subdirectory path if it exists.
-    parentApp.use(ghostServer.config.paths.subdir, ghostServer.rootApp);
+    parentApp.use(utils.url.getSubdir(), ghostServer.rootApp);
 
     // Let Ghost handle starting our server instance.
     ghostServer.start(parentApp);
