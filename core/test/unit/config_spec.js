@@ -117,17 +117,8 @@ describe('Config', function () {
 
         it('should allow specific properties to be user defined', function () {
             var contentPath = path.join(config.get('paths').appRoot, 'otherContent', '/');
-
-            configUtils.set({
-                paths: {
-                    contentPath: contentPath
-                }
-            });
-
+            configUtils.set('paths:contentPath', contentPath);
             config.get('paths').should.have.property('contentPath', contentPath);
-            config.get('paths').should.have.property('themePath', contentPath + 'themes');
-            config.get('paths').should.have.property('appPath', contentPath + 'apps');
-            config.get('paths').should.have.property('imagesPath', contentPath + 'images');
         });
     });
 
@@ -145,8 +136,6 @@ describe('Config', function () {
         });
 
         it('no effect: setting a custom active storage as string', function () {
-            var storagePath = path.join(config.get('paths').contentPath, 'storage', 's3');
-
             configUtils.set({
                 storage: {
                     active: 's3',
@@ -175,8 +164,6 @@ describe('Config', function () {
         });
 
         it('should allow setting a custom active storage as object', function () {
-            var storagePath = path.join(config.get('paths').contentPath, 'storage', 's3');
-
             configUtils.set({
                 storage: {
                     active: {
