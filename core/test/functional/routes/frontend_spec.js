@@ -51,6 +51,72 @@ describe('Frontend Routing', function () {
 
     after(testUtils.teardown);
 
+    describe('Date permalinks', function () {
+        before(function (done) {
+            // Only way to swap permalinks setting is to login and visit the URL because
+            // poking the database doesn't work as settings are cached
+            testUtils.togglePermalinks(request, 'date').then(function () {
+                done();
+            }).catch(done);
+        });
+
+        after(function (done) {
+            testUtils.togglePermalinks(request).then(function () {
+                done();
+            }).catch(done);
+        });
+
+        it('should load a post with date permalink', function (done) {
+            var date  = moment().format('YYYY/MM/DD');
+
+            request.get('/' + date + '/welcome-to-ghost/')
+                .expect(200)
+                .expect('Content-Type', /html/)
+                .end(doEnd(done));
+        });
+
+        it('expect redirect because of wrong/old permalink prefix', function (done) {
+            var date  = moment().format('YYYY/MM/DD');
+
+            request.get('/2016/04/01/welcome-to-ghost/')
+                .expect('Content-Type', /html/)
+                .end(function (err, res) {
+                    res.status.should.eql(301);
+                    request.get('/' + date + '/welcome-to-ghost/')
+                        .expect(200)
+                        .expect('Content-Type', /html/)
+                        .end(doEnd(done));
+                });
+        });
+
+        it('should serve RSS with date permalink', function (done) {
+            request.get('/rss/')
+                .expect('Content-Type', 'text/xml; charset=utf-8')
+                .expect('Cache-Control', testUtils.cacheRules.public)
+                .expect(200)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    should.not.exist(res.headers['x-cache-invalidate']);
+                    should.not.exist(res.headers['X-CSRF-Token']);
+                    should.not.exist(res.headers['set-cookie']);
+                    should.exist(res.headers.date);
+
+                    var content = res.text,
+                        todayMoment = moment(),
+                        dd = todayMoment.format('DD'),
+                        mm = todayMoment.format('MM'),
+                        yyyy = todayMoment.format('YYYY'),
+                        postLink = '/' + yyyy + '/' + mm + '/' + dd + '/welcome-to-ghost/';
+
+                    content.indexOf(postLink).should.be.above(0);
+                    done();
+                });
+        });
+    });
+
     describe('Test with Initial Fixtures', function () {
         after(testUtils.teardown);
 
@@ -610,66 +676,6 @@ describe('Frontend Routing', function () {
                 .expect(/<link rel="canonical" href="http:\/\/127.0.0.1:2370\/" \/\>/)
                 .expect(/<a href="https:\/\/localhost">Ghost<\/a\>/)
                 .end(doEnd(done));
-        });
-    });
-
-    describe('Date permalinks', function () {
-        before(function (done) {
-            // Only way to swap permalinks setting is to login and visit the URL because
-            // poking the database doesn't work as settings are cached
-            testUtils.togglePermalinks(request, 'date').then(function () {
-                done();
-            });
-        });
-
-        it('should load a post with date permalink', function (done) {
-            var date  = moment().format('YYYY/MM/DD');
-
-            request.get('/' + date + '/welcome-to-ghost/')
-                .expect(200)
-                .expect('Content-Type', /html/)
-                .end(doEnd(done));
-        });
-
-        it('expect redirect because of wrong/old permalink prefix', function (done) {
-            var date  = moment().format('YYYY/MM/DD');
-
-            request.get('/2016/04/01/welcome-to-ghost/')
-                .expect('Content-Type', /html/)
-                .end(function (err, res) {
-                    res.status.should.eql(301);
-                    request.get('/' + date + '/welcome-to-ghost/')
-                        .expect(200)
-                        .expect('Content-Type', /html/)
-                        .end(doEnd(done));
-                });
-        });
-
-        it('should serve RSS with date permalink', function (done) {
-            request.get('/rss/')
-                .expect('Content-Type', 'text/xml; charset=utf-8')
-                .expect('Cache-Control', testUtils.cacheRules.public)
-                .expect(200)
-                .end(function (err, res) {
-                    if (err) {
-                        return done(err);
-                    }
-
-                    should.not.exist(res.headers['x-cache-invalidate']);
-                    should.not.exist(res.headers['X-CSRF-Token']);
-                    should.not.exist(res.headers['set-cookie']);
-                    should.exist(res.headers.date);
-
-                    var content = res.text,
-                        todayMoment = moment(),
-                        dd = todayMoment.format('DD'),
-                        mm = todayMoment.format('MM'),
-                        yyyy = todayMoment.format('YYYY'),
-                        postLink = '/' + yyyy + '/' + mm + '/' + dd + '/welcome-to-ghost/';
-
-                    content.indexOf(postLink).should.be.above(0);
-                    done();
-                });
         });
     });
 
