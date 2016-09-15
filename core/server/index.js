@@ -163,7 +163,7 @@ function init(options) {
         // scheduling module can create x schedulers with different adapters
         return scheduling.init({
             active: config.get('scheduling').active,
-            apiUrl: utils.url.urlFor('api', null, true)
+            apiUrl: utils.url.urlFor('api', null, true),
             internalPath: config.get('paths').internalSchedulingPath,
             contentPath: config.getContentPath('scheduling')
         });
