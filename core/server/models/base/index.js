@@ -9,7 +9,7 @@ var _          = require('lodash'),
     bookshelf  = require('bookshelf'),
     moment     = require('moment'),
     Promise    = require('bluebird'),
-    uuid       = require('node-uuid'),
+    ObjectId = require("bson-objectid"),
     config     = require('../../config'),
     db         = require('../../data/db'),
     errors     = require('../../errors'),
@@ -60,9 +60,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
 
     // Bookshelf `defaults` - default values setup on every model creation
     defaults: function defaults() {
-        return {
-            uuid: uuid.v4()
-        };
+        return {};
     },
 
     // When loading an instance, subclasses can specify default to fetch
@@ -93,7 +91,14 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     },
 
     creating: function creating(newObj, attr, options) {
-        if (!this.get('created_by')) {
+        // is needed for overriding the id
+        // options.method = 'insert';
+
+        if (!newObj.id) {
+            newObj.setId();
+        }
+
+        if (schema.tables[this.tableName].hasOwnProperty('created_by') && !this.get('created_by')) {
             this.set('created_by', this.contextUser(options));
         }
     },
@@ -165,13 +170,13 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     // Get the user from the options object
     contextUser: function contextUser(options) {
         // Default to context user
-        if ((options.context && options.context.user) || (options.context && options.context.user === 0)) {
+        if ((options.context && options.context.user) || (options.context && options.context.user === '0')) {
             return options.context.user;
         // Other wise use the internal override
         } else if (options.context && options.context.internal) {
-            return 1;
+            return '1';
         } else if (options.context && options.context.external) {
-            return 0;
+            return '0';
         } else {
             errors.logAndThrowError(new Error(i18n.t('errors.models.base.index.missingContext')));
         }
@@ -227,6 +232,13 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
 
     hasDateChanged: function (attr) {
         return moment(this.get(attr)).diff(moment(this.updated(attr))) !== 0;
+    },
+
+    // we auto generate a GUID for each resource
+    // no auto increment
+    // override id property
+    setId: function setId() {
+        this.set('id', ObjectId.generate());
     }
 }, {
     // ## Data Utility Functions
@@ -388,6 +400,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     findOne: function findOne(data, options) {
         data = this.filterData(data);
         options = this.filterOptions(options, 'findOne');
+
         // We pass include to forge so that toJSON has access
         return this.forge(data, {include: options.include}).fetch(options);
     },
@@ -428,6 +441,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     add: function add(data, options) {
         data = this.filterData(data);
         options = this.filterOptions(options, 'add');
+
         var model = this.forge(data);
 
         // We allow you to disable timestamps when importing posts so that the new posts `updated_at` value is the same
@@ -435,6 +449,8 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         if (options.importing) {
             model.hasTimestamps = false;
         }
+
+        options.method = 'insert';
         return model.save(null, options);
     },
 

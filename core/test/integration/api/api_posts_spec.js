@@ -40,7 +40,7 @@ describe('Post API', function () {
     });
 
     function extractFirstPost(posts) {
-        return _.filter(posts, {id: 1})[0];
+        return _.filter(posts, {id: '1'})[0];
     }
 
     should.exist(PostAPI);
@@ -75,7 +75,7 @@ describe('Post API', function () {
         });
 
         it('can fetch featured posts for user 1', function (done) {
-            PostAPI.browse({context: {user: 1}, filter: 'featured:true'}).then(function (results) {
+            PostAPI.browse({context: {user: '1'}, filter: 'featured:true'}).then(function (results) {
                 should.exist(results.posts);
                 results.posts.length.should.eql(4);
                 results.posts[0].featured.should.eql(true);
@@ -84,7 +84,7 @@ describe('Post API', function () {
         });
 
         it('can fetch featured posts for user 2', function (done) {
-            PostAPI.browse({context: {user: 2}, filter: 'featured:true'}).then(function (results) {
+            PostAPI.browse({context: {user: '2'}, filter: 'featured:true'}).then(function (results) {
                 should.exist(results.posts);
                 results.posts.length.should.eql(4);
                 results.posts[0].featured.should.eql(true);
@@ -514,8 +514,8 @@ describe('Post API', function () {
             }).catch(done);
         });
 
-        it('without context.user can fetch a draft if uuid is provided', function (done) {
-            PostAPI.read({uuid: 'd52c42ae-2755-455c-80ec-70b2ec55c903', status: 'draft'}).then(function (results) {
+        it('without context.user can fetch a draft if preview id is provided', function (done) {
+            PostAPI.read({previewId: testUtils.DataGenerator.forKnex.posts[3].previewId, status: 'draft'}).then(function (results) {
                 should.exist(results.posts);
                 results.posts[0].slug.should.eql('unfinished');
                 done();
@@ -534,16 +534,16 @@ describe('Post API', function () {
         });
 
         it('can fetch post with by id', function (done) {
-            PostAPI.read({context: {user: 1}, id: 2, status: 'all'}).then(function (results) {
+            PostAPI.read({context: {user: '1'}, id: '2', status: 'all'}).then(function (results) {
                 should.exist(results.posts);
-                results.posts[0].id.should.eql(2);
+                results.posts[0].id.should.eql('2');
                 results.posts[0].slug.should.eql('ghostly-kitchen-sink');
                 done();
             }).catch(done);
         });
 
         it('can include tags', function (done) {
-            PostAPI.read({context: {user: 1}, id: 3, include: 'tags'}).then(function (results) {
+            PostAPI.read({context: {user: '1'}, id: '3', include: 'tags'}).then(function (results) {
                 should.exist(results.posts[0].tags);
                 results.posts[0].tags[0].slug.should.eql('chorizo');
                 done();
@@ -551,7 +551,7 @@ describe('Post API', function () {
         });
 
         it('can include author', function (done) {
-            PostAPI.read({context: {user: 1}, id: 2, include: 'author'}).then(function (results) {
+            PostAPI.read({context: {user: '1'}, id: '2', include: 'author'}).then(function (results) {
                 should.exist(results.posts[0].author.name);
                 results.posts[0].author.name.should.eql('Joe Bloggs');
                 done();
@@ -559,7 +559,7 @@ describe('Post API', function () {
         });
 
         it('can include next post', function (done) {
-            PostAPI.read({context: {user: 1}, id: 3, include: 'next'}).then(function (results) {
+            PostAPI.read({context: {user: '1'}, id: '3', include: 'next'}).then(function (results) {
                 should.exist(results.posts[0].next.slug);
                 results.posts[0].next.slug.should.eql('not-so-short-bit-complex');
                 done();
@@ -567,7 +567,7 @@ describe('Post API', function () {
         });
 
         it('can include next post with author and tags', function (done) {
-            PostAPI.read({context: {user: 1}, id: 3, include: 'next,next.tags,next.author'}).then(function (results) {
+            PostAPI.read({context: {user: '1'}, id: '3', include: 'next,next.tags,next.author'}).then(function (results) {
                 should.exist(results.posts[0].next.slug);
                 results.posts[0].next.slug.should.eql('not-so-short-bit-complex');
                 results.posts[0].next.author.should.be.an.Object();
@@ -580,7 +580,7 @@ describe('Post API', function () {
             PostAPI.read({context: {user: 1}, id: 2, include: 'next,next.tags'}).then(function (results) {
                 should.exist(results.posts[0].next.slug);
                 results.posts[0].next.slug.should.eql('short-and-sweet');
-                results.posts[0].next.author.should.eql(1);
+                results.posts[0].next.author.should.eql('1');
                 results.posts[0].next.tags.should.be.an.Array();
                 results.posts[0].next.tags[0].name.should.eql('chorizo');
                 done();

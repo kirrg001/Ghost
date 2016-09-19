@@ -411,7 +411,7 @@ describe('Frontend Routing', function () {
         before(addPosts);
         after(testUtils.teardown);
 
-        it('should display draft posts accessed via uuid', function (done) {
+        it('should display draft posts accessed via previewId', function (done) {
             request.get('/p/d52c42ae-2755-455c-80ec-70b2ec55c903/')
                 .expect('Content-Type', /html/)
                 .expect(200)
@@ -445,7 +445,7 @@ describe('Frontend Routing', function () {
                 .end(doEnd(done));
         });
 
-        it('404s unknown uuids', function (done) {
+        it('404s unknown previewId', function (done) {
             request.get('/p/aac6b4f6-e1f3-406c-9247-c94a0496d39f/')
                 .expect(404)
                 .end(doEnd(done));

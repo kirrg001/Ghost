@@ -26,7 +26,7 @@ frontendRoutes = function frontendRoutes() {
     });
 
     // Post Live Preview
-    router.get('/' + routeKeywords.preview + '/:uuid', frontend.preview);
+    router.get('/' + routeKeywords.preview + '/:previewId', frontend.preview);
 
     // Channels
     router.use(channels.router());

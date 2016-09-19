@@ -190,8 +190,8 @@ describe('Permissions', function () {
             });
         });
 
-        it('should permit post draft status with uuid (read)', function (done) {
-            var draft = {context: {}, data: {status: 'draft', uuid: '1234-abcd'}};
+        it('should permit post draft status with preview id (read)', function (done) {
+            var draft = {context: {}, data: {status: 'draft', previewId: '1234-abcd'}};
 
             permissions.applyPublicRules('posts', 'read', _.cloneDeep(draft)).then(function (result) {
                 result.should.eql(draft);
@@ -199,8 +199,8 @@ describe('Permissions', function () {
             }).catch(done);
         });
 
-        it('should permit post all status with uuid (read)', function (done) {
-            var draft = {context: {}, data: {status: 'all', uuid: '1234-abcd'}};
+        it('should permit post all status with preview id (read)', function (done) {
+            var draft = {context: {}, data: {status: 'all', previewId: '1234-abcd'}};
 
             permissions.applyPublicRules('posts', 'read', _.cloneDeep(draft)).then(function (result) {
                 result.should.eql(draft);

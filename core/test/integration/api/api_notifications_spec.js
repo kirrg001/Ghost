@@ -1,9 +1,6 @@
 var testUtils        = require('../../utils'),
     should           = require('should'),
     _                = require('lodash'),
-    uuid             = require('node-uuid'),
-
-    // Stuff we are testing
     NotificationsAPI = require('../../../server/api/notifications'),
     SettingsAPI      = require('../../../server/api/settings');
 
@@ -156,7 +153,6 @@ describe('Notifications API', function () {
             type: 'info',
             location: 'test.to-be-deleted',
             custom: true,
-            uuid: uuid.v4(),
             dismissible: true,
             message: 'Hello, this is dog number 4'
         };
@@ -170,7 +166,7 @@ describe('Notifications API', function () {
                 return SettingsAPI.read(_.extend({key: 'seenNotifications'}, testUtils.context.internal));
             }).then(function (response) {
                 should.exist(response);
-                response.settings[0].value.should.containEql(customNotification.uuid);
+                response.settings[0].value.should.containEql(notification.id);
 
                 done();
             }).catch(done);

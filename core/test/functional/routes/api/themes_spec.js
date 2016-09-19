@@ -115,7 +115,7 @@ describe('Themes API', function () {
                 });
         });
 
-        it('download theme uuid', function (done) {
+        it('download theme', function (done) {
             request.get(testUtils.API.getApiQuery('themes/casper/download/'))
                 .set('Authorization', 'Bearer ' + scope.ownerAccessToken)
                 .expect('Content-Type', /application\/zip/)
@@ -130,7 +130,7 @@ describe('Themes API', function () {
                 });
         });
 
-        it('delete theme uuid', function (done) {
+        it('delete theme', function (done) {
             request.del(testUtils.API.getApiQuery('themes/valid'))
                 .set('Authorization', 'Bearer ' + scope.ownerAccessToken)
                 .expect(204)

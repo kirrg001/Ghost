@@ -21,6 +21,7 @@ describe('Users API', function () {
     beforeEach(testUtils.setup(
         'users:roles', 'users', 'user:token', 'perms:user', 'perms:role', 'perms:setting', 'perms:init', 'posts'
     ));
+
     afterEach(testUtils.teardown);
 
     function checkForErrorType(type, done) {

@@ -605,7 +605,7 @@ describe('Post API', function () {
                             }
 
                             // Updating a draft should send x-cache-invalidate headers for the preview only
-                            res.headers['x-cache-invalidate'].should.eql('/p/' + draftPost.posts[0].uuid + '/');
+                            res.headers['x-cache-invalidate'].should.eql('/p/' + draftPost.posts[0].previewId + '/');
                             done();
                         });
                 });

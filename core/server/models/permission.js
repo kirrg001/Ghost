@@ -1,5 +1,5 @@
 var ghostBookshelf = require('./base'),
-
+    _ = require('lodash'),
     Permission,
     Permissions;
 

@@ -16,12 +16,6 @@ Basetoken = ghostBookshelf.Model.extend({
     },
 
     // override for base function since we don't have
-    // a created_by field for sessions
-    creating: function creating(newObj, attr, options) {
-        /*jshint unused:false*/
-    },
-
-    // override for base function since we don't have
     // a updated_by field for sessions
     saving: function saving(newObj, attr, options) {
         /*jshint unused:false*/

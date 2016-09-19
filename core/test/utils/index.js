@@ -249,8 +249,9 @@ fixtures = {
         // grab 3 more users
         var extraUsers = DataGenerator.Content.users.slice(2, 5);
 
-        extraUsers = _.map(extraUsers, function (user) {
+        extraUsers = _.map(extraUsers, function (user, index) {
             return DataGenerator.forKnex.createUser(_.extend({}, user, {
+                id: index + 5,
                 email: 'a' + user.email,
                 slug: 'a' + user.slug
             }));
@@ -258,9 +259,9 @@ fixtures = {
 
         return db.knex('users').insert(extraUsers).then(function () {
             return db.knex('roles_users').insert([
-                {user_id: 5, role_id: 1},
-                {user_id: 6, role_id: 2},
-                {user_id: 7, role_id: 3}
+                {user_id: '5', role_id: '1'},
+                {user_id: '6', role_id: '2'},
+                {user_id: '7', role_id: '3'}
             ]);
         });
     },
@@ -268,9 +269,9 @@ fixtures = {
     // Creates a client, and access and refresh tokens for user 3 (author)
     createTokensForUser: function createTokensForUser() {
         return db.knex('clients').insert(DataGenerator.forKnex.clients).then(function () {
-            return db.knex('accesstokens').insert(DataGenerator.forKnex.createToken({user_id: 3}));
+            return db.knex('accesstokens').insert(DataGenerator.forKnex.createToken({user_id: '3'}));
         }).then(function () {
-            return db.knex('refreshtokens').insert(DataGenerator.forKnex.createToken({user_id: 3}));
+            return db.knex('refreshtokens').insert(DataGenerator.forKnex.createToken({user_id: '3'}));
         });
     },
 
@@ -338,10 +339,10 @@ fixtures = {
             actions = [],
             permissionsRoles = [],
             roles = {
-                Administrator: 1,
-                Editor: 2,
-                Author: 3,
-                Owner: 4
+                Administrator: '1',
+                Editor: '2',
+                Author: '3',
+                Owner: '4'
             };
 
         // CASE: if empty db will throw SQLITE_MISUSE, hard to debug
@@ -349,8 +350,9 @@ fixtures = {
             return Promise.reject(new Error('no permission found:' + obj));
         }
 
-        permsToInsert = _.map(permsToInsert, function (perms) {
+        permsToInsert = _.map(permsToInsert, function (perms, i) {
             actions.push(perms.action_type);
+            perms.id = i + 1;
             return DataGenerator.forKnex.createBasic(perms);
         });
 
@@ -654,28 +656,28 @@ module.exports = {
     context: {
         internal:   {context: {internal: true}},
         external:   {context: {external: true}},
-        owner:      {context: {user: 1}},
-        admin:      {context: {user: 2}},
-        editor:     {context: {user: 3}},
-        author:     {context: {user: 4}}
+        owner:      {context: {user: '1'}},
+        admin:      {context: {user: '2'}},
+        editor:     {context: {user: '3'}},
+        author:     {context: {user: '4'}}
     },
     users: {
         ids: {
-            owner: 1,
-            admin: 2,
-            editor: 3,
-            author: 4,
-            admin2: 5,
-            editor2: 6,
-            author2: 7
+            owner: '1',
+            admin: '2',
+            editor: '3',
+            author: '4',
+            admin2: '5',
+            editor2: '6',
+            author2: '7'
         }
     },
     roles: {
         ids: {
-            owner: 4,
-            admin: 1,
-            editor: 2,
-            author: 3
+            owner: '4',
+            admin: '1',
+            editor: '2',
+            author: '3'
         }
     },
 

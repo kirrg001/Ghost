@@ -72,14 +72,14 @@ posts = {
 
     /**
      * ## Read
-     * Find a post, by ID, UUID, or Slug
+     * Find a post, by ID, previewId, or Slug
      *
      * @public
      * @param {Object} options
      * @return {Promise<Post>} Post
      */
     read: function read(options) {
-        var attrs = ['id', 'slug', 'status', 'uuid'],
+        var attrs = ['id', 'slug', 'status', 'previewId'],
             tasks;
 
         /**

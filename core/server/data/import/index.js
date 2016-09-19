@@ -96,15 +96,8 @@ sanitize = function sanitize(data) {
     _.each(tableNames, function (tableName) {
         // Sanitize the table data for duplicates and valid uuid and created_at values
         var sanitizedTableData = _.transform(data.data[tableName], function (memo, importValues) {
-            var uuidMissing = (!importValues.uuid && tables[tableName].uuid) ? true : false,
-                uuidMalformed = (importValues.uuid && !validation.validator.isUUID(importValues.uuid)) ? true : false,
-                isDuplicate,
+            var isDuplicate,
                 problemTag;
-
-            // Check for correct UUID and fix if necessary
-            if (uuidMissing || uuidMalformed) {
-                importValues.uuid = uuid.v4();
-            }
 
             // Custom sanitize for posts, tags and users
             if (tableName === 'posts') {

@@ -35,7 +35,7 @@ function renderPost(req, res) {
 frontendControllers = {
     preview: function preview(req, res, next) {
         var params = {
-                uuid: req.params.uuid,
+                uuid: req.params.previewId,
                 status: 'all',
                 include: 'author,tags'
             };
