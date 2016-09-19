@@ -58,7 +58,7 @@ describe('Authentication API', function () {
                 User = require('../../../server/models/user').User;
             });
 
-            beforeEach(testUtils.setup('roles', 'owner:pre', 'settings', 'perms:setting', 'perms:mail', 'perms:init'));
+            beforeEach(testUtils.setup('owner:pre', 'settings', 'perms:setting', 'perms:mail', 'perms:init'));
 
             describe('Invalid database state', function () {
                 it('should not allow setup to be run if owner missing from database', function (done) {
@@ -86,7 +86,7 @@ describe('Authentication API', function () {
 
         describe('Not completed', function () {
             // TODO: stub settings
-            beforeEach(testUtils.setup('roles', 'owner:pre', 'settings', 'perms:setting', 'perms:mail', 'perms:init'));
+            beforeEach(testUtils.setup('owner:pre', 'settings', 'perms:setting', 'perms:mail', 'perms:init'));
 
             it('should report that setup has not been completed', function (done) {
                 AuthAPI.isSetup().then(function (result) {
@@ -114,7 +114,7 @@ describe('Authentication API', function () {
 
                     var newUser = result.users[0];
 
-                    newUser.id.should.equal(1);
+                    newUser.id.should.equal('1');
                     newUser.name.should.equal(setupData.name);
                     newUser.email.should.equal(setupData.email);
 
@@ -138,7 +138,7 @@ describe('Authentication API', function () {
 
                     var newUser = result.users[0];
 
-                    newUser.id.should.equal(1);
+                    newUser.id.should.equal('1');
                     newUser.name.should.equal(setupData.name);
                     newUser.email.should.equal(setupData.email);
 
@@ -254,7 +254,7 @@ describe('Authentication API', function () {
             it('should allow an invitation to be accepted', function () {
                 var invite;
 
-                return models.Invite.add({email: '123@meins.de', roles: [1]}, _.merge({}, {include: ['roles']}, context.internal))
+                return models.Invite.add({email: '123@meins.de', roles: [testUtils.DataGenerator.Content.roles[0].id]}, _.merge({}, {include: ['roles']}, context.internal))
                     .then(function (_invite) {
                         invite = _invite;
                         invite.toJSON().roles.length.should.eql(1);
@@ -367,9 +367,9 @@ describe('Authentication API', function () {
                 Accesstoken.add({
                     token: id,
                     expires: Date.now() + 8640000,
-                    user_id: 1,
-                    client_id: 1
-                }).then(function (token) {
+                    user_id: testUtils.DataGenerator.Content.users[0].id,
+                    client_id: testUtils.DataGenerator.forKnex.clients[0].id
+                }, testUtils.context.internal).then(function (token) {
                     should.exist(token);
                     token.get('token').should.equal(id);
 
@@ -434,8 +434,8 @@ describe('Authentication API', function () {
                 Refreshtoken.add({
                     token: id,
                     expires: Date.now() + 8640000,
-                    user_id: 1,
-                    client_id: 1
+                    user_id: testUtils.DataGenerator.Content.users[0].id,
+                    client_id: testUtils.DataGenerator.forKnex.clients[0].id
                 }).then(function (token) {
                     should.exist(token);
                     token.get('token').should.equal(id);
@@ -462,8 +462,8 @@ describe('Authentication API', function () {
                 Accesstoken.add({
                     token: id,
                     expires: Date.now() + 8640000,
-                    user_id: 1,
-                    client_id: 1
+                    user_id: testUtils.DataGenerator.Content.users[0].id,
+                    client_id: testUtils.DataGenerator.forKnex.clients[0].id
                 }).then(function (token) {
                     should.exist(token);
                     token.get('token').should.equal(id);
@@ -485,7 +485,7 @@ describe('Authentication API', function () {
 
     describe('Setup Update', function () {
         describe('Setup not complete', function () {
-            beforeEach(testUtils.setup('roles', 'owner:pre', 'settings', 'perms:setting', 'perms:init'));
+            beforeEach(testUtils.setup('owner:pre', 'settings', 'perms:setting', 'perms:init'));
 
             it('should report that setup has not been completed', function (done) {
                 AuthAPI.isSetup().then(function (result) {
@@ -518,7 +518,7 @@ describe('Authentication API', function () {
         });
 
         describe('Not Owner', function () {
-            beforeEach(testUtils.setup('roles', 'users:roles', 'settings', 'perms:setting', 'perms:init', 'perms:user'));
+            beforeEach(testUtils.setup('users:roles', 'settings', 'perms:setting', 'perms:init', 'perms:user'));
 
             it('should report that setup has been completed', function (done) {
                 AuthAPI.isSetup().then(function (result) {
@@ -551,7 +551,7 @@ describe('Authentication API', function () {
         });
 
         describe('Owner', function () {
-            beforeEach(testUtils.setup('roles', 'users:roles', 'settings', 'perms:setting', 'perms:init'));
+            beforeEach(testUtils.setup('users:roles', 'settings', 'perms:setting', 'perms:init'));
 
             it('should report that setup has been completed', function (done) {
                 AuthAPI.isSetup().then(function (result) {
@@ -579,7 +579,7 @@ describe('Authentication API', function () {
 
                     var newUser = result.users[0];
 
-                    newUser.id.should.equal(1);
+                    newUser.id.should.equal('1');
                     newUser.name.should.equal(setupData.name);
                     newUser.email.should.equal(setupData.email);
 

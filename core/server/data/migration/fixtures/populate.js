@@ -50,6 +50,7 @@ addAllRelations = function addAllRelations(modelOptions) {
  */
 createOwner = function createOwner(logger, modelOptions) {
     var user = {
+        id:               '1',
         name:             'Ghost Owner',
         email:            'ghost@ghost.org',
         status:           'inactive',

@@ -12,6 +12,7 @@ var _              = require('lodash'),
     validation     = require('../data/validation'),
     events         = require('../events'),
     i18n           = require('../i18n'),
+    baseUtils      = require('./base/utils'),
 
     bcryptGenSalt  = Promise.promisify(bcrypt.genSalt),
     bcryptHash     = Promise.promisify(bcrypt.hash),
@@ -459,7 +460,6 @@ User = ghostBookshelf.Model.extend({
             .then(function then(addedUser) {
                 // Assign the userData to our created user so we can pass it back
                 userData = addedUser;
-
                 return baseUtils.attach(User, userData.id, 'roles', roles, options);
             }).then(function then() {
                 // find and return the added user
@@ -496,6 +496,7 @@ User = ghostBookshelf.Model.extend({
         if (_.isObject(userModelOrId) && !_.isObject(userModelOrId.related('roles'))) {
             userModelOrId = userModelOrId.id;
         }
+
         // If we passed in an id instead of a model get the model first
         if (_.isNumber(userModelOrId) || _.isString(userModelOrId)) {
             // Grab the original args without the first one

@@ -681,7 +681,7 @@ Post = ghostBookshelf.Model.extend({
 
         // If we passed in an id instead of a model, get the model
         // then check the permissions
-        if (_.isNumber(postModelOrId) || _.isString(postModelOrId)) {
+        if (_.isString(postModelOrId)) {
             // Grab the original args without the first one
             origArgs = _.toArray(arguments).slice(1);
 

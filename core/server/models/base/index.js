@@ -183,13 +183,13 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     // Get the user from the options object
     contextUser: function contextUser(options) {
         // Default to context user
-        if ((options.context && options.context.user) || (options.context && options.context.user === 0)) {
+        if ((options.context && options.context.user) || (options.context && options.context.user === '0')) {
             return options.context.user;
         // Other wise use the internal override
         } else if (options.context && options.context.internal) {
-            return 1;
+            return '1';
         } else if (options.context && options.context.external) {
-            return 0;
+            return '0';
         } else {
             throw new errors.NotFoundError({
                 message: i18n.t('errors.models.base.index.missingContext'),
@@ -459,6 +459,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     add: function add(data, options) {
         data = this.filterData(data);
         options = this.filterOptions(options, 'add');
+
         var model = this.forge(data);
 
         // We allow you to disable timestamps when importing posts so that the new posts `updated_at` value is the same
@@ -466,6 +467,8 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         if (options.importing) {
             model.hasTimestamps = false;
         }
+
+        options.method = 'insert';
         return model.save(null, options);
     },
 

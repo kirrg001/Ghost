@@ -136,7 +136,7 @@ users = {
 
                 // @TODO move role permissions out of here
                 var role = options.data.users[0].roles[0],
-                    roleId = role.id || role,
+                    roleId = (role.id || role).toString(),
                     editedUserId = options.id;
 
                 return dataProvider.User.findOne(

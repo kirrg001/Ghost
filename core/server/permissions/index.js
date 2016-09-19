@@ -76,7 +76,7 @@ function applyStatusRules(docName, method, opts) {
             && (opts.status === 'draft' || opts.status === 'all')
             && _.isString(opts.uuid) && _.isUndefined(opts.id) && _.isUndefined(opts.slug)
         ) {
-            // public read requests can retrieve a draft, but only by UUID
+            // public read requests can retrieve a draft, but only by uuid
             return opts.status;
         } else if (opts.status !== 'published') {
             // any other parameter would make this a permissions error
@@ -142,7 +142,7 @@ CanThisResult.prototype.buildObjectTypeHandlers = function (objTypes, actType, c
                 return Promise.resolve();
             }
 
-            if (_.isNumber(modelOrId) || _.isString(modelOrId)) {
+            if (_.isString(modelOrId)) {
                 // It's an id already, do nothing
                 modelId = modelOrId;
             } else if (modelOrId) {

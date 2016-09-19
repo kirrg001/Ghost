@@ -64,19 +64,21 @@ utils = {
 
         // We now have a list of users we need to figure out what their email addresses are
         _.each(_.keys(userMap), function (userToMap) {
+            userToMap = userToMap.toString();
+
             var foundUser = _.find(tableData.users, function (tableDataUser) {
-                return tableDataUser.id === userToMap;
+                return tableDataUser.id.toString() === userToMap;
             });
 
             // we now know that userToMap's email is foundUser.email - look them up in existing users
             if (foundUser && _.has(foundUser, 'email') && _.has(existingUsers, foundUser.email)) {
                 existingUsers[foundUser.email].importId = userToMap;
                 userMap[userToMap] = existingUsers[foundUser.email].realId;
-            } else if (userToMap === 1) {
+            } else if (userToMap === '1') {
                 // if we don't have user data and the id is 1, we assume this means the owner
                 existingUsers[owner.email].importId = userToMap;
                 userMap[userToMap] = existingUsers[owner.email].realId;
-            } else if (userToMap === 0) {
+            } else if (userToMap === '0') {
                 // CASE: external context
                 userMap[userToMap] = '0';
             } else {
@@ -169,7 +171,7 @@ utils = {
             });
 
             // Map role_id to updated roles id
-            roleUser.role_id = _.find(tableData.roles, {oldId: roleUser.role_id}).id;
+            roleUser.role_id = (_.find(tableData.roles, {oldId: roleUser.role_id}) || {}).id;
 
             // Check for owner users that do not match current owner and change role to administrator
             if (roleUser.role_id === owner.roles[0].id && user && user.email && user.email !== owner.email) {
@@ -247,6 +249,7 @@ utils = {
     importUsers: function importUsers(tableData, existingUsers, transaction) {
         var ops = [];
         tableData = stripProperties(['id'], tableData);
+
         _.each(tableData, function (user) {
             // Validate minimum user fields
             if (areEmpty(user, 'name', 'slug', 'email')) {
