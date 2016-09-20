@@ -15,7 +15,7 @@ function configure(dbConfig) {
 
     if (client === 'mysql') {
         dbConfig.connection.timezone = 'UTC';
-        dbConfig.connection.charset = "utf8mb4";
+        dbConfig.connection.charset = 'utf8mb4';
     }
 
     return dbConfig;
