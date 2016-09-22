@@ -47,7 +47,7 @@ describe('Middleware: spamPrevention', function () {
             done();
         });
 
-        it ('creates a BadRequestError when there\'s no username', function (done) {
+        it ('creates a BadRequest when there\'s no username', function (done) {
             req.body = {};
 
             middleware.spamPrevention.signin(req, null, spyNext);

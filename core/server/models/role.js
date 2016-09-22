@@ -53,6 +53,7 @@ Role = ghostBookshelf.Model.extend({
             origArgs = _.toArray(arguments).slice(1);
 
             // Get the actual role model
+            // @TODO: test
             return this.findOne({id: roleModelOrId, status: 'all'}).then(function then(foundRoleModel) {
                 // Build up the original args but substitute with actual model
                 var newArgs = [foundRoleModel].concat(origArgs);
@@ -78,7 +79,7 @@ Role = ghostBookshelf.Model.extend({
             return Promise.resolve();
         }
 
-        return Promise.reject(new errors.NoPermissionError(i18n.t('errors.models.role.notEnoughPermission')));
+        return Promise.reject(new errors.NoPermissionError({message: i18n.t('errors.models.role.notEnoughPermission')}));
     }
 });
 

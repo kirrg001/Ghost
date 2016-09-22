@@ -20,10 +20,10 @@ var debug = require('debug')('ghost:boot:init'),
     i18n = require('./i18n'),
     api = require('./api'),
     config = require('./config'),
-    logging = require('./logging'),
     middleware = require('./middleware'),
     db = require('./data/schema'),
     models = require('./models'),
+    logging = require('./logging'),
     permissions = require('./permissions'),
     apps = require('./apps'),
     auth = require('./auth'),
@@ -32,6 +32,7 @@ var debug = require('debug')('ghost:boot:init'),
     GhostServer = require('./ghost-server'),
     scheduling = require('./scheduling'),
     validateThemes = require('./utils/validate-themes'),
+    // validateThemes = require('./utils/validate-themes'),
     readDirectory = require('./utils/read-directory'),
     utils = require('./utils'),
     dbHash;
@@ -110,13 +111,16 @@ function init(options) {
         );
     }).then(function () {
         debug('Apps, XMLRPC, Slack done');
+
         // Get reference to an express app instance.
         parentApp = express();
+
         // ## Middleware and Routing
         middleware(parentApp);
         debug('Express done');
 
         // Log all theme errors and warnings
+        // @TODO: remove me
         validateThemes(config.getContentPath('themes'))
             .catch(function (result) {
                 // TODO: change `result` to something better

@@ -59,7 +59,7 @@ describe('Tags API', function () {
             }).catch(done);
         });
 
-        it('rejects invalid names with ValidationError', function (done) {
+        it('rejects invalid names with Validation', function (done) {
             var invalidTag = _.clone(newTag);
 
             invalidTag.name = ', starts with a comma';
@@ -107,7 +107,7 @@ describe('Tags API', function () {
             }).catch(done);
         });
 
-        it('rejects invalid names with ValidationError', function (done) {
+        it('rejects invalid names with Validation', function (done) {
             var invalidTagName = ', starts with a comma';
 
             TagAPI.edit({tags: [{name: invalidTagName}]}, _.extend({}, context.editor, {id: firstTag}))

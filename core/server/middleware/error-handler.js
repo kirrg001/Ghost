@@ -1,8 +1,9 @@
 var _ = require('lodash'),
     path = require('path'),
     hbs = require('express-hbs'),
-    config = require('../config'),
-    i18n = require('../i18n'),
+    config = require('../../config'),
+    errors = require('../../errors'),
+    i18n = require('../../i18n'),
     _private = {};
 
 _private.parseStack = function (stack) {
@@ -68,13 +69,7 @@ _private.handleHTMLResponse = function handleHTMLResponse(err, req, res) {
  */
 _private.handleJSONResponse = function handleJSONResponse(err, req, res) {
     return function handleJSONResponse() {
-        res.json({
-            errors: [{
-                message: err.message,
-                errorType: err.errorType,
-                errorDetails: err.errorDetails
-            }]
-        });
+        res.json({errors: [err]});
     };
 };
 
@@ -86,6 +81,12 @@ _private.handleJSONResponse = function handleJSONResponse(err, req, res) {
 module.exports = function errorHandler(err, req, res, next) {
     if (_.isArray(err)) {
         err = err[0];
+    }
+
+    if (!(err instanceof errors.GhostError)) {
+        err = new errors.GhostError({
+            err: err
+        });
     }
 
     req.err = err;

@@ -336,7 +336,7 @@ describe('Schedules API', function () {
             it('ghost admin has no access', function (done) {
                 api.schedules.publishPost({id: 1, context: {client: 'ghost-admin'}})
                     .then(function () {
-                        done(new Error('expected NoPermissionError'));
+                        done(new Error('expected NoPermission'));
                     })
                     .catch(function (err) {
                         should.exist(err);
@@ -348,7 +348,7 @@ describe('Schedules API', function () {
             it('owner has no access (this is how it is right now!)', function (done) {
                 api.schedules.publishPost({id: 2, context: {user: testUtils.users.ids.author}})
                     .then(function () {
-                        done(new Error('expected NoPermissionError'));
+                        done(new Error('expected NoPermission'));
                     })
                     .catch(function (err) {
                         should.exist(err);
@@ -362,7 +362,7 @@ describe('Schedules API', function () {
                     .then(function (result) {
                         api.schedules.publishPost({id: 1, context: {user: result[0]}})
                             .then(function () {
-                                done(new Error('expected NoPermissionError'));
+                                done(new Error('expected NoPermission'));
                             })
                             .catch(function (err) {
                                 should.exist(err);
@@ -376,7 +376,7 @@ describe('Schedules API', function () {
             it('invalid params', function (done) {
                 api.schedules.publishPost({id: 'bla', context: {client: 'ghost-scheduler'}})
                     .then(function () {
-                        done(new Error('expected ValidationError'));
+                        done(new Error('expected Validation'));
                     })
                     .catch(function (err) {
                         should.exist(err);
@@ -388,7 +388,7 @@ describe('Schedules API', function () {
             it('post does not exist', function (done) {
                 api.schedules.publishPost({id: 10, context: {client: 'ghost-scheduler'}})
                     .then(function () {
-                        done(new Error('expected ValidationError'));
+                        done(new Error('expected Validation'));
                     })
                     .catch(function (err) {
                         should.exist(err);
@@ -400,7 +400,7 @@ describe('Schedules API', function () {
             it('publish at a wrong time', function (done) {
                 api.schedules.publishPost({id: 1, context: {client: 'ghost-scheduler'}})
                     .then(function () {
-                        done(new Error('expected ValidationError'));
+                        done(new Error('expected Validation'));
                     })
                     .catch(function (err) {
                         should.exist(err);
@@ -412,7 +412,7 @@ describe('Schedules API', function () {
             it('publish at a wrong time', function (done) {
                 api.schedules.publishPost({id: 3, context: {client: 'ghost-scheduler'}})
                     .then(function () {
-                        done(new Error('expected ValidationError'));
+                        done(new Error('expected Validation'));
                     })
                     .catch(function (err) {
                         should.exist(err);
@@ -424,7 +424,7 @@ describe('Schedules API', function () {
             it('publish at a wrong time', function (done) {
                 api.schedules.publishPost({id: 4, context: {client: 'ghost-scheduler'}})
                     .then(function () {
-                        done(new Error('expected ValidationError'));
+                        done(new Error('expected Validation'));
                     })
                     .catch(function (err) {
                         should.exist(err);
@@ -436,7 +436,7 @@ describe('Schedules API', function () {
             it('publish, but status is draft', function (done) {
                 api.schedules.publishPost({id: 2, context: {client: 'ghost-scheduler'}})
                     .then(function () {
-                        done(new Error('expected ValidationError'));
+                        done(new Error('expected Validation'));
                     })
                     .catch(function (err) {
                         should.exist(err);

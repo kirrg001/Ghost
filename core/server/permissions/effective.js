@@ -7,11 +7,12 @@ var _ = require('lodash'),
 
 effective = {
     user: function (id) {
+        // @TODO: test
         return Models.User.findOne({id: id, status: 'all'}, {include: ['permissions', 'roles', 'roles.permissions']})
             .then(function (foundUser) {
                 // CASE: {context: {user: id}} where the id is not in our database
                 if (!foundUser) {
-                    return Promise.reject(new errors.NotFoundError(i18n.t('errors.models.user.userNotFound')));
+                    return Promise.reject(new errors.NotFoundError({message: i18n.t('errors.models.user.userNotFound')}));
                 }
 
                 var seenPerms = {},
@@ -42,6 +43,7 @@ effective = {
     },
 
     app: function (appName) {
+        // @TODO: test
         return Models.App.findOne({name: appName}, {withRelated: ['permissions']})
             .then(function (foundApp) {
                 if (!foundApp) {

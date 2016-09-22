@@ -6,7 +6,6 @@ var _        = require('lodash'),
     Promise  = require('bluebird'),
     config   = require('../../config'),
     exporter = require('../export'),
-
     writeExportFile,
     backup;
 
@@ -26,7 +25,6 @@ writeExportFile = function writeExportFile(exportResult) {
 backup = function backup(logger) {
     // If we get passed a function, use it to output notices, else don't do anything
     logger = logger && _.isFunction(logger.info) ? logger : {info: _.noop};
-
     logger.info('Creating database backup');
 
     var props = {
