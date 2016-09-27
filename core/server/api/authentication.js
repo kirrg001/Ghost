@@ -5,8 +5,7 @@ var _                = require('lodash'),
     settings         = require('./settings'),
     mail             = require('./../mail'),
     apiMail          = require('./mail'),
-    globalUtils      = require('../utils'),
-    utils            = require('./utils'),
+    utils            = require('../utils'),
     errors           = require('../errors'),
     models           = require('../models'),
     events           = require('../events'),
@@ -130,20 +129,20 @@ function setupTasks(setupData) {
  */
 authentication = {
     createTokens: function createTokens(data, options) {
-        var localAccessToken = globalUtils.uid(256),
-            localRefreshToken = globalUtils.uid(256),
-            accessExpires = Date.now() + globalUtils.ONE_HOUR_MS,
-            refreshExpires = Date.now() + globalUtils.ONE_WEEK_MS,
+        var localAccessToken = utils.uid(191),
+            localRefreshToken = utils.uid(191),
+            accessExpires = Date.now() + utils.ONE_HOUR_MS,
+            refreshExpires = Date.now() + utils.ONE_WEEK_MS,
             client = options.context.client_id,
             user = options.context.user;
 
-        return dataProvider.Accesstoken.add({
+        return models.Accesstoken.add({
             token: localAccessToken,
             user_id: user,
             client_id: client,
             expires: accessExpires
         }).then(function () {
-            return dataProvider.Refreshtoken.add({
+            return models.Refreshtoken.add({
                 token: localRefreshToken,
                 user_id: user,
                 client_id: client,
@@ -185,7 +184,7 @@ authentication = {
 
             return settings.read(settingsQuery).then(function then(response) {
                 var dbHash = response.settings[0].value,
-                    expiresAt = Date.now() + globalUtils.ONE_DAY_MS;
+                    expiresAt = Date.now() + utils.ONE_DAY_MS;
 
                 return models.User.generateResetToken(email, expiresAt, dbHash);
             }).then(function then(resetToken) {
@@ -200,7 +199,7 @@ authentication = {
             var baseUrl = config.get('forceAdminSSL') ? (config.get('urlSSL') || config.get('url')) : config.get('url'),
                 resetUrl = baseUrl.replace(/\/$/, '') +
                     '/ghost/reset/' +
-                    globalUtils.encodeBase64URLsafe(data.resetToken) + '/';
+                    utils.encodeBase64URLsafe(data.resetToken) + '/';
 
             return mail.utils.generateContent({
                 data: {
@@ -325,7 +324,7 @@ authentication = {
         }
 
         function processInvitation(invitation) {
-            var data = invitation.invitation[0], inviteToken = globalUtils.decodeBase64URLsafe(data.token);
+            var data = invitation.invitation[0], inviteToken = utils.decodeBase64URLsafe(data.token);
 
             return models.Invite.findOne({token: inviteToken, status: 'sent'}, _.merge({}, {include: ['roles']}, options))
                 .then(function (_invite) {
