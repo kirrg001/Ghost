@@ -121,7 +121,7 @@ function init(options) {
                 });
             });
 
-        return auth.init(config.auth)
+        return auth.init(config.get('auth'))
             .then(function (response) {
                 parentApp.use(response.auth);
             });

@@ -68,7 +68,7 @@ apiRoutes = function apiRoutes(middleware) {
 
     router.get('/users/:id',
         (function () {
-            if (config.auth.type === 'patronus') {
+            if (config.get('auth').type === 'patronus') {
                 return [
                     authenticatePublic,
                     auth.authenticate.fetchPatronusAccessToken,
@@ -85,7 +85,7 @@ apiRoutes = function apiRoutes(middleware) {
     );
     router.get('/users/slug/:slug',
         (function () {
-            if (config.auth.type === 'patronus') {
+            if (config.get('auth').type === 'patronus') {
                 return [
                     authenticatePublic,
                     auth.authenticate.fetchPatronusAccessToken,
@@ -102,7 +102,7 @@ apiRoutes = function apiRoutes(middleware) {
     );
     router.get('/users/email/:email',
         (function () {
-            if (config.auth.type === 'patronus') {
+            if (config.get('auth').type === 'patronus') {
                 return [
                     authenticatePublic,
                     auth.authenticate.fetchPatronusAccessToken,
@@ -126,7 +126,7 @@ apiRoutes = function apiRoutes(middleware) {
             /*
             //@TODO: is allowed: update email, update name
             //@TODO: figure out later
-            if (config.auth.type === 'patronus') {
+            if (config.get('auth').type === 'patronus') {
                 return [
                     authenticatePrivate,
                     auth.authenticate.fetchPatronusAccessToken,

@@ -4,8 +4,8 @@ var ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy
     passport = require('passport'),
     Promise = require('bluebird'),
     authStrategies = require('./auth-strategies'),
-    config = require('../config'),
     models = require('../models'),
+    utils = require('../utils'),
     _private = {};
 
 _private.registerClient = function (ghostOAuth2Strategy) {
@@ -84,7 +84,7 @@ exports.init = function (options) {
         }
 
         var ghostOAuth2Strategy = new GhostOAuth2Strategy({
-            callbackURL: config.getBaseUrl() + '/ghost/',
+            callbackURL: utils.url.getBaseUrl() + '/ghost/',
             tokenURL: urls.tokenURL || 'http://localhost:8080/oauth2/token',
             registerURL: urls.registerURL || 'http://localhost:8080/oauth2/client',
             userProfileURL: urls.userProfileURL || 'http://localhost:8080/oauth2/userinfo',
