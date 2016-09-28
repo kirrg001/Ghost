@@ -1,5 +1,6 @@
 var models = require('../models'),
     utils = require('../utils'),
+    Promise = require('bluebird'),
     strategies;
 
 strategies = {
@@ -72,12 +73,13 @@ strategies = {
      */
     ghostStrategy: function ghostStrategy(req, patronusAccessToken, patronusRefreshToken, profile, done) {
         var inviteToken = req.body.inviteToken,
-            options = {context: {internal: true}};
+            options = {context: {internal: true}},
+            handleInviteToken, handleSetup;
 
-        var handleInviteToken = function handleInviteToken() {
+        handleInviteToken = function handleInviteToken() {
             var user, invite;
 
-            //@TODO: reconsider how we are doing that
+            // @TODO: reconsider how we are doing that
             inviteToken = utils.decodeBase64URLsafe(inviteToken);
 
             return models.Invite.findOne({token: inviteToken}, options)
@@ -113,8 +115,8 @@ strategies = {
                 });
         };
 
-        var handleSetup = function handleSetup() {
-            //@TODO: fixme status with context
+        handleSetup = function handleSetup() {
+            // @TODO: fixme status with context
             return models.User.findOne({slug: 'ghost-owner', status: 'inactive'}, options)
                 .then(function (owner) {
                     options.id = owner.id;
@@ -125,8 +127,10 @@ strategies = {
                     }, options);
                 })
                 .catch(function (err) {
+                    // @TODO: use logging.error
+                    console.log('ERRR ON SETUP', err);
                     return null;
-                })
+                });
         };
 
         return models.User.getByEmail(profile.email_address, options)
@@ -148,7 +152,7 @@ strategies = {
 
                 options.id = user.id;
 
-                //@TODO: only store for owner?
+                // @TODO: only store for owner?
                 return models.User.edit({patronus_access_token: patronusAccessToken}, options);
             })
             .then(function (user) {

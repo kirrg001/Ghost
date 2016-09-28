@@ -1,5 +1,4 @@
-var passport = require('passport'),
-    Promise = require('bluebird');
+var passport = require('passport');
 
 exports.getProfile = function userProfile(req, res, next) {
     var accessToken = req.query.accessToken;
