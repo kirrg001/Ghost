@@ -128,6 +128,23 @@ authenticate = {
             req.user = user;
             next();
         })(req, res, next);
+    },
+
+    readPatronusTokenFromUser: function readPatronusTokenFromUser(req, res, next) {
+        models.User.findOne({id: req.user.id}, {context: {internal: true}})
+            .then(function (user) {
+                if (!user) {
+                    return next(new errors.NotFoundError());
+                }
+
+                if (!user.get('patronus_access_token')) {
+                    return next(new errors.NoPermissionError());
+                }
+
+                req.query.accessToken = user.get('patronus_access_token');
+                next();
+            })
+            .catch(next);
     }
 };
 

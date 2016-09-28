@@ -67,7 +67,6 @@ strategies = {
      * - via normal auth
      *
      * @TODO: case protect self invite (check first if invite token exists)
-     * @TODO: password_digest is send from patronus - tell
      * @TODO: forward type (invite, signup)
      * @TODO: validate profile?
      */

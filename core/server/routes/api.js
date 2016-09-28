@@ -65,9 +65,22 @@ apiRoutes = function apiRoutes(middleware) {
 
     // ## Users
     router.get('/users', authenticatePublic, api.http(api.users.browse));
-    router.get('/users/:id', authenticatePublic, api.http(api.users.read));
-    router.get('/users/slug/:slug', authenticatePublic, api.http(api.users.read));
-    router.get('/users/email/:email', authenticatePublic, api.http(api.users.read));
+
+    ['/users/slug/:slug', '/users/:id', '/users/email/:email'].forEach(function (route) {
+        router.get(route,
+            (function () {
+                var operations = [authenticatePublic];
+
+                if (config.get('auth:type') === 'patronus') {
+                    operations.push(auth.authenticate.readPatronusTokenFromUser);
+                    operations.push(auth.patronus.getProfile);
+                }
+
+                operations.push(api.http(api.users.read));
+                return operations;
+            })()
+        );
+    });
 
     router.put('/users/password', authenticatePrivate, api.http(api.users.changePassword));
     router.put('/users/owner', authenticatePrivate, api.http(api.users.transferOwnership));

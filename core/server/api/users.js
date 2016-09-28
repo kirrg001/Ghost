@@ -59,6 +59,7 @@ users = {
      */
     read: function read(options) {
         var attrs = ['id', 'slug', 'status', 'email', 'role'],
+            patronusUser = options.patronusUser,
             tasks;
 
         // Special handling for id = 'me'
@@ -87,7 +88,8 @@ users = {
         // Pipeline calls each task passing the result of one to be the arguments for the next
         return pipeline(tasks, options).then(function formatResponse(result) {
             if (result) {
-                return {users: [result.toJSON(options)]};
+                // @TODO: think about smart response
+                return {users: [result.toJSON(options)], patronusUser: patronusUser};
             }
 
             return Promise.reject(new errors.NotFoundError(i18n.t('errors.api.users.userNotFound')));
