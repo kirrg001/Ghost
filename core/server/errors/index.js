@@ -18,6 +18,7 @@ var NotFoundError = require('./not-found-error'),
     IncorrectUsage = require('./incorrect-usage'),
     Maintenance = require('./maintenance'),
     DatabaseNotPopulated = require('./database-not-populated'),
+    DatabaseNotSeededError = require('./database-not-seeded-error'),
     DatabaseVersion = require('./database-version');
 
 module.exports.NotFoundError = NotFoundError;
@@ -38,4 +39,5 @@ module.exports.VersionMismatchError = VersionMismatchError;
 module.exports.IncorrectUsage = IncorrectUsage;
 module.exports.Maintenance = Maintenance;
 module.exports.DatabaseNotPopulated = DatabaseNotPopulated;
+module.exports.DatabaseNotSeededError = DatabaseNotSeededError;
 module.exports.DatabaseVersion = DatabaseVersion;
