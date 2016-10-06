@@ -80,6 +80,7 @@ function init(options) {
         debug('Themes & apps done');
 
         models.init();
+
         // @TODO: this is temporary, replace migrations with a warning if a DB exists
         return db.bootUp();
     }).then(function () {

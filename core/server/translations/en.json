@@ -439,6 +439,8 @@
                 "index": {
                     "dbVersionNotRecognized": "Database version is not recognized",
                     "databaseNotPopulated": "Database is not populated.",
+                    "databaseNotInitialised": "Database is not initialised.",
+                    "databaseNotInitialisedContext": "Use node core/server/data/sephiroth/bin/sephiroth init",
                     "databaseNotSeeded": "Database is not seeded.",
                     "cannotMigrate": {
                         "error": "Unable to upgrade from version 0.4.2 or earlier.",

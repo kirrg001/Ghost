@@ -6,6 +6,7 @@ var knex = require('knex'),
 // - if you require this file before config file was loaded,
 // - then this file is cached and you have no chance to connect to the db anymore
 // - bring dynamic into this file (db.connect())
+// - this is basically a copy paste of db/connection --> use ignition!
 function configure(dbConfig) {
     var client = dbConfig.client;
 
