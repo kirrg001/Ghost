@@ -53,7 +53,7 @@ describe('OAuth', function () {
                 id: 1
             }));
 
-            sandbox.stub(models.User, 'check')
+            sandbox.stub(models.User, 'login')
                 .withArgs({email: 'username', password: 'password'}).returns(new Promise.resolve({
                 id: 1
             }));
@@ -122,7 +122,7 @@ describe('OAuth', function () {
                 id: 1
             }));
 
-            sandbox.stub(models.User, 'check')
+            sandbox.stub(models.User, 'login')
                 .withArgs({email: 'username', password: 'password'}).returns(new Promise.resolve({
                 id: 1
             }));

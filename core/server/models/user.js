@@ -1,23 +1,22 @@
-var _              = require('lodash'),
-    Promise        = require('bluebird'),
-    bcrypt         = require('bcryptjs'),
-    crypto         = require('crypto'),
-    validator      = require('validator'),
+var _ = require('lodash'),
+    Promise = require('bluebird'),
+    bcrypt = require('bcryptjs'),
+    crypto = require('crypto'),
+    validator = require('validator'),
     ghostBookshelf = require('./base'),
-    errors         = require('../errors'),
-    logging        = require('../logging'),
-    utils          = require('../utils'),
-    gravatar       = require('../utils/gravatar'),
-    validation     = require('../data/validation'),
-    events         = require('../events'),
-    i18n           = require('../i18n'),
+    errors = require('../errors'),
+    logging = require('../logging'),
+    utils = require('../utils'),
+    gravatar = require('../utils/gravatar'),
+    validation = require('../data/validation'),
+    events = require('../events'),
+    i18n = require('../i18n'),
 
-    bcryptGenSalt  = Promise.promisify(bcrypt.genSalt),
-    bcryptHash     = Promise.promisify(bcrypt.hash),
-    bcryptCompare  = Promise.promisify(bcrypt.compare),
+    bcryptGenSalt = Promise.promisify(bcrypt.genSalt),
+    bcryptHash = Promise.promisify(bcrypt.hash),
+    bcryptCompare = Promise.promisify(bcrypt.compare),
 
-    tokenSecurity  = {},
-    activeStates   = ['active', 'warn-1', 'warn-2', 'warn-3', 'warn-4', 'locked'],
+    activeStates = ['active', 'warn-1', 'warn-2', 'warn-3', 'warn-4', 'locked'],
     User,
     Users;
 
@@ -78,8 +77,12 @@ User = ghostBookshelf.Model.extend({
                 model.emitChange('activated.edited');
             }
         }
+    },
 
-        model.emitChange('edited');
+    onFetching: function onFetching(model) {
+        if (model.get('status') === 'locked') {
+            throw new errors.NoPermissionError({message: i18n.t('errors.models.user.accountLocked')});
+        }
     },
 
     /**
@@ -154,13 +157,12 @@ User = ghostBookshelf.Model.extend({
             userData;
 
         if (opts && _.has(opts, 'validate') && opts.validate === false) {
-            return;
+            return Promise.resolve();
         }
 
         // use the base toJSON since this model's overridden toJSON
         // removes fields and we want everything to run through the validator.
         userData = ghostBookshelf.Model.prototype.toJSON.call(this);
-
         return validation.validateSchema(this.tableName, userData);
     },
 
@@ -182,11 +184,14 @@ User = ghostBookshelf.Model.extend({
         }
     },
 
+    /**
+     * remove sensitive data e.q. pwd, tokens
+     */
     toJSON: function toJSON(options) {
         options = options || {};
 
         var attrs = ghostBookshelf.Model.prototype.toJSON.call(this, options);
-        // remove password hash for security reasons
+
         delete attrs.password;
         delete attrs.ghost_auth_access_token;
 
@@ -198,10 +203,10 @@ User = ghostBookshelf.Model.extend({
     },
 
     format: function format(options) {
-        if (!_.isEmpty(options.website) &&
-            !validator.isURL(options.website, {
-            require_protocol: true,
-            protocols: ['http', 'https']})) {
+        if (!_.isEmpty(options.website) && !validator.isURL(options.website, {
+                require_protocol: true,
+                protocols: ['http', 'https']
+            })) {
             options.website = 'http://' + options.website;
         }
         return ghostBookshelf.Model.prototype.format.call(this, options);
@@ -241,6 +246,50 @@ User = ghostBookshelf.Model.extend({
         }
 
         return this.isPublicContext() ? null : 'status:[' + activeStates.join(',') + ']';
+    },
+
+    isPasswordCorrect: function isPasswordCorrect(object) {
+        var plainPassword = object.plainPassword,
+            hashedPassword = this.get('password');
+
+        if (!plainPassword || !hashedPassword) {
+            return Promise.reject(new errors.ValidationError({
+                message: i18n.t('errors.models.user.passwordRequiredForOperation')
+            }));
+        }
+
+        return bcryptCompare(plainPassword, hashedPassword)
+            .then(function (matched) {
+                if (matched) {
+                    return;
+                }
+
+                return Promise.reject(new errors.ValidationError({
+                    message: i18n.t('errors.models.user.incorrectPassword'),
+                    help: i18n.t('errors.models.user.userUpdateError.help'),
+                    code: 'PASSWORD_INCORRECT'
+                }));
+            });
+    },
+
+    //@TODO: does it work when i call User.edit({password: password});
+    changePassword: function changePassword(object, options) {
+        var self = this,
+            userId = parseInt(object.user_id),
+            isLoggedInUser = userId === options.context.user;
+
+        return Promise.resolve()
+            .then(function () {
+                if (isLoggedInUser) {
+                    return self.isPasswordCorrect({
+                        plainPassword: object.oldPassword
+                    }, options)
+                }
+            })
+            .then(function () {
+                self.set('password', object.newPassword);
+                return self.save(options);
+            });
     }
 }, {
     orderDefaultOptions: function orderDefaultOptions() {
@@ -285,10 +334,10 @@ User = ghostBookshelf.Model.extend({
     },
 
     /**
-    * Returns an array of keys permitted in a method's `options` hash, depending on the current method.
-    * @param {String} methodName The name of the method to check valid options for.
-    * @return {Array} Keys allowed in the `options` hash of the model's method.
-    */
+     * Returns an array of keys permitted in a method's `options` hash, depending on the current method.
+     * @param {String} methodName The name of the method to check valid options for.
+     * @return {Array} Keys allowed in the `options` hash of the model's method.
+     */
     permittedOptions: function permittedOptions(methodName) {
         var options = ghostBookshelf.Model.permittedOptions(),
 
@@ -307,6 +356,56 @@ User = ghostBookshelf.Model.extend({
         }
 
         return options;
+    },
+
+    login: function login(object) {
+        var user, s, self;
+
+        return this.getByEmail(object.email)
+            .then(function (_user) {
+                user = _user;
+
+                if (!user) {
+                    throw new errors.NotFoundError({
+                        message: i18n.t('errors.models.user.userNotFound')
+                    });
+                }
+
+                return user.isPasswordCorrect({
+                    plainPassword: object.password
+                });
+            })
+            .then(function () {
+                return user.set({
+                    status: 'active',
+                    last_login: new Date()
+                }).save();
+            })
+            .catch(function (err) {
+                if (!(err instanceof errors.ValidationError)) {
+                    throw err;
+                }
+
+                return self.setWarning({validate: false})
+                    .then(function then(remaining) {
+
+                        if (remaining === 0) {
+                            // If remaining attempts = 0, the account has been locked, so show a locked account message
+                            return Promise.reject(new errors.NoPermissionError({
+                                message: i18n.t('errors.models.user.accountLocked')
+                            }));
+                        }
+
+                        s = (remaining > 1) ? 's' : '';
+
+                        return Promise.reject(new errors.UnauthorizedError({
+                            message: i18n.t('errors.models.user.incorrectPasswordAttempts', {
+                                remaining: remaining,
+                                s: s
+                            })
+                        }));
+                    });
+            });
     },
 
     /**
@@ -467,30 +566,11 @@ User = ghostBookshelf.Model.extend({
 
                     return addedUser.roles().attach(roles, options);
                 });
-            }).then(function then() {
-                // find and return the added user
+            })
+            .then(function then() {
+                // @TODO: this happens because...?
                 return self.findOne({id: userData.id, status: 'all'}, options);
             });
-    },
-
-    /**
-     * We override the owner!
-     * Owner already has a slug -> force setting a new one by setting slug to null
-     * @TODO: kill setup function?
-     */
-    setup: function setup(data, options) {
-        var self = this,
-            userData = this.filterData(data);
-
-        if (!validatePasswordLength(userData.password)) {
-            return Promise.reject(new errors.ValidationError({message: i18n.t('errors.models.user.passwordDoesNotComplyLength')}));
-        }
-
-        options = this.filterOptions(options, 'setup');
-        options.withRelated = _.union(options.withRelated, options.include);
-
-        userData.slug = null;
-        return self.edit.call(self, userData, options);
     },
 
     permissible: function permissible(userModelOrId, action, context, loadedPermissions, hasUserPermission, hasAppPermission) {
@@ -508,7 +588,10 @@ User = ghostBookshelf.Model.extend({
             origArgs = _.toArray(arguments).slice(1);
 
             // Get the actual user model
-            return this.findOne({id: userModelOrId, status: 'all'}, {include: ['roles']}).then(function then(foundUserModel) {
+            return this.findOne({
+                id: userModelOrId,
+                status: 'all'
+            }, {include: ['roles']}).then(function then(foundUserModel) {
                 // Build up the original args but substitute with actual model
                 var newArgs = [foundUserModel].concat(origArgs);
 
@@ -581,279 +664,45 @@ User = ghostBookshelf.Model.extend({
         });
     },
 
-    // Finds the user by email, and checks the password
-    // @TODO: shorten this function and rename...
-    check: function check(object) {
-        var self = this,
-            s;
-
-        return this.getByEmail(object.email).then(function then(user) {
-            if (!user) {
-                return Promise.reject(new errors.NotFoundError({message: i18n.t('errors.models.user.noUserWithEnteredEmailAddr')}));
-            }
-
-            if (user.get('status') !== 'locked') {
-                return self.isPasswordCorrect({plainPassword: object.password, hashedPassword: user.get('password')})
-                    .then(function then() {
-                        return Promise.resolve(user.set({status: 'active', last_login: new Date()}).save({validate: false}))
-                            .catch(function handleError(err) {
-                                // If we get a validation or other error during this save, catch it and log it, but don't
-                                // cause a login error because of it. The user validation is not important here.
-                                logging.error(new errors.GhostError({
-                                    err: err,
-                                    context: i18n.t('errors.models.user.userUpdateError.context'),
-                                    help: i18n.t('errors.models.user.userUpdateError.help')
-                                }));
-
-                                return user;
-                            });
-                    })
-                    .catch(function onError(err) {
-                        if (err.code !== 'PASSWORD_INCORRECT') {
-                            return Promise.reject(err);
-                        }
-
-                        return Promise.resolve(self.setWarning(user, {validate: false}))
-                            .then(function then(remaining) {
-                                if (remaining === 0) {
-                                    // If remaining attempts = 0, the account has been locked, so show a locked account message
-                                    return Promise.reject(new errors.NoPermissionError({
-                                        message: i18n.t('errors.models.user.accountLocked')
-                                    }));
-                                }
-
-                                s = (remaining > 1) ? 's' : '';
-                                return Promise.reject(new errors.UnauthorizedError({
-                                    message: i18n.t('errors.models.user.incorrectPasswordAttempts', {remaining: remaining, s: s})
-                                }));
-                            }, function handleError(err) {
-                                // ^ Use comma structure, not .catch, because we don't want to catch incorrect passwords
-
-                                return Promise.reject(new errors.UnauthorizedError({
-                                    err: err,
-                                    context: i18n.t('errors.models.user.incorrectPassword'),
-                                    help: i18n.t('errors.models.user.userUpdateError.help')
-                                }));
-                            });
-                    });
-            }
-
-            return Promise.reject(new errors.NoPermissionError({message: i18n.t('errors.models.user.accountLocked')}));
-        }, function handleError(error) {
-            if (error.message === 'NotFound' || error.message === 'EmptyResponse') {
-                return Promise.reject(new errors.NotFoundError({message: i18n.t('errors.models.user.noUserWithEnteredEmailAddr')}));
-            }
-
-            return Promise.reject(error);
-        });
-    },
-
-    isPasswordCorrect: function isPasswordCorrect(object) {
-        var plainPassword = object.plainPassword,
-            hashedPassword = object.hashedPassword;
-
-        if (!plainPassword || !hashedPassword) {
-            return Promise.reject(new errors.ValidationError({
-                message: i18n.t('errors.models.user.passwordRequiredForOperation')
-            }));
-        }
-
-        return bcryptCompare(plainPassword, hashedPassword)
-            .then(function (matched) {
-                if (matched) {
-                    return;
-                }
-
-                return Promise.reject(new errors.ValidationError({
-                    message: i18n.t('errors.models.user.incorrectPassword'),
-                    help: i18n.t('errors.models.user.userUpdateError.help'),
-                    code: 'PASSWORD_INCORRECT'
-                }));
-            });
-    },
-
-    /**
-     * Naive change password method
-     * @param {Object} object
-     * @param {Object} options
-     */
-    changePassword: function changePassword(object, options) {
-        var self = this,
-            newPassword = object.newPassword,
-            ne2Password = object.ne2Password,
-            userId = parseInt(object.user_id),
-            oldPassword = object.oldPassword,
-            isLoggedInUser = userId === options.context.user,
-            user;
-
-        // If the two passwords do not match
-        if (newPassword !== ne2Password) {
-            return Promise.reject(new errors.ValidationError({message: i18n.t('errors.models.user.newPasswordsDoNotMatch')}));
-        }
-
-        return self.forge({id: userId}).fetch({require: true})
-            .then(function then(_user) {
-                user = _user;
-
-                if (isLoggedInUser) {
-                    return self.isPasswordCorrect({
-                        plainPassword: oldPassword,
-                        hashedPassword: user.get('password')
-                    });
-                }
-            })
-            .then(function then() {
-                return user.save({password: newPassword});
-            });
-    },
-
-    generateResetToken: function generateResetToken(email, expires, dbHash) {
-        return this.getByEmail(email).then(function then(foundUser) {
-            if (!foundUser) {
-                return Promise.reject(new errors.NotFoundError({message: i18n.t('errors.models.user.noUserWithEnteredEmailAddr')}));
-            }
-
-            var hash = crypto.createHash('sha256'),
-                text = '';
-
-            // Token:
-            // BASE64(TIMESTAMP + email + HASH(TIMESTAMP + email + oldPasswordHash + dbHash ))
-            hash.update(String(expires));
-            hash.update(email.toLocaleLowerCase());
-            hash.update(foundUser.get('password'));
-            hash.update(String(dbHash));
-
-            text += [expires, email, hash.digest('base64')].join('|');
-            return new Buffer(text).toString('base64');
-        });
-    },
-
-    validateToken: function validateToken(token, dbHash) {
-        /*jslint bitwise:true*/
-        // TODO: Is there a chance the use of ascii here will cause problems if oldPassword has weird characters?
-        var tokenText = new Buffer(token, 'base64').toString('ascii'),
-            parts,
-            expires,
-            email;
-
-        parts = tokenText.split('|');
-
-        // Check if invalid structure
-        if (!parts || parts.length !== 3) {
-            return Promise.reject(new errors.BadRequestError({message: i18n.t('errors.models.user.invalidTokenStructure')}));
-        }
-
-        expires = parseInt(parts[0], 10);
-        email = parts[1];
-
-        if (isNaN(expires)) {
-            return Promise.reject(new errors.BadRequestError({message: i18n.t('errors.models.user.invalidTokenExpiration')}));
-        }
-
-        // Check if token is expired to prevent replay attacks
-        if (expires < Date.now()) {
-            return Promise.reject(new errors.ValidationError({message: i18n.t('errors.models.user.expiredToken')}));
-        }
-
-        // to prevent brute force attempts to reset the password the combination of email+expires is only allowed for
-        // 10 attempts
-        if (tokenSecurity[email + '+' + expires] && tokenSecurity[email + '+' + expires].count >= 10) {
-            return Promise.reject(new errors.NoPermissionError({message: i18n.t('errors.models.user.tokenLocked')}));
-        }
-
-        return this.generateResetToken(email, expires, dbHash).then(function then(generatedToken) {
-            // Check for matching tokens with timing independent comparison
-            var diff = 0,
-                i;
-
-            // check if the token length is correct
-            if (token.length !== generatedToken.length) {
-                diff = 1;
-            }
-
-            for (i = token.length - 1; i >= 0; i = i - 1) {
-                diff |= token.charCodeAt(i) ^ generatedToken.charCodeAt(i);
-            }
-
-            if (diff === 0) {
-                return email;
-            }
-
-            // increase the count for email+expires for each failed attempt
-            tokenSecurity[email + '+' + expires] = {
-                count: tokenSecurity[email + '+' + expires] ? tokenSecurity[email + '+' + expires].count + 1 : 1
-            };
-            return Promise.reject(new errors.BadRequestError({message: i18n.t('errors.models.user.invalidToken')}));
-        });
-    },
-
-    resetPassword: function resetPassword(options) {
-        var self = this,
-            token = options.token,
-            newPassword = options.newPassword,
-            ne2Password = options.ne2Password,
-            dbHash = options.dbHash;
-
-        if (newPassword !== ne2Password) {
-            return Promise.reject(new errors.ValidationError({
-                message: i18n.t('errors.models.user.newPasswordsDoNotMatch')
-            }));
-        }
-
-        // Validate the token; returns the email address from token
-        return self.validateToken(utils.decodeBase64URLsafe(token), dbHash).then(function then(email) {
-            return self.getByEmail(email);
-        }).then(function then(foundUser) {
-            if (!foundUser) {
-                return Promise.reject(new errors.NotFoundError({message: i18n.t('errors.models.user.userNotFound')}));
-            }
-
-            return foundUser.save({
-                status: 'active',
-                password: newPassword
-            });
-        });
-    },
-
     transferOwnership: function transferOwnership(object, options) {
         var ownerRole,
             contextUser;
 
         return Promise.join(ghostBookshelf.model('Role').findOne({name: 'Owner'}),
-                            User.findOne({id: options.context.user}, {include: ['roles']}))
-        .then(function then(results) {
-            ownerRole = results[0];
-            contextUser = results[1];
+            User.findOne({id: options.context.user}, {include: ['roles']}))
+            .then(function then(results) {
+                ownerRole = results[0];
+                contextUser = results[1];
 
-            // check if user has the owner role
-            var currentRoles = contextUser.toJSON(options).roles;
-            if (!_.some(currentRoles, {id: ownerRole.id})) {
-                return Promise.reject(new errors.NoPermissionError({message: i18n.t('errors.models.user.onlyOwnerCanTransferOwnerRole')}));
-            }
+                // check if user has the owner role
+                var currentRoles = contextUser.toJSON(options).roles;
+                if (!_.some(currentRoles, {id: ownerRole.id})) {
+                    return Promise.reject(new errors.NoPermissionError({message: i18n.t('errors.models.user.onlyOwnerCanTransferOwnerRole')}));
+                }
 
-            return Promise.join(ghostBookshelf.model('Role').findOne({name: 'Administrator'}),
-                                User.findOne({id: object.id}, {include: ['roles']}));
-        }).then(function then(results) {
-            var adminRole = results[0],
-                user = results[1],
-                currentRoles = user.toJSON(options).roles;
+                return Promise.join(ghostBookshelf.model('Role').findOne({name: 'Administrator'}),
+                    User.findOne({id: object.id}, {include: ['roles']}));
+            }).then(function then(results) {
+                var adminRole = results[0],
+                    user = results[1],
+                    currentRoles = user.toJSON(options).roles;
 
-            if (!_.some(currentRoles, {id: adminRole.id})) {
-                return Promise.reject(new errors.ValidationError({message: i18n.t('errors.models.user.onlyAdmCanBeAssignedOwnerRole')}));
-            }
+                if (!_.some(currentRoles, {id: adminRole.id})) {
+                    return Promise.reject(new errors.ValidationError({message: i18n.t('errors.models.user.onlyAdmCanBeAssignedOwnerRole')}));
+                }
 
-            // convert owner to admin
-            return Promise.join(contextUser.roles().updatePivot({role_id: adminRole.id}),
-                                user.roles().updatePivot({role_id: ownerRole.id}),
-                                user.id);
-        }).then(function then(results) {
-            return Users.forge()
-                .query('whereIn', 'id', [contextUser.id, results[2]])
-                .fetch({withRelated: ['roles']});
-        }).then(function then(users) {
-            options.include = ['roles'];
-            return users.toJSON(options);
-        });
+                // convert owner to admin
+                return Promise.join(contextUser.roles().updatePivot({role_id: adminRole.id}),
+                    user.roles().updatePivot({role_id: ownerRole.id}),
+                    user.id);
+            }).then(function then(results) {
+                return Users.forge()
+                    .query('whereIn', 'id', [contextUser.id, results[2]])
+                    .fetch({withRelated: ['roles']});
+            }).then(function then(users) {
+                options.include = ['roles'];
+                return users.toJSON(options);
+            });
     },
 
     // Get the user by email address, enforces case insensitivity rejects if the user is not found
@@ -871,6 +720,7 @@ User = ghostBookshelf.Model.extend({
             var userWithEmail = users.find(function findUser(user) {
                 return user.get('email').toLowerCase() === email.toLowerCase();
             });
+
             if (userWithEmail) {
                 return userWithEmail;
             }

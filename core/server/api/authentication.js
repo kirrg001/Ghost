@@ -13,7 +13,8 @@ var _                = require('lodash'),
     events           = require('../events'),
     config           = require('../config'),
     i18n             = require('../i18n'),
-    authentication;
+    authentication,
+    tokenSecurity = {};
 
 /**
  * Returns setup status
@@ -33,10 +34,10 @@ function checkSetup() {
  * @return {Function} returns a "task ready" function
  */
 function assertSetupCompleted(status) {
-    return function checkPermission(__) {
+    return function checkPermission(options) {
         return checkSetup().then(function then(isSetup) {
             if (isSetup === status) {
-                return __;
+                return Promise.resolve(options);
             }
 
             var completed = i18n.t('errors.api.authentication.setupAlreadyCompleted'),
@@ -83,7 +84,7 @@ function setupTasks(setupData) {
                 });
             }
 
-            return User.setup(userData, _.extend({id: owner.id}, context));
+            return User.edit(userData, _.extend({id: owner.id}, context));
         }).then(function then(user) {
             return {
                 user: user,
@@ -163,12 +164,15 @@ authentication = {
     },
 
     /**
+     * @TODO:
+     *   - forward logging-in user as req.user
+     *
      * @description generate a reset token for a given email address
      * @param {Object} resetRequest
      * @returns {Promise<Object>} message
      */
     generateResetToken: function generateResetToken(resetRequest) {
-        var tasks;
+        var tasks, user, dbHash, token, options = {context: {internal: true}};
 
         function validateRequest(resetRequest) {
             return utils.checkObject(resetRequest, 'passwordreset').then(function then(data) {
@@ -185,19 +189,27 @@ authentication = {
         }
 
         function generateToken(email) {
-            var settingsQuery = {context: {internal: true}, key: 'dbHash'};
+            return settings.read(_.merge({key: 'dbHash'}, options))
+                .then(function fetchedSettings(response) {
+                    dbHash = response.settings[0].value;
 
-            return settings.read(settingsQuery).then(function then(response) {
-                var dbHash = response.settings[0].value,
-                    expiresAt = Date.now() + globalUtils.ONE_DAY_MS;
+                    return models.User.getByEmail(email, options);
+                })
+                .then(function fetchedUser(_user) {
+                    user = _user;
 
-                return models.User.generateResetToken(email, expiresAt, dbHash);
-            }).then(function then(resetToken) {
-                return {
-                    email: email,
-                    resetToken: resetToken
-                };
-            });
+                    token = globalUtils.tokens.resetToken.generateHash({
+                        expires: Date.now() + globalUtils.ONE_DAY_MS,
+                        unique: email,
+                        dbHash: dbHash,
+                        password: user.get('password')
+                    });
+
+                    return {
+                        email: email,
+                        resetToken: token
+                    };
+                });
         }
 
         function sendResetNotification(data) {
@@ -250,33 +262,88 @@ authentication = {
     /**
      * ## Reset Password
      * reset password if a valid token and password (2x) is passed
-     * @param {Object} resetRequest
+     * @TODO: why should we expose the detail about why token is invalid?
+     *
+     * @param {Object} object
      * @returns {Promise<Object>} message
      */
-    resetPassword: function resetPassword(resetRequest) {
-        var tasks;
+    resetPassword: function resetPassword(object) {
+        var tasks, tokenIsCorrect, dbHash, options = {context: {internal: true}}, tokenParts;
 
-        function validateRequest(resetRequest) {
-            return utils.checkObject(resetRequest, 'passwordreset');
+        function validatePassword(object, options) {
+            return utils.validate('passwordreset')(object, options)
+                .then(function () {
+                    var data = (options.data.passwordreset || options.data.password)[0];
+
+                    if (data.newPassword !== data.ne2Password) {
+                        return Promise.reject(new errors.ValidationError({
+                            message: i18n.t('errors.models.user.newPasswordsDoNotMatch')
+                        }));
+                    }
+
+                    return Promise.resolve(options);
+                });
         }
 
-        function doReset(resetRequest) {
-            var settingsQuery = {context: {internal: true}, key: 'dbHash'},
-                data = resetRequest.passwordreset[0],
-                resetToken = data.token,
-                newPassword = data.newPassword,
-                ne2Password = data.ne2Password;
+        function protectBruteForce(options) {
+            var data = options.data.passwordreset[0];
 
-            return settings.read(settingsQuery).then(function then(response) {
-                return models.User.resetPassword({
-                    token: resetToken,
-                    newPassword: newPassword,
-                    ne2Password: ne2Password,
-                    dbHash: response.settings[0].value
-                });
-            }).catch(function (err) {
-                throw new errors.UnauthorizedError({err: err});
+            tokenParts = globalUtils.tokens.resetToken.extract({
+                token: data.token
             });
+
+            if (!tokenParts) {
+                return Promise.reject(new errors.UnauthorizedError({
+                    message: 'Invalid token'
+                }));
+            }
+
+            if (tokenSecurity[tokenParts.email + '+' + tokenParts.expires] &&
+                tokenSecurity[tokenParts.email + '+' + tokenParts.expires].count >= 10) {
+                return Promise.reject(new errors.NoPermissionError({
+                    message: i18n.t('errors.models.user.tokenLocked')
+                }));
+            }
+
+            return Promise.resolve();
+        }
+
+        function doReset(options) {
+            var data = options.data.passwordreset[0],
+                resetToken = data.token,
+                oldPassword = data.oldPassword,
+                newPassword = data.newPassword;
+
+            return settings.read(_.merge({key: 'dbHash'}, options))
+                .then(function fetchedSettings(response) {
+                    dbHash = response.settings[0].value;
+
+                    return models.User.getByEmail(tokenParts.email, options);
+                })
+                .then(function fetchedUser(user) {
+                    tokenIsCorrect = globalUtils.tokens.resetToken.compare({
+                        token: resetToken,
+                        dbHash: dbHash,
+                        password: user.get('password')
+                    });
+
+                    if (!tokenIsCorrect) {
+                        return Promise.reject(new errors.BadRequestError({
+                            message: i18n.t('errors.models.user.invalidTokenStructure')
+                        }));
+                    }
+
+                    return user.changePassword({
+                        oldPassword: oldPassword,
+                        newPassword: newPassword
+                    }, options);
+                })
+                .then(function () {
+                    return models.User.edit({status: 'active'}, options);
+                })
+                .catch(function (err) {
+                    throw new errors.UnauthorizedError({err: err});
+                });
         }
 
         function formatResponse() {
@@ -288,13 +355,14 @@ authentication = {
         }
 
         tasks = [
+            validatePassword,
             assertSetupCompleted(true),
-            validateRequest,
+            protectBruteForce,
             doReset,
             formatResponse
         ];
 
-        return pipeline(tasks, resetRequest);
+        return pipeline(tasks, object, options);
     },
 
     /**
@@ -364,8 +432,8 @@ authentication = {
         }
 
         tasks = [
-            assertSetupCompleted(true),
             validateInvitation,
+            assertSetupCompleted(true),
             processInvitation,
             formatResponse
         ];

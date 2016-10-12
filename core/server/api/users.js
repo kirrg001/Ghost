@@ -269,6 +269,21 @@ users = {
     changePassword: function changePassword(object, options) {
         var tasks;
 
+        function validatePassword(object, options) {
+            return utils.validate('password')(object, options)
+                .then(function (options) {
+                    var data = (options.data.passwordreset || options.data.password)[0];
+
+                    if (data.newPassword !== data.ne2Password) {
+                        return Promise.reject(new errors.ValidationError({
+                            message: i18n.t('errors.models.user.newPasswordsDoNotMatch')
+                        }));
+                    }
+
+                    return Promise.resolve(options);
+                });
+        }
+
         /**
          * ### Handle Permissions
          * We need to be an authorised user to perform this action
@@ -276,7 +291,9 @@ users = {
          * @returns {Object} options
          */
         function handlePermissions(options) {
-            return canThis(options.context).edit.user(options.data.password[0].user_id).then(function permissionGranted() {
+            var userId = options.data.password[0].user_id;
+
+            return canThis(options.context).edit.user(userId).then(function permissionGranted() {
                 return options;
             }).catch(function (err) {
                 return Promise.reject(new errors.NoPermissionError({
@@ -293,15 +310,23 @@ users = {
          * @returns {Object} options
          */
         function doQuery(options) {
-            return dataProvider.User.changePassword(
-                options.data.password[0],
-                _.omit(options, ['data'])
-            );
+            var user_id = options.data.password[0].user_id,
+                newPassword = options.data.password[0].newPassword,
+                oldPassword = options.data.password[0].oldPassword;
+
+            return dataProvider.User.findOne({id: user_id}, _.omit(options, ['data']))
+                .then(function (user) {
+                    return user.changePassword({
+                        user_id: user_id,
+                        newPassword: newPassword,
+                        oldPassword: oldPassword
+                    }, _.omit(options, ['data']));
+                });
         }
 
         // Push all of our tasks into a `tasks` array in the correct order
         tasks = [
-            utils.validate('password'),
+            validatePassword,
             handlePermissions,
             utils.convertOptions(allowedIncludes),
             doQuery

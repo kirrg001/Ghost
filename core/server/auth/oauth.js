@@ -41,22 +41,23 @@ function exchangeRefreshToken(client, refreshToken, scope, done) {
 }
 
 function exchangePassword(client, username, password, scope, done) {
-    // Validate the client
+    var user;
+
     models.Client.findOne({slug: client.slug})
         .then(function then(client) {
             if (!client) {
                 return done(new errors.NoPermissionError({message: i18n.t('errors.middleware.oauth.invalidClient')}), false);
             }
 
-            // Validate the user
-            return models.User.check({email: username, password: password})
-                .then(function then(user) {
-                    return authenticationAPI.createTokens({}, {context: {client_id: client.id, user: user.id}});
-                })
-                .then(function then(response) {
-                    spamPrevention.resetCounter(username);
-                    return done(null, response.access_token, response.refresh_token, {expires_in: response.expires_in});
-                });
+            return models.User.login({
+                email: username,
+                password: password
+            }).then(function (user) {
+                return authenticationAPI.createTokens({}, {context: {client_id: client.id, user: user.id}});
+            }).then(function (response) {
+                spamPrevention.resetCounter(username);
+                return done(null, response.access_token, response.refresh_token, {expires_in: response.expires_in});
+            });
         })
         .catch(function handleError(error) {
             return done(error, false);

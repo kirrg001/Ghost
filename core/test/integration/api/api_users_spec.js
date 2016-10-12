@@ -3,6 +3,7 @@ var testUtils       = require('../../utils'),
     Promise         = require('bluebird'),
     _               = require('lodash'),
     models          = require('../../../server/models'),
+    errors          = require('../../../server/errors'),
     UserAPI         = require('../../../server/api/users'),
     db              = require('../../../server/data/db'),
     context         = testUtils.context,
@@ -33,7 +34,7 @@ describe('Users API', function () {
     it('dateTime fields are returned as Date objects', function (done) {
         var userData = testUtils.DataGenerator.forModel.users[0];
 
-        models.User.check({email: userData.email, password: userData.password}).then(function (user) {
+        models.User.login({email: userData.email, password: userData.password}).then(function (user) {
             return UserAPI.read({id: user.id});
         }).then(function (response) {
             response.users[0].created_at.should.be.an.instanceof(Date);
@@ -976,6 +977,7 @@ describe('Users API', function () {
                     ne2Password: 'newSl1m3rson'
                 }]
             };
+
             UserAPI.changePassword(payload, _.extend({}, context.owner, {id: userIdFor.owner}))
                 .then(function (response) {
                     response.password[0].message.should.eql('Password changed successfully.');
@@ -992,6 +994,7 @@ describe('Users API', function () {
                     ne2Password: 'Sl1m3rson'
                 }]
             };
+
             UserAPI.changePassword(payload, _.extend({}, context.owner, {id: userIdFor.owner}))
                 .then(function () {
                     done(new Error('Password change is not denied.'));
@@ -1022,6 +1025,7 @@ describe('Users API', function () {
                     ne2Password: 'Sl1m3rson2'
                 }]
             };
+
             UserAPI.changePassword(payload, _.extend({}, context.owner, {id: userIdFor.owner}))
                 .then(function () {
                     done(new Error('Password change is not denied.'));
@@ -1050,10 +1054,12 @@ describe('Users API', function () {
                     ne2Password: 'Sl'
                 }]
             };
+
             UserAPI.changePassword(payload, _.extend({}, context.owner, {id: userIdFor.owner}))
                 .then(function () {
                     done(new Error('Password change is not denied.'));
-                }).catch(checkForErrorType('ValidationError', done));
+                })
+                .catch(checkForErrorType('ValidationError', done));
         });
 
         it('Owner can change password for editor', function (done) {

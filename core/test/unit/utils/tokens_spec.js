@@ -105,4 +105,3 @@ describe('Utils: tokens', function () {
         tokenIsCorrect.should.eql(true);
     });
 });
-
