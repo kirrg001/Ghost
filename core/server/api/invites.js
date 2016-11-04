@@ -179,7 +179,7 @@ invites = {
                 return Promise.reject(new errors.ValidationError({message: i18n.t('errors.api.invites.roleIsRequired')}));
             }
 
-            roleId = parseInt(options.data.invites[0].roles[0].id || options.data.invites[0].roles[0], 10);
+            roleId = options.data.invites[0].roles[0].id || options.data.invites[0].roles[0];
 
             // @TODO move this logic to permissible
             // Make sure user is allowed to add a user with this role
