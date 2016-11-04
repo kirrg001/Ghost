@@ -439,13 +439,7 @@ User = ghostBookshelf.Model.extend({
             return Promise.reject(new errors.ValidationError({message: i18n.t('errors.models.user.onlyOneRolePerUserSupported')}));
         }
 
-        function getAuthorRole() {
-            return ghostBookshelf.model('Role').findOne({name: 'Author'}, _.pick(options, 'transacting')).then(function then(authorRole) {
-                return [authorRole.get('id')];
-            });
-        }
-
-        roles = data.roles || getAuthorRole();
+        roles = data.roles || [];
         delete data.roles;
 
         return ghostBookshelf.Model.add.call(self, userData, options)
