@@ -1,5 +1,4 @@
 var crypto         = require('crypto'),
-    uuid           = require('node-uuid'),
     ghostBookshelf = require('./base'),
     config         = require('../config'),
     Client,
@@ -14,7 +13,6 @@ Client = ghostBookshelf.Model.extend({
             secret = env.indexOf('testing') !== 0 ? crypto.randomBytes(6).toString('hex') : 'not_available';
 
         return {
-            uuid: uuid.v4(),
             secret: secret,
             status: 'development',
             type: 'ua'
