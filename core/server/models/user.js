@@ -4,6 +4,7 @@ var _              = require('lodash'),
     crypto         = require('crypto'),
     validator      = require('validator'),
     ghostBookshelf = require('./base'),
+    baseUtils      = require('./base/utils'),
     errors         = require('../errors'),
     logging        = require('../logging'),
     utils          = require('../utils'),
@@ -453,20 +454,7 @@ User = ghostBookshelf.Model.extend({
                 // Assign the userData to our created user so we can pass it back
                 userData = addedUser;
 
-                // if we are given a "role" object, only pass in the role ID in place of the full object
-                return Promise.resolve(roles).then(function then(roles) {
-                    roles = _.map(roles, function mapper(role) {
-                        if (_.isString(role)) {
-                            return parseInt(role, 10);
-                        } else if (_.isNumber(role)) {
-                            return role;
-                        } else {
-                            return parseInt(role.id, 10);
-                        }
-                    });
-
-                    return addedUser.roles().attach(roles, options);
-                });
+                return baseUtils.attach(User, userData.id, 'roles', roles, options);
             }).then(function then() {
                 // find and return the added user
                 return self.findOne({id: userData.id, status: 'all'}, options);

@@ -1,8 +1,8 @@
 var ghostBookshelf = require('./base'),
     globalUtils = require('../utils'),
+    baseUtils = require('./base/utils'),
     crypto = require('crypto'),
     _ = require('lodash'),
-    Promise = require('bluebird'),
     Invite,
     Invites;
 
@@ -97,20 +97,7 @@ Invite = ghostBookshelf.Model.extend({
             .then(function (_invite) {
                 invite = _invite;
 
-                return Promise.resolve(roles)
-                    .then(function then(roles) {
-                        roles = _.map(roles, function mapper(role) {
-                            if (_.isString(role)) {
-                                return parseInt(role, 10);
-                            } else if (_.isNumber(role)) {
-                                return role;
-                            } else {
-                                return parseInt(role.id, 10);
-                            }
-                        });
-
-                        return invite.roles().attach(roles, options);
-                    });
+                return baseUtils.attach(Invite, invite.id, 'roles', roles, options);
             })
             .then(function () {
                 return self.findOne({id: invite.id}, options);
