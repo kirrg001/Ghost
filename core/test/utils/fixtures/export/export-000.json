@@ -178,6 +178,32 @@
                 "id": 3,
                 "email": "subscriber2@test.com"
             }
+        ],
+        "migrations": [
+            {
+                "id": 1,
+                "name": "1-create-tables.js",
+                "version": "init",
+                "currentVersion": "1.0"
+            },
+            {
+                "id": 2,
+                "name": "2-create-fixtures.js",
+                "version": "init",
+                "currentVersion": "1.0"
+            },
+            {
+                "id": 3,
+                "name": "3-insert-settings.js",
+                "version": "init",
+                "currentVersion": "1.0"
+            },
+            {
+                "id": 4,
+                "name": "1-test.js",
+                "version": "1.1",
+                "currentVersion": "1.1"
+            }
         ]
     }
 }

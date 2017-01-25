@@ -1,6 +1,7 @@
 var Promise     = require('bluebird'),
     _           = require('lodash'),
     models      = require('../../models'),
+    db          = require('../../data/db'),
     errors      = require('../../errors'),
     globalUtils = require('../../utils'),
     i18n        = require('../../i18n'),
@@ -322,6 +323,31 @@ utils = {
                         });
                     }
                 }).reflect());
+        });
+
+        return Promise.all(ops);
+    },
+
+    importMigrations: function importMigrations(tableData, transaction) {
+        if (!tableData) {
+            return Promise.resolve();
+        }
+
+        var ops = [];
+
+        _.each(tableData, function (migration) {
+            ops.push(
+                db.knex('migrations').transacting(transaction).insert(migration)
+                    .catch(function (error) {
+                        // ignore duplicates
+                        if (error.code && error.message.toLowerCase().indexOf('unique') === -1) {
+                            return Promise.reject({
+                                raw: error,
+                                model: 'migration',
+                                data: migration
+                            });
+                        }
+                    }).reflect());
         });
 
         return Promise.all(ops);

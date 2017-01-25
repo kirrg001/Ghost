@@ -1,20 +1,20 @@
-var testUtils   = require('../utils/index'),
-    should      = require('should'),
-    sinon       = require('sinon'),
-    Promise     = require('bluebird'),
-    moment      = require('moment'),
-    assert      = require('assert'),
-    _           = require('lodash'),
-    validator   = require('validator'),
+var testUtils = require('../utils/index'),
+    should = require('should'),
+    sinon = require('sinon'),
+    Promise = require('bluebird'),
+    moment = require('moment'),
+    assert = require('assert'),
+    _ = require('lodash'),
+    validator = require('validator'),
 
     // Stuff we are testing
-    db              = require('../../server/data/db'),
-    versioning      = require('../../server/data/schema').versioning,
-    exporter        = require('../../server/data/export'),
-    importer        = require('../../server/data/import'),
-    DataImporter    = require('../../server/data/import/data-importer'),
+    db = require('../../server/data/db'),
+    versioning = require('../../server/data/schema').versioning,
+    exporter = require('../../server/data/export'),
+    importer = require('../../server/data/import'),
+    DataImporter = require('../../server/data/import/data-importer'),
 
-    DEF_DB_VERSION  = versioning.getNewestDatabaseVersion(),
+    DEF_DB_VERSION = versioning.getNewestDatabaseVersion(),
     knex = db.knex,
     sandbox = sinon.sandbox.create();
 
@@ -114,49 +114,56 @@ describe('Import', function () {
 
         should.exist(DataImporter);
 
-        it('imports data from 000', function (done) {
+        it.only('imports data from 000', function (done) {
             var exportData;
 
-            testUtils.fixtures.loadExportFixture('export-000').then(function (exported) {
-                exportData = exported;
+            testUtils.fixtures.loadExportFixture('export-000')
+                .then(function (exported) {
+                    exportData = exported;
+                    return importer.doImport(exportData);
+                })
+                .then(function () {
+                    // Grab the data from tables
+                    return Promise.all([
+                        knex('users').select(),
+                        knex('posts').select(),
+                        knex('settings').select(),
+                        knex('tags').select(),
+                        knex('subscribers').select(),
+                        knex('migrations').select()
+                    ]);
+                })
+                .then(function (importedData) {
+                    should.exist(importedData);
 
-                return importer.doImport(exportData);
-            }).then(function () {
-                // Grab the data from tables
-                return Promise.all([
-                    knex('users').select(),
-                    knex('posts').select(),
-                    knex('settings').select(),
-                    knex('tags').select(),
-                    knex('subscribers').select()
-                ]);
-            }).then(function (importedData) {
-                should.exist(importedData);
+                    importedData.length.should.equal(6, 'Did not get data successfully');
 
-                importedData.length.should.equal(5, 'Did not get data successfully');
+                    var users = importedData[0],
+                        posts = importedData[1],
+                        settings = importedData[2],
+                        tags = importedData[3],
+                        subscribers = importedData[4],
+                        migrations = importedData[5];
 
-                var users = importedData[0],
-                    posts = importedData[1],
-                    settings = importedData[2],
-                    tags = importedData[3],
-                    subscribers = importedData[4];
+                    migrations.length.should.equal(4, 'There should be three migrations.');
 
-                subscribers.length.should.equal(2, 'There should be two subscribers');
+                    subscribers.length.should.equal(2, 'There should be two subscribers');
 
-                // we always have 1 user, the owner user we added
-                users.length.should.equal(1, 'There should only be one user');
-                // import no longer requires all data to be dropped, and adds posts
-                posts.length.should.equal(exportData.data.posts.length, 'Wrong number of posts');
+                    // we always have 1 user, the owner user we added
+                    users.length.should.equal(1, 'There should only be one user');
+                    // import no longer requires all data to be dropped, and adds posts
+                    posts.length.should.equal(exportData.data.posts.length, 'Wrong number of posts');
 
-                // test settings
-                settings.length.should.be.above(0, 'Wrong number of settings');
-                _.find(settings, {key: 'databaseVersion'}).value.should.equal(DEF_DB_VERSION, 'Wrong database version');
+                    // test settings
+                    settings.length.should.be.above(0, 'Wrong number of settings');
+                    _.find(settings, {key: 'databaseVersion'}).value.should.equal(DEF_DB_VERSION, 'Wrong database version');
 
-                // test tags
-                tags.length.should.equal(exportData.data.tags.length, 'no new tags');
+                    // test tags
+                    tags.length.should.equal(exportData.data.tags.length, 'no new tags');
 
-                done();
-            }).catch(done);
+                    done();
+                })
+                .catch(done);
         });
 
         it('safely imports data, from 001', function (done) {
@@ -813,7 +820,7 @@ describe('Import (new test structure)', function () {
                 // Test the users and roles
                 users = importedData[0];
                 posts = importedData[1];
-                tags  = importedData[2];
+                tags = importedData[2];
 
                 // Grab the users
                 // the owner user is first
@@ -1038,7 +1045,7 @@ describe('Import (new test structure)', function () {
                 // Test the users and roles
                 users = importedData[0];
                 posts = importedData[1];
-                tags  = importedData[2];
+                tags = importedData[2];
 
                 // Grab the users
                 // the owner user is first
@@ -1270,7 +1277,7 @@ describe('Import (new test structure)', function () {
                 // Test the users and roles
                 users = importedData[0];
                 posts = importedData[1];
-                tags  = importedData[2];
+                tags = importedData[2];
 
                 // Grab the users
                 // the owner user is first

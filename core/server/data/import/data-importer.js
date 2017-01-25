@@ -139,6 +139,12 @@ DataImporter.prototype.doImport = function (data) {
                         if (results) {
                             importResults = importResults.concat(results);
                         }
+
+                        return utils.importMigrations(tableData.migrations, t);
+                    }).then(function (results) {
+                        if (results) {
+                            importResults = importResults.concat(results);
+                        }
                     }).then(function () {
                         importResults.forEach(function (p) {
                             if (!p.isFulfilled()) {
