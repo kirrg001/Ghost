@@ -15,7 +15,7 @@ function exchangeRefreshToken(client, refreshToken, scope, done) {
         } else {
             var token = model.toJSON(),
                 accessToken = utils.uid(256),
-                accessExpires = Date.now() + utils.ONE_HOUR_MS,
+                accessExpires = Date.now() + utils.ONE_DAY_MS,
                 refreshExpires = Date.now() + utils.ONE_WEEK_MS;
 
             if (token.expires > Date.now()) {
@@ -27,7 +27,7 @@ function exchangeRefreshToken(client, refreshToken, scope, done) {
                 }).then(function then() {
                     return models.Refreshtoken.edit({expires: refreshExpires}, {id: token.id});
                 }).then(function then() {
-                    return done(null, accessToken, {expires_in: utils.ONE_HOUR_S});
+                    return done(null, accessToken, {expires_in: utils.ONE_DAY_S});
                 }).catch(function handleError(error) {
                     return done(error, false);
                 });
@@ -49,7 +49,7 @@ function exchangePassword(client, username, password, scope, done) {
             // Everything validated, return the access- and refreshtoken
             var accessToken = utils.uid(256),
                 refreshToken = utils.uid(256),
-                accessExpires = Date.now() + utils.ONE_HOUR_MS,
+                accessExpires = Date.now() + utils.ONE_DAY_MS,
                 refreshExpires = Date.now() + utils.ONE_WEEK_MS;
 
             return models.Accesstoken.add(
@@ -60,7 +60,7 @@ function exchangePassword(client, username, password, scope, done) {
                 );
             }).then(function then() {
                 spamPrevention.resetCounter(username);
-                return done(null, accessToken, refreshToken, {expires_in: utils.ONE_HOUR_S});
+                return done(null, accessToken, refreshToken, {expires_in: utils.ONE_DAY_S});
             });
         }).catch(function handleError(error) {
             return done(error, false);
