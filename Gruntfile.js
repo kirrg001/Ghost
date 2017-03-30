@@ -237,6 +237,10 @@ var overrides      = require('./core/server/overrides'),
 
                 dedupe: {
                     command: 'npm dedupe'
+                },
+
+                master: {
+                    command: 'git checkout master; git pull origin master; npm install;'
                 }
             },
 
@@ -696,6 +700,10 @@ var overrides      = require('./core/server/overrides'),
 
                 grunt.task.run(['init', 'prod', 'clean:release', 'deps', 'copy:release', 'compress:release']);
             }
+        );
+
+        grunt.registerTask('dev-master', 'Update your current working folder to latest master.',
+            ['shell:master', 'update_submodules', 'subgrunt:init']
         );
     };
 
