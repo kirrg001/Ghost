@@ -9,15 +9,19 @@ module.exports = function (Bookshelf) {
 
     Model = Bookshelf.Model.extend({
         /**
-         * Collision protection.
+         * Update collision protection.
          *
-         * NOTE: The `sync` method is called for any query e.g. update, add, delete, fetch
+         * IMPORTANT NOTES:
+         * The `sync` method is called for any query e.g. update, add, delete, fetch
          *
-         * NOTE: We had the option to override Bookshelf's `save` method, but hooking into the `sync` method gives us
-         *       the ability to access the `changed` object. Bookshelf already knows which attributes has changed.
+         * We had the option to override Bookshelf's `save` method, but hooking into the `sync` method gives us
+         * the ability to access the `changed` object. Bookshelf already knows which attributes has changed.
          *
-         * NOTE: Bookshelf's timestamp function can't be overridden, as it's synchronous, there is no way to return an Error.
+         * Bookshelf's timestamp function can't be overridden, as it's synchronous, there is no way to return an Error.
          *
+         * If we want to enable the collision plugin for other tables, the queries might need to run in a transaction.
+         * This depends on if we fetch the model before editing. Imagine two concurrent requests come in, both would fetch
+         * the same current database values and both would succeed to update and override each other.
          */
         sync: function timestamp(options) {
             var parentSync = ParentModel.prototype.sync.apply(this, arguments),
@@ -36,17 +40,18 @@ module.exports = function (Bookshelf) {
              *
              * NOTE: Even if the client sends a different `id` property, it get's ignored by bookshelf.
              *       Because you can't change the `id` of an existing post.
-             * @TODO: TAGS?????????? tags always change, why
              */
             parentSync.update = function update(attrs) {
                 var changed = _.omit(self.changed, [
-                        'created_at', 'updated_at', 'author_id', 'id', 'tags',
+                        'created_at', 'updated_at', 'author_id', 'id',
                         'published_by', 'updated_by'
                     ]),
                     clientUpdatedAt = moment(self.clientData.updated_at || self.serverData.updated_at),
                     serverUpdatedAt = moment(self.serverData.updated_at);
 
                 debug('changed', changed);
+                debug('clientUpdatedAt', clientUpdatedAt);
+                debug('serverUpdatedAt', serverUpdatedAt);
 
                 if (Object.keys(changed).length) {
                     if (clientUpdatedAt.diff(serverUpdatedAt) !== 0) {
