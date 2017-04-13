@@ -153,7 +153,8 @@ Post = ghostBookshelf.Model.extend({
             publishedAt = this.get('published_at'),
             publishedAtHasChanged = this.hasDateChanged('published_at', {beforeWrite: true}),
             mobiledoc   = this.get('mobiledoc'),
-            tags = [];
+            tags = [],
+            ops = [];
 
         // CASE: disallow published -> scheduled
         // @TODO: remove when we have versioning based on updated_at
@@ -244,8 +245,6 @@ Post = ghostBookshelf.Model.extend({
                 this.set('published_by', this.previous('published_by'));
             }
         }
-
-        var ops = [];
 
         /**
          * - updateTags happens before the post is saved to the database
