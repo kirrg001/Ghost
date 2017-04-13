@@ -42,6 +42,9 @@ ghostBookshelf.plugin(plugins.includeCount);
 // Load the Ghost pagination plugin, which gives us the `fetchPage` method on Models
 ghostBookshelf.plugin(plugins.pagination);
 
+// Update collision plugin
+ghostBookshelf.plugin(plugins.collision);
+
 // Cache an instance of the base model prototype
 proto = ghostBookshelf.Model.prototype;
 
@@ -477,7 +480,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
 
         return model.fetch(options).then(function then(object) {
             if (object) {
-                return object.save(data, options);
+                return object.save(data, _.merge({method: 'update'}, options));
             }
         });
     },
