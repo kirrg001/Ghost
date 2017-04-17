@@ -1,6 +1,7 @@
 var Promise = require('bluebird'),
     _       = require('lodash'),
     models  = require('../../models'),
+    errors  = require('../../errors'),
     utils   = require('./utils'),
     i18n    = require('../../i18n'),
 
@@ -42,8 +43,9 @@ DataImporter.prototype.loadUsers = function () {
     });
 };
 
-DataImporter.prototype.doUserImport = function (t, tableData, owner, users, errors, roles) {
+DataImporter.prototype.doUserImport = function (t, tableData, owner, users, roles) {
     var userOps = [],
+        errs = [],
         imported = [];
 
     if (tableData.users && tableData.users.length) {
@@ -59,15 +61,17 @@ DataImporter.prototype.doUserImport = function (t, tableData, owner, users, erro
         return Promise.all(userOps).then(function (descriptors) {
             descriptors.forEach(function (d) {
                 if (!d.isFulfilled()) {
-                    errors = errors.concat(d.reason());
+                    errs = errs.concat(d.reason());
                 } else {
                     imported.push(d.value().toJSON(internal));
                 }
             });
 
             // If adding the users fails,
-            if (errors.length > 0) {
-                t.rollback(errors);
+            if (errs.length > 0) {
+                throw new errors.DataImportError({
+                    err: errs[0]
+                });
             } else {
                 return imported;
             }
@@ -81,7 +85,7 @@ DataImporter.prototype.doImport = function (data) {
     var self = this,
         tableData = data.data,
         imported = {},
-        errors = [],
+        errs = [],
         users = {},
         owner = {}, roles = {};
 
@@ -94,7 +98,7 @@ DataImporter.prototype.doImport = function (data) {
 
             return models.Base.transaction(function (t) {
                 // Step 1: Attempt to handle adding new users
-                self.doUserImport(t, tableData, owner, users, errors, roles).then(function (result) {
+                self.doUserImport(t, tableData, owner, users, roles).then(function (result) {
                     var importResults = [];
 
                     imported.users = result;
@@ -142,14 +146,16 @@ DataImporter.prototype.doImport = function (data) {
                     }).then(function () {
                         importResults.forEach(function (p) {
                             if (!p.isFulfilled()) {
-                                errors = errors.concat(p.reason());
+                                errs = errs.concat(p.reason());
                             }
                         });
 
-                        if (errors.length === 0) {
+                        if (errs.length === 0) {
                             t.commit();
                         } else {
-                            t.rollback(errors);
+                            throw new errors.DataImportError({
+                                err: errs[0]
+                            });
                         }
                     });
 
@@ -159,6 +165,8 @@ DataImporter.prototype.doImport = function (data) {
                      *   permissions_roles
                      *   permissions_users
                      */
+                }).catch(function (err) {
+                    t.rollback(err);
                 });
             }).then(function () {
                 // TODO: could return statistics of imported items
