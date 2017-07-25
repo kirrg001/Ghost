@@ -1535,14 +1535,15 @@ describe('Import (new test structure)', function () {
                     moment(users[1].last_seen).valueOf(),
                     moment(exportData.data.users[0].last_login).valueOf()
                 );
+
                 // Check mobiledoc is populated from from html when mobiledoc is null & markdown is empty string
-                JSON.parse(firstPost.mobiledoc).cards[0][1].markdown.should.eql(exportData.data.posts[0].html);
+                JSON.parse(firstPost.mobiledoc).cards[0][1].markdown.should.eql('');
                 // Check mobiledoc is populated from from html when mobiledoc is null & markdown is null
-                JSON.parse(secondPost.mobiledoc).cards[0][1].markdown.should.eql(exportData.data.posts[1].html);
+                JSON.parse(secondPost.mobiledoc).cards[0][1].markdown.should.eql('');
                 // Check mobiledoc is null when markdown and mobiledoc are null and html is empty string
-                should(thirdPost.mobiledoc).equal(null);
+                JSON.parse(thirdPost.mobiledoc).cards[0][1].markdown.should.eql('');
                 // Check mobiledoc is null when markdown, mobiledoc are html are null
-                should(fourthPost.mobiledoc).equal(null);
+                JSON.parse(fourthPost.mobiledoc).cards[0][1].markdown.should.eql('');
 
                 done();
             }).catch(done);

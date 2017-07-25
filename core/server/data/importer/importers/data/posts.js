@@ -121,21 +121,18 @@ class PostsImporter extends BaseImporter {
             if (!model.mobiledoc) {
                 if (model.markdown && model.markdown.length > 0) {
                     mobileDocContent = model.markdown;
-                } else if (model.html && model.html.length > 0) {
-                    mobileDocContent = model.html;
                 } else {
                     // Set mobileDocContent to null else it will affect empty posts
-                    mobileDocContent = null;
+                    mobileDocContent = '';
                 }
-                if (mobileDocContent) {
-                    model.mobiledoc = JSON.stringify({
-                        version: '0.3.1',
-                        markups: [],
-                        atoms: [],
-                        cards: [['card-markdown',{cardName: 'card-markdown',markdown: mobileDocContent}]],
-                        sections:[[10,0]]
-                    });
-                }
+
+                model.mobiledoc = JSON.stringify({
+                    version: '0.3.1',
+                    markups: [],
+                    atoms: [],
+                    cards: [['card-markdown',{cardName: 'card-markdown',markdown: mobileDocContent}]],
+                    sections:[[10,0]]
+                });
             }
         });
 
