@@ -113,6 +113,30 @@ describe('Invites API', function () {
                         done();
                     }).catch(done);
             });
+
+            it('browse invites limit all', function (done) {
+                testUtils.fixtures.insertMoreInvites()
+                    .then(function () {
+                        InvitesAPI.browse(_.extend(testUtils.context.owner, {limit: 'all'}))
+                            .then(function (response) {
+                                response.invites.length.should.eql(22);
+                                done();
+                            }).catch(done);
+                    })
+                    .catch(done);
+            });
+
+            it('browse invites, defaults to 15', function (done) {
+                testUtils.fixtures.insertMoreInvites()
+                    .then(function () {
+                        InvitesAPI.browse(_.extend(testUtils.context.owner))
+                            .then(function (response) {
+                                response.invites.length.should.eql(15);
+                                done();
+                            }).catch(done);
+                    })
+                    .catch(done);
+            });
         });
 
         describe('Read', function () {

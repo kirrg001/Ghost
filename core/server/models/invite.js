@@ -24,6 +24,22 @@ Invite = ghostBookshelf.Model.extend({
         return options;
     },
 
+    permittedOptions: function permittedOptions(methodName) {
+        var options = ghostBookshelf.Model.permittedOptions(),
+
+            // whitelists for the `options` hash argument on methods, by method name.
+            // these are the only options that can be passed to Bookshelf / Knex.
+            validOptions = {
+                findPage: ['page', 'limit', 'columns', 'filter', 'order']
+            };
+
+        if (validOptions[methodName]) {
+            options = options.concat(validOptions[methodName]);
+        }
+
+        return options;
+    },
+
     /**
      * @TODO: can't use base class, because:
      * options.withRelated = _.union(options.withRelated, options.include); is missing

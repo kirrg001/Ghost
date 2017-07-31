@@ -432,6 +432,19 @@ fixtures = {
 
     insertInvites: function insertInvites() {
         return db.knex('invites').insert(DataGenerator.forKnex.invites);
+    },
+
+    insertMoreInvites: function insertInvites() {
+        var invites = [];
+
+        _.each(_.range(20), function (i) {
+            invites.push(DataGenerator.forKnex.createInvite({
+                email: 'test-more-' + i + '@ghost.org',
+                role_id: DataGenerator.Content.roles[0].id
+            }));
+        });
+
+        return db.knex('invites').insert(invites);
     }
 };
 
