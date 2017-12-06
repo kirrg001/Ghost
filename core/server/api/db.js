@@ -3,15 +3,15 @@
 var Promise = require('bluebird'),
     path = require('path'),
     fs = require('fs'),
-    pipeline = require('../utils/pipeline'),
-    apiUtils = require('./utils'),
+    pipeline = require('../lib/promise/pipeline'),
+    errors = require('../lib/common/errors'),
+    urlUtils = require('../services/url/utils'),
     exporter = require('../data/export'),
     importer = require('../data/importer'),
     backupDatabase = require('../data/db/backup'),
     models = require('../models'),
     config = require('../config'),
-    errors = require('../errors'),
-    utilsUrl = require('../utils/url'),
+    localUtils = require('./utils'),
     docName = 'db',
     db;
 
@@ -36,7 +36,7 @@ db = {
 
         return Promise.props(props)
             .then(function successMessage(exportResult) {
-                var filename = path.resolve(utilsUrl.urlJoin(config.get('paths').contentPath, 'data', exportResult.filename));
+                var filename = path.resolve(urlUtils.urlJoin(config.get('paths').contentPath, 'data', exportResult.filename));
 
                 return Promise.promisify(fs.writeFile)(filename, JSON.stringify(exportResult.data))
                     .then(function () {
@@ -67,7 +67,7 @@ db = {
         }
 
         tasks = [
-            apiUtils.handlePermissions(docName, 'exportContent'),
+            localUtils.handlePermissions(docName, 'exportContent'),
             exportContent
         ];
 
@@ -94,7 +94,7 @@ db = {
         }
 
         tasks = [
-            apiUtils.handlePermissions(docName, 'importContent'),
+            localUtils.handlePermissions(docName, 'importContent'),
             importContent
         ];
 
@@ -129,7 +129,7 @@ db = {
         }
 
         tasks = [
-            apiUtils.handlePermissions(docName, 'deleteAllContent'),
+            localUtils.handlePermissions(docName, 'deleteAllContent'),
             backupDatabase,
             deleteContent
         ];

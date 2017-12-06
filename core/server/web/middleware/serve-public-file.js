@@ -2,7 +2,7 @@ var crypto = require('crypto'),
     fs     = require('fs'),
     path   = require('path'),
     config = require('../../config'),
-    utils  = require('../../utils');
+    utils  = require('../../lib/globals');
 
 // ### servePublicFile Middleware
 // Handles requests to robots.txt and favicon.ico (and caches them)

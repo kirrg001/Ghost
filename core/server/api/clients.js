@@ -2,11 +2,11 @@
 // RESTful API for the Client resource
 var Promise = require('bluebird'),
     _ = require('lodash'),
-    pipeline = require('../utils/pipeline'),
+    pipeline = require('../lib/promise/pipeline'),
     apiUtils = require('./utils'),
     models = require('../models'),
-    errors = require('../errors'),
-    i18n = require('../i18n'),
+    errors = require('../lib/common/errors'),
+    i18n = require('../lib/common/i18n'),
     docName = 'clients',
     clients;
 

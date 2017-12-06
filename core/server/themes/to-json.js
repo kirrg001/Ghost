@@ -1,7 +1,7 @@
 var _ = require('lodash'),
     themeList = require('./list'),
     active = require('./active'),
-    packages = require('../utils/packages'),
+    packages = require('../lib/fs/packages'),
     settingsCache = require('../settings/cache');
 
 /**

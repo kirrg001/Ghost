@@ -3,8 +3,8 @@ var util = require('util'),
     request = require('superagent'),
     debug = require('ghost-ignition').debug('scheduling-default'),
     SchedulingBase = require(__dirname + '/SchedulingBase'),
-    errors = require(__dirname + '/../../errors'),
-    logging = require(__dirname + '/../../logging');
+    errors = require(__dirname + '/../../lib/common/errors'),
+    logging = require(__dirname + '/../../lib/common/logging');
 
 /**
  * allJobs is a sorted list by time attribute

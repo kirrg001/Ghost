@@ -2,10 +2,10 @@
 // API for sending Mail
 
 var Promise = require('bluebird'),
-    pipeline = require('../utils/pipeline'),
-    apiUtils = require('./utils'),
+    pipeline = require('../lib/promise/pipeline'),
+    i18n = require('../lib/common/i18n'),
+    localUtils = require('./utils'),
     models = require('../models'),
-    i18n = require('../i18n'),
     mail = require('../mail'),
     notificationsAPI = require('./notifications'),
     docName = 'mail',
@@ -83,7 +83,7 @@ apiMail = {
         }
 
         tasks = [
-            apiUtils.handlePermissions(docName, 'send'),
+            localUtils.handlePermissions(docName, 'send'),
             send,
             formatResponse
         ];

@@ -3,12 +3,12 @@
 var Promise = require('bluebird'),
     _ = require('lodash'),
     ObjectId = require('bson-objectid'),
-    pipeline = require('../utils/pipeline'),
+    pipeline = require('../lib/promise/pipeline'),
+    errors = require('../lib/common/errors'),
+    i18n = require('../lib/common/i18n'),
     permissions = require('../permissions'),
     canThis = permissions.canThis,
-    apiUtils = require('./utils'),
-    errors = require('../errors'),
-    i18n = require('../i18n'),
+    localUtils = require('./utils'),
     settingsAPI = require('./settings'),
     // Holds the persistent notifications
     notificationsStore = [],
@@ -109,7 +109,7 @@ notifications = {
         }
 
         tasks = [
-            apiUtils.validate('notifications'),
+            localUtils.validate('notifications'),
             handlePermissions,
             saveNotifications
         ];
@@ -180,7 +180,7 @@ notifications = {
         }
 
         tasks = [
-            apiUtils.validate('notifications', {opts: apiUtils.idDefaultOptions}),
+            localUtils.validate('notifications', {opts: localUtils.idDefaultOptions}),
             handlePermissions,
             destroyNotification
         ];

@@ -1,5 +1,5 @@
-var errors      = require('../../errors'),
-    labsUtil    = require('../../utils/labs'),
+var errors      = require('../../lib/common/errors'),
+    labsUtil    = require('../../services/labs'),
     labs;
 
 labs = {

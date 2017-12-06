@@ -1,6 +1,6 @@
 var url = require('url'),
     debug = require('ghost-ignition').debug('url-redirects'),
-    utils = require('../../utils'),
+    utils = require('../../lib/globals'),
     urlRedirects,
     _private = {};
 

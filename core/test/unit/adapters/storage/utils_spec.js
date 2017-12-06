@@ -1,6 +1,6 @@
 var should = require('should'),
     sinon = require('sinon'),
-    utils = require('../../../../server/utils'),
+    utils = require('../../../../server/lib/globals'),
 
     // Stuff we are testing
     storageUtils = require('../../../../server/adapters/storage/utils'),

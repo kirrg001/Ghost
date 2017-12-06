@@ -5,13 +5,13 @@ var debug = require('ghost-ignition').debug('server'),
     fs = require('fs'),
     path = require('path'),
     _ = require('lodash'),
-    errors = require('./errors'),
-    events = require('./events'),
-    logging = require('./logging'),
-    config = require('./config'),
-    utils = require('./utils'),
-    i18n = require('./i18n'),
-    moment = require('moment');
+    moment = require('moment'),
+    errors = require('./lib/common/errors'),
+    events = require('./lib/common/events'),
+    logging = require('./lib/common/logging'),
+    utils = require('./lib/globals'),
+    i18n = require('./lib/common/i18n'),
+    config = require('./config');
 
 /**
  * ## GhostServer

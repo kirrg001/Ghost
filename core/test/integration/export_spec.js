@@ -5,7 +5,7 @@ var should = require('should'),
 
     // Stuff we are testing
     exporter = require('../../server/data/export'),
-    utils = require('../../server/utils'),
+    utils = require('../../server/lib/globals'),
 
     sandbox = sinon.sandbox.create();
 

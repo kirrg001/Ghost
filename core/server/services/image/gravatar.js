@@ -1,5 +1,5 @@
 var Promise = require('bluebird'),
-    config = require('../config'),
+    config = require('../../config/index'),
     crypto = require('crypto'),
     https = require('https');
 

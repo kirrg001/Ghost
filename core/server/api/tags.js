@@ -2,11 +2,11 @@
 // RESTful API for the Tag resource
 var Promise = require('bluebird'),
     _ = require('lodash'),
-    pipeline = require('../utils/pipeline'),
-    apiUtils = require('./utils'),
+    pipeline = require('../lib/promise/pipeline'),
+    errors = require('../lib/common/errors'),
+    i18n = require('../lib/common/i18n'),
+    localUtils = require('./utils'),
     models = require('../models'),
-    errors = require('../errors'),
-    i18n = require('../i18n'),
     docName = 'tags',
     allowedIncludes = ['count.posts'],
     tags;
@@ -37,9 +37,9 @@ tags = {
 
         // Push all of our tasks into a `tasks` array in the correct order
         tasks = [
-            apiUtils.validate(docName, {opts: apiUtils.browseDefaultOptions}),
-            apiUtils.handlePublicPermissions(docName, 'browse'),
-            apiUtils.convertOptions(allowedIncludes),
+            localUtils.validate(docName, {opts: localUtils.browseDefaultOptions}),
+            localUtils.handlePublicPermissions(docName, 'browse'),
+            localUtils.convertOptions(allowedIncludes),
             doQuery
         ];
 
@@ -79,9 +79,9 @@ tags = {
 
         // Push all of our tasks into a `tasks` array in the correct order
         tasks = [
-            apiUtils.validate(docName, {attrs: attrs}),
-            apiUtils.handlePublicPermissions(docName, 'read'),
-            apiUtils.convertOptions(allowedIncludes),
+            localUtils.validate(docName, {attrs: attrs}),
+            localUtils.handlePublicPermissions(docName, 'read'),
+            localUtils.convertOptions(allowedIncludes),
             doQuery
         ];
 
@@ -114,9 +114,9 @@ tags = {
 
         // Push all of our tasks into a `tasks` array in the correct order
         tasks = [
-            apiUtils.validate(docName),
-            apiUtils.handlePermissions(docName, 'add'),
-            apiUtils.convertOptions(allowedIncludes),
+            localUtils.validate(docName),
+            localUtils.handlePermissions(docName, 'add'),
+            localUtils.convertOptions(allowedIncludes),
             doQuery
         ];
 
@@ -157,9 +157,9 @@ tags = {
 
         // Push all of our tasks into a `tasks` array in the correct order
         tasks = [
-            apiUtils.validate(docName, {opts: apiUtils.idDefaultOptions}),
-            apiUtils.handlePermissions(docName, 'edit'),
-            apiUtils.convertOptions(allowedIncludes),
+            localUtils.validate(docName, {opts: localUtils.idDefaultOptions}),
+            localUtils.handlePermissions(docName, 'edit'),
+            localUtils.convertOptions(allowedIncludes),
             doQuery
         ];
 
@@ -188,9 +188,9 @@ tags = {
 
         // Push all of our tasks into a `tasks` array in the correct order
         tasks = [
-            apiUtils.validate(docName, {opts: apiUtils.idDefaultOptions}),
-            apiUtils.handlePermissions(docName, 'destroy'),
-            apiUtils.convertOptions(allowedIncludes),
+            localUtils.validate(docName, {opts: localUtils.idDefaultOptions}),
+            localUtils.handlePermissions(docName, 'destroy'),
+            localUtils.convertOptions(allowedIncludes),
             deleteTag
         ];
 

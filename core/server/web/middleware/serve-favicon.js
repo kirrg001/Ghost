@@ -2,10 +2,10 @@ var fs = require('fs'),
     path = require('path'),
     crypto = require('crypto'),
     storage = require('../../adapters/storage'),
-    utils  = require('../../utils'),
+    utils  = require('../../lib/globals'),
     config  = require('../../config'),
     settingsCache = require('../../settings/cache'),
-    blogIconUtils = require('../../utils/blog-icon'),
+    blogIconUtils = require('../../services/image/blog-icon'),
     buildContentResponse,
     content;
 

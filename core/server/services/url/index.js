@@ -1,7 +1,10 @@
 const debug = require('ghost-ignition').debug('services:url:init'),
     config = require('../../config'),
-    events = require('../../events'),
-    UrlService = require('./UrlService');
+    events = require('../../lib/common/events'),
+    UrlService = require('./UrlService'),
+    urlService = new UrlService();
+
+module.exports = urlService;
 
 // @TODO we seriously should move this or make it do almost nothing...
 module.exports.init = function init() {
@@ -10,9 +13,6 @@ module.exports.init = function init() {
     if (config.get('disableUrlService')) {
         return;
     }
-
-    // Kick off the constructor
-    const urlService = new UrlService();
 
     urlService.bind();
 

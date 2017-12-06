@@ -1,17 +1,18 @@
-var schema    = require('../schema').tables,
-    _         = require('lodash'),
+var _ = require('lodash'),
     validator = require('validator'),
-    moment    = require('moment-timezone'),
-    assert    = require('assert'),
-    Promise   = require('bluebird'),
-    errors    = require('../../errors'),
-    i18n      = require('../../i18n'),
+    moment = require('moment-timezone'),
+    assert = require('assert'),
+    Promise = require('bluebird'),
+    schema = require('../schema').tables,
+    errors = require('../../lib/common/errors'),
+    i18n = require('../../lib/common/i18n'),
     settingsCache = require('../../settings/cache'),
-    utils = require('../../utils/url'),
+    urlUtils = require('../../services/url/utils'),
 
     validatePassword,
     validateSchema,
     validateSettings,
+    validateRedirects,
     validate;
 
 function assertString(input) {
@@ -19,11 +20,11 @@ function assertString(input) {
 }
 
 /**
-* Counts repeated characters in a string. When 50% or more characters are the same,
-* we return false and therefore invalidate the string.
-* @param {String} stringToTest The password string to check.
-* @return {Boolean}
-*/
+ * Counts repeated characters in a string. When 50% or more characters are the same,
+ * we return false and therefore invalidate the string.
+ * @param {String} stringToTest The password string to check.
+ * @return {Boolean}
+ */
 function characterOccurance(stringToTest) {
     var chars = {},
         allowedOccurancy,
@@ -83,19 +84,19 @@ validator.extend('isSlug', function isSlug(str) {
 });
 
 /**
-* Validation against simple password rules
-* Returns false when validation fails and true for a valid password
-* @param {String} password The password string to check.
-* @param {String} email The users email address to validate agains password.
-* @param {String} blogTitle Optional blogTitle value, when blog title is not set yet, e. g. in setup process.
-* @return {Object} example for returned validation Object:
-* invalid password: `validationResult: {isValid: false, message: 'Sorry, you cannot use an insecure password.'}`
-* valid password: `validationResult: {isValid: true}`
-*/
+ * Validation against simple password rules
+ * Returns false when validation fails and true for a valid password
+ * @param {String} password The password string to check.
+ * @param {String} email The users email address to validate agains password.
+ * @param {String} blogTitle Optional blogTitle value, when blog title is not set yet, e. g. in setup process.
+ * @return {Object} example for returned validation Object:
+ * invalid password: `validationResult: {isValid: false, message: 'Sorry, you cannot use an insecure password.'}`
+ * valid password: `validationResult: {isValid: true}`
+ */
 validatePassword = function validatePassword(password, email, blogTitle) {
     var validationResult = {isValid: true},
         disallowedPasswords = ['password', 'ghost', 'passw0rd'],
-        blogUrl = utils.urlFor('home', true),
+        blogUrl = urlUtils.urlFor('home', true),
         badPasswords = [
             '1234567890',
             'qwertyuiop',
@@ -172,19 +173,31 @@ validateSchema = function validateSchema(tableName, model) {
 
         // check nullable
         if (model.hasOwnProperty(columnKey) && schema[tableName][columnKey].hasOwnProperty('nullable')
-                && schema[tableName][columnKey].nullable !== true) {
+            && schema[tableName][columnKey].nullable !== true) {
             if (validator.empty(strVal)) {
-                message = i18n.t('notices.data.validation.index.valueCannotBeBlank', {tableName: tableName, columnKey: columnKey});
-                validationErrors.push(new errors.ValidationError({message: message, context: tableName + '.' + columnKey}));
+                message = i18n.t('notices.data.validation.index.valueCannotBeBlank', {
+                    tableName: tableName,
+                    columnKey: columnKey
+                });
+                validationErrors.push(new errors.ValidationError({
+                    message: message,
+                    context: tableName + '.' + columnKey
+                }));
             }
         }
 
         // validate boolean columns
         if (model.hasOwnProperty(columnKey) && schema[tableName][columnKey].hasOwnProperty('type')
-                && schema[tableName][columnKey].type === 'bool') {
+            && schema[tableName][columnKey].type === 'bool') {
             if (!(validator.isBoolean(strVal) || validator.empty(strVal))) {
-                message = i18n.t('notices.data.validation.index.valueMustBeBoolean', {tableName: tableName, columnKey: columnKey});
-                validationErrors.push(new errors.ValidationError({message: message, context: tableName + '.' + columnKey}));
+                message = i18n.t('notices.data.validation.index.valueMustBeBoolean', {
+                    tableName: tableName,
+                    columnKey: columnKey
+                });
+                validationErrors.push(new errors.ValidationError({
+                    message: message,
+                    context: tableName + '.' + columnKey
+                }));
             }
         }
 
@@ -300,7 +313,10 @@ validate = function validate(value, key, validations, tableName) {
                     tableName: tableName
                 }, validationOptions[1]));
             } else {
-                translation = i18n.t('notices.data.validation.index.validationFailed', {validationName: validationName, key: key});
+                translation = i18n.t('notices.data.validation.index.validationFailed', {
+                    validationName: validationName,
+                    key: key
+                });
             }
 
             validationErrors.push(new errors.ValidationError({
@@ -314,10 +330,33 @@ validate = function validate(value, key, validations, tableName) {
     return validationErrors;
 };
 
+/**
+ * NOTE: No separate utils file, because redirects won't live forever in a JSON file, see V2 of https://github.com/TryGhost/Ghost/issues/7707
+ */
+validateRedirects = function validateRedirects(redirects) {
+    if (!_.isArray(redirects)) {
+        throw new errors.ValidationError({
+            message: i18n.t('errors.utils.redirectsWrongFormat'),
+            help: 'https://docs.ghost.org/docs/redirects'
+        });
+    }
+
+    _.each(redirects, function (redirect) {
+        if (!redirect.from || !redirect.to) {
+            throw new errors.ValidationError({
+                message: i18n.t('errors.utils.redirectsWrongFormat'),
+                context: JSON.stringify(redirect),
+                help: 'https://docs.ghost.org/docs/redirects'
+            });
+        }
+    });
+};
+
 module.exports = {
     validate: validate,
     validator: validator,
     validatePassword: validatePassword,
     validateSchema: validateSchema,
-    validateSettings: validateSettings
+    validateSettings: validateSettings,
+    validateRedirects: validateRedirects
 };

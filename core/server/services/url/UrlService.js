@@ -11,12 +11,11 @@ const _ = require('lodash'),
     Promise = require('bluebird'),
     _debug = require('ghost-ignition').debug._base,
     debug = _debug('ghost:services:url'),
-    events = require('../../events'),
+    events = require('../../lib/common/events'),
     // TODO: make this dynamic
     resourceConfig = require('./config.json'),
     Resource = require('./Resource'),
-    urlCache = require('./cache'),
-    utils = require('../../utils');
+    urlCache = require('./cache');
 
 class UrlService {
     constructor() {
@@ -25,6 +24,8 @@ class UrlService {
         _.each(resourceConfig, (config) => {
             this.resources.push(new Resource(config));
         });
+
+        this.utils = require('./utils');
     }
 
     bind() {
@@ -113,7 +114,7 @@ class UrlService {
     }
 
     static cacheRoute(relativeUrl, data) {
-        const url = utils.url.urlFor({relativeUrl: relativeUrl});
+        const url = this.utils.url.urlFor({relativeUrl: relativeUrl});
         data.static = true;
         urlCache.set(url, data);
     }

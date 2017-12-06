@@ -5,7 +5,7 @@ var debug = require('ghost-ignition').debug('blog'),
     // App requires
     config = require('../../config'),
     storage = require('../../adapters/storage'),
-    utils = require('../../utils'),
+    utils = require('../../lib/globals'),
 
     // This should probably be an internal app
     sitemapHandler = require('../../data/xml/sitemap/handler'),

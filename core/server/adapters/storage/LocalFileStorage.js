@@ -9,10 +9,10 @@ var serveStatic = require('express').static,
     Promise = require('bluebird'),
     moment = require('moment'),
     config = require('../../config'),
-    errors = require('../../errors'),
-    i18n = require('../../i18n'),
-    utils = require('../../utils'),
-    logging = require('../../logging'),
+    errors = require('../../lib/common/errors'),
+    i18n = require('../../lib/common/i18n'),
+    globalUtils = require('../../lib/globals'),
+    logging = require('../../lib/common/logging'),
     StorageBase = require('ghost-storage-base');
 
 class LocalFileStore extends StorageBase {
@@ -47,8 +47,8 @@ class LocalFileStore extends StorageBase {
             // The src for the image must be in URI format, not a file system path, which in Windows uses \
             // For local file system storage can use relative path so add a slash
             var fullUrl = (
-                utils.url.urlJoin('/', utils.url.getSubdir(),
-                    utils.url.STATIC_IMAGE_URL_PREFIX,
+                globalUtils.url.urlJoin('/', globalUtils.url.getSubdir(),
+                    globalUtils.url.STATIC_IMAGE_URL_PREFIX,
                     path.relative(self.storagePath, targetFilename))
             ).replace(new RegExp('\\' + path.sep, 'g'), '/');
 
@@ -85,7 +85,7 @@ class LocalFileStore extends StorageBase {
             return serveStatic(
                 self.storagePath,
                 {
-                    maxAge: utils.ONE_YEAR_MS,
+                    maxAge: globalUtils.ONE_YEAR_MS,
                     fallthrough: false,
                     onEnd: function onEnd() {
                         logging.info('LocalFileStorage.serve', req.path, moment().diff(startedAtMoment, 'ms') + 'ms');

@@ -5,9 +5,9 @@ const fs = require('fs-extra'),
     moment = require('moment'),
     path = require('path'),
     config = require('../config'),
-    errors = require('../errors'),
-    i18n = require('../i18n'),
-    globalUtils = require('../utils'),
+    errors = require('../lib/common/errors'),
+    i18n = require('../lib/common/i18n'),
+    globalUtils = require('../lib/globals'),
     apiUtils = require('./utils'),
     customRedirectsMiddleware = require('../web/middleware/custom-redirects');
 

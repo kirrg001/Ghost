@@ -4,10 +4,10 @@ var _ = require('lodash'),
     Promise = require('bluebird'),
     validator = require('validator'),
     config = require('../config'),
-    errors = require('../errors'),
+    errors = require('../lib/common/errors'),
     settingsCache = require('../settings/cache'),
-    i18n = require('../i18n'),
-    utils = require('../utils');
+    i18n = require('../lib/common/i18n'),
+    globalUtils = require('../lib/globals');
 
 function GhostMailer() {
     var nodemailer = require('nodemailer'),
@@ -40,7 +40,7 @@ GhostMailer.prototype.from = function () {
 
 // Moved it to its own module
 GhostMailer.prototype.getDomain = function () {
-    var domain = utils.url.urlFor('home', true).match(new RegExp('^https?://([^/:?#]+)(?:[/:?#]|$)', 'i'));
+    var domain = globalUtils.url.urlFor('home', true).match(new RegExp('^https?://([^/:?#]+)(?:[/:?#]|$)', 'i'));
     return domain && domain[1];
 };
 

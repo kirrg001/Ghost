@@ -3,7 +3,7 @@ var debug = require('ghost-ignition').debug('admin'),
 
     // App requires
     config = require('../../config'),
-    utils = require('../../utils'),
+    utils = require('../../lib/globals'),
 
     // Middleware
     // Admin only middleware

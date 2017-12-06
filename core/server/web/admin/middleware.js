@@ -1,4 +1,4 @@
-var utils = require('../../utils');
+var utils = require('../../lib/globals');
 
 function redirectAdminUrls(req, res, next) {
     var subdir = utils.url.getSubdir(),

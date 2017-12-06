@@ -3,7 +3,7 @@ var _       = require('lodash'),
     path    = require('path'),
     config  = require('../../config'),
     themeUtils = require('../../themes'),
-    utils   = require('../../utils');
+    utils   = require('../../lib/globals');
 
 function isBlackListedFileType(file) {
     var blackListedFileTypes = ['.hbs', '.md', '.json'],

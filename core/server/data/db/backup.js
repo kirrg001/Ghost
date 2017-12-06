@@ -1,18 +1,18 @@
 // # Backup Database
 // Provides for backing up the database before making potentially destructive changes
-var fs       = require('fs'),
-    path     = require('path'),
-    Promise  = require('bluebird'),
-    config   = require('../../config'),
-    logging  = require('../../logging'),
-    utils    = require('../../utils'),
+var fs = require('fs'),
+    path = require('path'),
+    Promise = require('bluebird'),
+    config = require('../../config'),
+    logging = require('../../lib/common/logging'),
+    globalUtils = require('../../lib/globals'),
     exporter = require('../export'),
 
     writeExportFile,
     backup;
 
 writeExportFile = function writeExportFile(exportResult) {
-    var filename = path.resolve(utils.url.urlJoin(config.get('paths').contentPath, 'data', exportResult.filename));
+    var filename = path.resolve(globalUtils.url.urlJoin(config.get('paths').contentPath, 'data', exportResult.filename));
 
     return Promise.promisify(fs.writeFile)(filename, JSON.stringify(exportResult.data)).return(filename);
 };

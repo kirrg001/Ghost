@@ -1,21 +1,21 @@
-var _            = require('lodash'),
-    Promise      = require('bluebird'),
-    sequence     = require('../../utils/sequence'),
-    pipeline     = require('../../utils/pipeline'),
-    fs           = require('fs-extra'),
-    path         = require('path'),
-    os           = require('os'),
-    glob         = require('glob'),
-    uuid         = require('uuid'),
-    extract      = require('extract-zip'),
-    errors       = require('../../errors'),
-    logging      = require('../../logging'),
-    ImageHandler    = require('./handlers/image'),
-    JSONHandler     = require('./handlers/json'),
+var _ = require('lodash'),
+    Promise = require('bluebird'),
+    fs = require('fs-extra'),
+    path = require('path'),
+    os = require('os'),
+    glob = require('glob'),
+    uuid = require('uuid'),
+    extract = require('extract-zip'),
+    sequence = require('../../lib/promise/sequence'),
+    pipeline = require('../../lib/promise/pipeline'),
+    errors = require('../../lib/common/errors'),
+    logging = require('../../lib/common/logging'),
+    i18n = require('../../lib/common/i18n'),
+    ImageHandler = require('./handlers/image'),
+    JSONHandler = require('./handlers/json'),
     MarkdownHandler = require('./handlers/markdown'),
-    ImageImporter   = require('./importers/image'),
-    DataImporter    = require('./importers/data'),
-    i18n            = require('../../i18n'),
+    ImageImporter = require('./importers/image'),
+    DataImporter = require('./importers/data'),
 
     // Glob levels
     ROOT_ONLY = 0,
@@ -73,7 +73,7 @@ _.extend(ImportManager.prototype, {
      */
     getGlobPattern: function (items) {
         return '+(' + _.reduce(items, function (memo, ext) {
-            return memo !== '' ? memo + '|'  + ext : ext;
+            return memo !== '' ? memo + '|' + ext : ext;
         }, '') + ')';
     },
     /**
@@ -139,7 +139,7 @@ _.extend(ImportManager.prototype, {
     isValidZip: function (directory) {
         // Globs match content in the root or inside a single directory
         var extMatchesBase = glob.sync(
-                this.getExtensionGlob(this.getExtensions(), ROOT_OR_SINGLE_DIR), {cwd: directory}
+            this.getExtensionGlob(this.getExtensions(), ROOT_OR_SINGLE_DIR), {cwd: directory}
             ),
             extMatchesAll = glob.sync(
                 this.getExtensionGlob(this.getExtensions(), ALL_DIRS), {cwd: directory}
@@ -373,7 +373,7 @@ _.extend(ImportManager.prototype, {
         }).then(function (importData) {
             // Step 4: Report on the import
             return self.generateReport(importData)
-                // Step 5: Cleanup any files
+            // Step 5: Cleanup any files
                 .finally(self.cleanUp());
         });
     }

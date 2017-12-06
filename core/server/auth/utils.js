@@ -2,7 +2,7 @@ var Promise = require('bluebird'),
     _ = require('lodash'),
     debug = require('ghost-ignition').debug('auth:utils'),
     models = require('../models'),
-    globalUtils = require('../utils'),
+    globalUtils = require('../lib/globals'),
     knex = require('../data/db').knex,
     _private = {};
 

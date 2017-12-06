@@ -1,13 +1,13 @@
 var Settings,
-    Promise        = require('bluebird'),
-    _              = require('lodash'),
-    uuid           = require('uuid'),
-    crypto         = require('crypto'),
+    Promise = require('bluebird'),
+    _ = require('lodash'),
+    uuid = require('uuid'),
+    crypto = require('crypto'),
     ghostBookshelf = require('./base'),
-    errors         = require('../errors'),
-    events         = require('../events'),
-    i18n           = require('../i18n'),
-    validation     = require('../data/validation'),
+    errors = require('../lib/common/errors'),
+    events = require('../lib/common/events'),
+    i18n = require('../lib/common/i18n'),
+    validation = require('../data/validation'),
 
     internalContext = {context: {internal: true}},
 
@@ -110,7 +110,9 @@ Settings = ghostBookshelf.Model.extend({
 
         return Promise.map(data, function (item) {
             // Accept an array of models as input
-            if (item.toJSON) { item = item.toJSON(); }
+            if (item.toJSON) {
+                item = item.toJSON();
+            }
             if (!(_.isString(item.key) && item.key.length > 0)) {
                 return Promise.reject(new errors.ValidationError({message: i18n.t('errors.models.settings.valueCannotBeBlank')}));
             }
@@ -154,7 +156,9 @@ Settings = ghostBookshelf.Model.extend({
         return this
             .findAll(options)
             .then(function checkAllSettings(allSettings) {
-                var usedKeys = allSettings.models.map(function mapper(setting) { return setting.get('key'); }),
+                var usedKeys = allSettings.models.map(function mapper(setting) {
+                        return setting.get('key');
+                    }),
                     insertOperations = [];
 
                 _.each(getDefaultSettings(), function forEachDefault(defaultSetting, defaultSettingKey) {

@@ -1,8 +1,8 @@
 var _ = require('lodash'),
     models = require('../models'),
-    utils = require('../utils'),
-    i18n = require('../i18n'),
-    errors = require('../errors'),
+    utils = require('../lib/globals'),
+    i18n = require('../lib/common/i18n'),
+    errors = require('../lib/common/errors'),
     strategies;
 
 strategies = {

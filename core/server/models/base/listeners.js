@@ -1,9 +1,8 @@
-var config = require('../../config'),
-    events = require(config.get('paths:corePath') + '/server/events'),
-    models = require(config.get('paths:corePath') + '/server/models'),
-    errors = require(config.get('paths:corePath') + '/server/errors'),
-    logging = require(config.get('paths:corePath') + '/server/logging'),
-    sequence = require(config.get('paths:corePath') + '/server/utils/sequence'),
+var events = require('../../lib/common/events'),
+    errors = require('../../lib/common/errors'),
+    logging = require('../../lib/common/logging'),
+    sequence = require('../../lib/promise/sequence'),
+    models = require('../../models'),
     moment = require('moment-timezone'),
     _ = require('lodash');
 

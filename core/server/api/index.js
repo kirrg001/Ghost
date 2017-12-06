@@ -8,7 +8,7 @@ var _ = require('lodash'),
     Promise = require('bluebird'),
     config = require('../config'),
     models = require('../models'),
-    utils = require('../utils'),
+    globalUtils = require('../lib/globals'),
     configuration = require('./configuration'),
     db = require('./db'),
     mail = require('./mail'),
@@ -103,7 +103,7 @@ cacheInvalidationHeader = function cacheInvalidationHeader(req, result) {
             if (hasStatusChanged || wasPublishedUpdated) {
                 return INVALIDATE_ALL;
             } else {
-                return utils.url.urlFor({relativeUrl: utils.url.urlJoin('/', config.get('routeKeywords').preview, post.uuid, '/')});
+                return globalUtils.url.urlFor({relativeUrl: globalUtils.url.urlJoin('/', config.get('routeKeywords').preview, post.uuid, '/')});
             }
         }
     }
@@ -121,7 +121,7 @@ cacheInvalidationHeader = function cacheInvalidationHeader(req, result) {
  * @return {String} Resolves to header string
  */
 locationHeader = function locationHeader(req, result) {
-    var apiRoot = utils.url.urlFor('api'),
+    var apiRoot = globalUtils.url.urlFor('api'),
         location,
         newObject,
         statusQuery;
@@ -130,19 +130,19 @@ locationHeader = function locationHeader(req, result) {
         if (result.hasOwnProperty('posts')) {
             newObject = result.posts[0];
             statusQuery = '/?status=' + newObject.status;
-            location = utils.url.urlJoin(apiRoot, 'posts', newObject.id, statusQuery);
+            location = globalUtils.url.urlJoin(apiRoot, 'posts', newObject.id, statusQuery);
         } else if (result.hasOwnProperty('notifications')) {
             newObject = result.notifications[0];
-            location = utils.url.urlJoin(apiRoot, 'notifications', newObject.id, '/');
+            location = globalUtils.url.urlJoin(apiRoot, 'notifications', newObject.id, '/');
         } else if (result.hasOwnProperty('users')) {
             newObject = result.users[0];
-            location = utils.url.urlJoin(apiRoot, 'users', newObject.id, '/');
+            location = globalUtils.url.urlJoin(apiRoot, 'users', newObject.id, '/');
         } else if (result.hasOwnProperty('tags')) {
             newObject = result.tags[0];
-            location = utils.url.urlJoin(apiRoot, 'tags', newObject.id, '/');
+            location = globalUtils.url.urlJoin(apiRoot, 'tags', newObject.id, '/');
         } else if (result.hasOwnProperty('webhooks')) {
             newObject = result.webhooks[0];
-            location = utils.url.urlJoin(apiRoot, 'webhooks', newObject.id, '/');
+            location = globalUtils.url.urlJoin(apiRoot, 'webhooks', newObject.id, '/');
         }
     }
 

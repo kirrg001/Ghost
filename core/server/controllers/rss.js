@@ -1,8 +1,8 @@
 var _ = require('lodash'),
     url = require('url'),
-    errors = require('../errors'),
-    i18n = require('../i18n'),
-    safeString = require('../utils').safeString,
+    errors = require('../lib/common/errors'),
+    i18n = require('../lib/common/i18n'),
+    safeString = require('../lib/globals').safeString,
     settingsCache = require('../settings/cache'),
 
     // Slightly less ugly temporary hack for location of things

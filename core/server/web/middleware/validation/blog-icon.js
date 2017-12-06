@@ -1,7 +1,7 @@
-var errors = require('../../../errors'),
+var errors = require('../../../lib/common/errors'),
     config = require('../../../config'),
-    i18n = require('../../../i18n'),
-    blogIconUtils = require('../../../utils/blog-icon'),
+    i18n = require('../../../lib/common/i18n'),
+    blogIconUtils = require('../../../services/image/blog-icon'),
     validIconFileSize;
 
 validIconFileSize = function validIconFileSize(size) {

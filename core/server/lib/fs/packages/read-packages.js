@@ -1,13 +1,12 @@
 /**
  * Dependencies
  */
-var parsePackageJson = require('./parse-package-json'),
-    errors = require('../../errors'),
-    Promise = require('bluebird'),
+var Promise = require('bluebird'),
     _ = require('lodash'),
     join = require('path').join,
     fs = require('fs'),
-
+    errors = require('../../common/errors'),
+    parsePackageJson = require('./parse-package-json'),
     notAPackageRegex = /^\.|_messages|README.md|node_modules|bower_components/i,
     packageJSONPath = 'package.json',
 

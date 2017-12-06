@@ -1,9 +1,9 @@
 var _  = require('lodash'),
     hbs = require('./engine'),
-    utils = require('../utils'),
-    errors = require('../errors'),
     config = require('../config'),
-    i18n = require('../i18n'),
+    globalUtils = require('../lib/globals'),
+    errors = require('../lib/common/errors'),
+    i18n = require('../lib/common/i18n'),
     settingsCache = require('../settings/cache'),
     activeTheme = require('./active'),
     themeMiddleware = {};
@@ -69,7 +69,7 @@ themeMiddleware.updateTemplateData = function updateTemplateData(req, res, next)
     // Request-specific information
     // These things are super dependent on the request, so they need to be in middleware
     // Serve the blog url without trailing slash
-    blogData.url = utils.url.urlFor('home', {secure: req.secure, trailingSlash: false}, true);
+    blogData.url = globalUtils.url.urlFor('home', {secure: req.secure, trailingSlash: false}, true);
 
     // Pass 'secure' flag to the view engine
     // so that templates can choose to render https or http 'url', see url utility

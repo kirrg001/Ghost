@@ -1,5 +1,5 @@
 var express = require('express'),
-    utils = require('../../utils'),
+    utils = require('../../lib/globals'),
     adminRedirect;
 
 adminRedirect = function adminRedirect(path) {

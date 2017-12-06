@@ -12,9 +12,10 @@
 //  req.baseUrl = /blog
 //  req.path =  /ghost/signin/
 
-var utils = require('../../utils'),
-    errors = require('../../errors'),
-    i18n = require('../../i18n'),
+var removeOpenRedirectFromUrl = require('../../services/url/removeOpenRedirectFromUrl'),
+    urlUtils = require('../../services/url/utils'),
+    errors = require('../../lib/common/errors'),
+    i18n = require('../../lib/common/i18n'),
     uncapitalise;
 
 uncapitalise = function uncapitalise(req, res, next) {
@@ -47,10 +48,10 @@ uncapitalise = function uncapitalise(req, res, next) {
      */
     if (/[A-Z]/.test(decodedURI)) {
         redirectPath = (
-            utils.removeOpenRedirectFromUrl((req.originalUrl || req.url).replace(pathToTest, pathToTest.toLowerCase()))
+            removeOpenRedirectFromUrl((req.originalUrl || req.url).replace(pathToTest, pathToTest.toLowerCase()))
         );
 
-        return utils.url.redirect301(res, redirectPath);
+        return urlUtils.redirect301(res, redirectPath);
     }
 
     next();

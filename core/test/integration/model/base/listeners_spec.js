@@ -9,7 +9,7 @@ var should = require('should'), // jshint ignore:line
     models = require(config.get('paths').corePath + '/server/models'),
     testUtils = require(config.get('paths').corePath + '/test/utils'),
     logging = require(config.get('paths').corePath + '/server/logging'),
-    sequence = require(config.get('paths').corePath + '/server/utils/sequence'),
+    sequence = require(config.get('paths').corePath + '/server/lib/promise/sequence'),
     sandbox = sinon.sandbox.create();
 
 describe('Models: listeners', function () {

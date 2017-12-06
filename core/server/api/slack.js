@@ -1,7 +1,7 @@
 // # Slack API
 // API for sending Test Notifications to Slack
 var Promise = require('bluebird'),
-    events = require('../events'),
+    events = require('../lib/common/events'),
     slack;
 
 /**

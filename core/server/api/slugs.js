@@ -1,11 +1,11 @@
 // # Slug API
 // RESTful API for the Slug resource
 var Promise = require('bluebird'),
-    pipeline = require('../utils/pipeline'),
+    pipeline = require('../lib/promise/pipeline'),
     apiUtils = require('./utils'),
     models = require('../models'),
-    errors = require('../errors'),
-    i18n = require('../i18n'),
+    errors = require('../lib/common/errors'),
+    i18n = require('../lib/common/i18n'),
     docName = 'slugs',
     slugs,
     allowedTypes;

@@ -1,7 +1,7 @@
 'use strict';
 
 const debug = require('ghost-ignition').debug('importer:base'),
-    errors = require('../../../../errors'),
+    errors = require('../../../../lib/common/errors'),
     models = require('../../../../models'),
     _ = require('lodash'),
     Promise = require('bluebird');

@@ -2,7 +2,7 @@
 
 const _ = require('lodash'),
     api = require('../../api'),
-    utils = require('../../utils'),
+    globalUtils = require('../../lib/globals'),
     prefetchDefaults = {
         context: {
             internal: true
@@ -35,7 +35,7 @@ class Resource {
         const data = {
             [this.urlLookup]: item
         };
-        return utils.url.urlFor(this.urlLookup, data);
+        return globalUtils.url.urlFor(this.urlLookup, data);
     }
 
     toData(item) {

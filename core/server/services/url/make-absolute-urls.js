@@ -1,6 +1,6 @@
 var cheerio  = require('cheerio'),
     url      = require('url'),
-    utils  = require('../utils');
+    utils  = require('../../lib/globals');
 
 /**
  * Make absolute URLs

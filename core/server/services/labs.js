@@ -1,10 +1,10 @@
-var settingsCache = require('../settings/cache'),
-    _ = require('lodash'),
+var _ = require('lodash'),
     Promise = require('bluebird'),
+    settingsCache = require('../settings/cache'),
     SafeString = require('../themes/engine').SafeString,
-    errors = require('../errors'),
-    logging = require('../logging'),
-    i18n = require('../i18n'),
+    errors = require('../lib/common/errors'),
+    logging = require('../lib/common/logging'),
+    i18n = require('../lib/common/i18n'),
     labs = module.exports = {};
 
 labs.isSet = function isSet(flag) {
