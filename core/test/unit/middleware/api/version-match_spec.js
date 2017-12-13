@@ -99,4 +99,28 @@ describe('Version Mismatch', function () {
         nextStub.firstCall.args[0].should.have.property('errorType', 'VersionMismatchError');
         nextStub.firstCall.args[0].should.have.property('statusCode', 400);
     });
+
+    it('throws error if server is a pre-release', function () {
+        var server = '1.5.0-pre',
+            client = '1.4';
+
+        testVersionMatch(server, client);
+
+        nextStub.calledOnce.should.be.true();
+        nextStub.firstCall.args.should.have.lengthOf(1);
+        nextStub.firstCall.args[0].should.have.property('errorType', 'VersionMismatchError');
+        nextStub.firstCall.args[0].should.have.property('statusCode', 400);
+    });
+
+    it('throws error if server is a pre-release', function () {
+        var server = '1.5.0-alpha',
+            client = '1.5';
+
+        testVersionMatch(server, client);
+
+        nextStub.calledOnce.should.be.true();
+        nextStub.firstCall.args.should.have.lengthOf(1);
+        nextStub.firstCall.args[0].should.have.property('errorType', 'VersionMismatchError');
+        nextStub.firstCall.args[0].should.have.property('statusCode', 400);
+    });
 });
