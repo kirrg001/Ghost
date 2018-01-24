@@ -33,8 +33,8 @@ describe('Upload API', function () {
     });
 
     describe('success cases', function () {
-        it('valid png', function (done) {
-            request.post(testUtils.API.getApiQuery('uploads'))
+        it.only('valid png', function (done) {
+            request.post(testUtils.API.getApiQuery('uploads') + '/?lol=a')
                 .set('Authorization', 'Bearer ' + accesstoken)
                 .expect('Content-Type', /json/)
                 .attach('uploadimage', path.join(__dirname, '/../../../utils/fixtures/images/ghost-logo.png'))
