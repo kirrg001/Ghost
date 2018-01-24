@@ -839,7 +839,7 @@ describe('Users API', function () {
                     return models.Post.findAll(_.merge({}, {
                         context: context.editor.context,
                         filter: 'author_id:' + userIdFor.editor,
-                        include: ['tags']
+                        withRelated: ['tags']
                     }, options));
                 }).then(function (posts) {
                     posts.models.length.should.eql(3);
@@ -852,7 +852,7 @@ describe('Users API', function () {
                     return models.Post.findAll(_.merge({
                         context: context.author.context,
                         filter: 'author_id:' + userIdFor.author,
-                        include: ['tags']
+                        withRelated: ['tags']
                     }, options));
                 }).then(function (posts) {
                     posts.models.length.should.eql(3);
