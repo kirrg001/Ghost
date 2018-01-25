@@ -480,7 +480,6 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
      */
     findAll: function findAll(options) {
         options = this.filterOptions(options, 'findAll');
-        options.withRelated = _.union(options.withRelated, options.include);
 
         var itemCollection = this.forge();
 
@@ -492,9 +491,9 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         itemCollection.applyDefaultAndCustomFilters(options);
 
         return itemCollection.fetchAll(options).then(function then(result) {
-            if (options.include) {
+            if (options.withRelated) {
                 _.each(result.models, function each(item) {
-                    item.include = options.include;
+                    item.withRelated = options.withRelated;
                 });
             }
 
@@ -544,10 +543,6 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         // Add Filter behaviour
         itemCollection.applyDefaultAndCustomFilters(options);
 
-        // Handle related objects
-        // TODO: this should just be done for all methods @ the API level
-        options.withRelated = _.union(options.withRelated, options.include);
-
         // Ensure only valid fields/columns are added to query
         // and append default columns to fetch
         if (options.columns) {
@@ -556,7 +551,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         }
 
         if (options.order) {
-            options.order = self.parseOrderOption(options.order, options.include);
+            options.order = self.parseOrderOption(options.order, options.withRelated);
         } else if (self.orderDefaultRaw) {
             options.orderRaw = self.orderDefaultRaw();
         } else {
@@ -591,8 +586,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         data = this.filterData(data);
         options = this.filterOptions(options, 'findOne');
 
-        // We pass include to forge so that toJSON has access
-        return this.forge(data, {include: options.include}).fetch(options);
+        return this.forge(data).fetch(options);
     },
 
     /**
@@ -762,11 +756,11 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         });
     },
 
-    parseOrderOption: function (order, include) {
+    parseOrderOption: function (order, withRelated) {
         var permittedAttributes, result, rules;
 
         permittedAttributes = this.prototype.permittedAttributes();
-        if (include && include.indexOf('count.posts') > -1) {
+        if (withRelated && withRelated.indexOf('count.posts') > -1) {
             permittedAttributes.push('count.posts');
         }
         result = {};
