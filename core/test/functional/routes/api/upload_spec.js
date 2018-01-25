@@ -33,7 +33,7 @@ describe('Upload API', function () {
     });
 
     describe('success cases', function () {
-        it.only('valid png', function (done) {
+        it('valid png', function (done) {
             request.post(testUtils.API.getApiQuery('uploads') + '/?lol=a')
                 .set('Authorization', 'Bearer ' + accesstoken)
                 .expect('Content-Type', /json/)

@@ -25,21 +25,36 @@ Webhook = ghostBookshelf.Model.extend({
         model.emitChange('deleted', options);
     }
 }, {
-    findAllByEvent: function findAllByEvent(event, options) {
-        var webhooksCollection = Webhooks.forge();
+    permittedOptions: function permittedOptions(methodName) {
+        var options = ghostBookshelf.Model.permittedOptions(),
 
-        options = this.filterOptions(options, 'findAll');
+            // whitelists for the `options` hash argument on methods, by method name.
+            // these are the only options that can be passed to Bookshelf / Knex.
+            validOptions = {
+                getByEventAndTarget: ['context']
+            };
+
+        if (validOptions[methodName]) {
+            options = options.concat(validOptions[methodName]);
+        }
+
+        return options;
+    },
+
+    findAllByEvent: function findAllByEvent(event, unfilteredOptions) {
+        var options = this.filterOptions(unfilteredOptions, 'findAll'),
+            webhooksCollection = Webhooks.forge();
 
         return webhooksCollection
             .query('where', 'event', '=', event)
             .fetch(options);
     },
 
-    getByEventAndTarget: function getByEventAndTarget(event, targetUrl, options) {
-        options = options || {};
+    getByEventAndTarget: function getByEventAndTarget(event, targetUrl, unfilteredOptions) {
+        var options = ghostBookshelf.Model.filterOptions(unfilteredOptions, 'getByEventAndTarget');
         options.require = true;
 
-        return Webhooks.forge(options).fetch(options).then(function then(webhooks) {
+        return Webhooks.forge().fetch(options).then(function then(webhooks) {
             var webhookWithEventAndTarget = webhooks.find(function findWebhook(webhook) {
                 return webhook.get('event').toLowerCase() === event.toLowerCase()
                     && webhook.get('target_url').toLowerCase() === targetUrl.toLowerCase();

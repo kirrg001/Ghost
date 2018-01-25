@@ -350,10 +350,9 @@ Post = ghostBookshelf.Model.extend({
         return attrs;
     },
 
-    toJSON: function toJSON(options) {
-        options = options || {};
-
-        var attrs = ghostBookshelf.Model.prototype.toJSON.call(this, options),
+    toJSON: function toJSON(unfilteredOptions) {
+        var options = Post.filterOptions(unfilteredOptions, 'toJSON'),
+            attrs = ghostBookshelf.Model.prototype.toJSON.call(this, options),
             oldPostId = attrs.amp,
             commentId;
 
@@ -363,6 +362,7 @@ Post = ghostBookshelf.Model.extend({
             attrs.author = attrs.author || attrs.author_id;
             delete attrs.author_id;
         }
+
         // If the current column settings allow it...
         if (!options.columns || (options.columns && options.columns.indexOf('primary_tag') > -1)) {
             // ... attach a computed property of primary_tag which is the first tag if it is public, else null
@@ -520,8 +520,6 @@ Post = ghostBookshelf.Model.extend({
      * **See:** [ghostBookshelf.Model.findOne](base.js.html#Find%20One)
      */
     findOne: function findOne(data, options) {
-        options = options || {};
-
         data = _.defaults(data || {}, {
             status: 'published'
         });
@@ -529,8 +527,6 @@ Post = ghostBookshelf.Model.extend({
         if (data.status === 'all') {
             delete data.status;
         }
-
-        options.withRelated = _.union(options.withRelated, options.include);
 
         return ghostBookshelf.Model.findOne.call(this, data, options);
     },
@@ -542,15 +538,15 @@ Post = ghostBookshelf.Model.extend({
      * @extends ghostBookshelf.Model.edit to handle returning the full object and manage _updatedAttributes
      * **See:** [ghostBookshelf.Model.edit](base.js.html#edit)
      */
-    edit: function edit(data, options) {
-        let opts = _.cloneDeep(options || {});
+    edit: function edit(data, unfilteredOptions) {
+        let options = this.filterOptions(unfilteredOptions, 'edit', {extraAllowedProperties: ['id']});
 
         const editPost = () => {
-            opts.forUpdate = true;
+            options.forUpdate = true;
 
-            return ghostBookshelf.Model.edit.call(this, data, opts)
+            return ghostBookshelf.Model.edit.call(this, data, options)
                 .then((post) => {
-                    return this.findOne({status: 'all', id: opts.id}, opts)
+                    return this.findOne({status: 'all', id: options.id}, options)
                         .then((found) => {
                             if (found) {
                                 // Pass along the updated attributes for checking status changes
@@ -561,9 +557,9 @@ Post = ghostBookshelf.Model.extend({
                 });
         };
 
-        if (!opts.transacting) {
+        if (!options.transacting) {
             return ghostBookshelf.transaction((transacting) => {
-                opts.transacting = transacting;
+                options.transacting = transacting;
                 return editPost();
             });
         }
@@ -576,19 +572,19 @@ Post = ghostBookshelf.Model.extend({
      * @extends ghostBookshelf.Model.add to handle returning the full object
      * **See:** [ghostBookshelf.Model.add](base.js.html#add)
      */
-    add: function add(data, options) {
-        let opts = _.cloneDeep(options || {});
+    add: function add(data, unfilteredOptions) {
+        let options = this.filterOptions(unfilteredOptions, 'add', {extraAllowedProperties: ['id']});
 
         const addPost = (() => {
-            return ghostBookshelf.Model.add.call(this, data, opts)
+            return ghostBookshelf.Model.add.call(this, data, options)
                 .then((post) => {
-                    return this.findOne({status: 'all', id: post.id}, opts);
+                    return this.findOne({status: 'all', id: post.id}, options);
                 });
         });
 
-        if (!opts.transacting) {
+        if (!options.transacting) {
             return ghostBookshelf.transaction((transacting) => {
-                opts.transacting = transacting;
+                options.transacting = transacting;
 
                 return addPost();
             });
@@ -618,13 +614,10 @@ Post = ghostBookshelf.Model.extend({
      * ### destroyByAuthor
      * @param  {[type]} options has context and id. Context is the user doing the destroy, id is the user to destroy
      */
-    destroyByAuthor: function destroyByAuthor(options) {
-        let opts = _.cloneDeep(options || {});
-
-        let postCollection = Posts.forge(),
-            authorId = opts.id;
-
-        opts = this.filterOptions(opts, 'destroyByAuthor');
+    destroyByAuthor: function destroyByAuthor(unfilteredOptions) {
+        let options = this.filterOptions(unfilteredOptions, 'destroyByAuthor', {extraAllowedProperties: ['id']}),
+            postCollection = Posts.forge(),
+            authorId = options.id;
 
         if (!authorId) {
             throw new common.errors.NotFoundError({
@@ -635,16 +628,16 @@ Post = ghostBookshelf.Model.extend({
         const destroyPost = (() => {
             return postCollection
                 .query('where', 'author_id', '=', authorId)
-                .fetch(opts)
-                .call('invokeThen', 'destroy', opts)
+                .fetch(options)
+                .call('invokeThen', 'destroy', options)
                 .catch((err) => {
                     throw new common.errors.GhostError({err: err});
                 });
         });
 
-        if (!opts.transacting) {
+        if (!options.transacting) {
             return ghostBookshelf.transaction((transacting) => {
-                opts.transacting = transacting;
+                options.transacting = transacting;
                 return destroyPost();
             });
         }

@@ -98,9 +98,9 @@ Settings = ghostBookshelf.Model.extend({
         return Promise.resolve(ghostBookshelf.Model.findOne.call(this, data, options));
     },
 
-    edit: function (data, options) {
-        var self = this;
-        options = this.filterOptions(options, 'edit');
+    edit: function (data, unfilteredOptions) {
+        var options = this.filterOptions(unfilteredOptions, 'edit'),
+            self = this;
 
         if (!Array.isArray(data)) {
             data = [data];
@@ -122,23 +122,23 @@ Settings = ghostBookshelf.Model.extend({
                     // it's allowed to edit all attributes in case of importing/migrating
                     if (options.importing) {
                         return setting.save(item, options);
-                    } else {
-                        // If we have a value, set it.
-                        if (item.hasOwnProperty('value')) {
-                            setting.set('value', item.value);
-                        }
-                        // Internal context can overwrite type (for fixture migrations)
-                        if (options.context && options.context.internal && item.hasOwnProperty('type')) {
-                            setting.set('type', item.type);
-                        }
-
-                        // If anything has changed, save the updated model
-                        if (setting.hasChanged()) {
-                            return setting.save(null, options);
-                        }
-
-                        return setting;
                     }
+
+                    // If we have a value, set it.
+                    if (item.hasOwnProperty('value')) {
+                        setting.set('value', item.value);
+                    }
+                    // Internal context can overwrite type (for fixture migrations)
+                    if (options.context && options.context.internal && item.hasOwnProperty('type')) {
+                        setting.set('type', item.type);
+                    }
+
+                    // If anything has changed, save the updated model
+                    if (setting.hasChanged()) {
+                        return setting.save(null, options);
+                    }
+
+                    return setting;
                 }
 
                 return Promise.reject(new common.errors.NotFoundError({message: common.i18n.t('errors.models.settings.unableToFindSetting', {key: item.key})}));
@@ -146,10 +146,13 @@ Settings = ghostBookshelf.Model.extend({
         });
     },
 
-    populateDefaults: function populateDefaults(options) {
-        var self = this;
+    populateDefaults: function populateDefaults(unfilteredOptions) {
+        var options = this.filterOptions(unfilteredOptions, 'populateDefaults'),
+            self = this;
 
-        options = _.merge({}, options || {}, internalContext);
+        if (!options.context) {
+            options.context = internalContext.context;
+        }
 
         return this
             .findAll(options)
