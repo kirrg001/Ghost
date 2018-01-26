@@ -841,6 +841,14 @@ describe('Users API', function () {
     });
 
     describe('Destroy', function () {
+        beforeEach(function () {
+            return testUtils.teardown()
+                .then(function () {
+                    // setup without posts, otherwise we try to remove a user which has still a reference to a post. Would result in an error.
+                    return testUtils.setup('users:roles', 'tags', 'users', 'perms:user', 'perms:init')();
+                });
+        });
+
         describe('General Tests', function () {
             it('ensure posts get deleted', function (done) {
                 var postIdsToDelete = [], postIsToKeep = [], options = {};
@@ -975,12 +983,12 @@ describe('Users API', function () {
             it('Can destroy admin, editor, author, contributor', function (done) {
                 // Admin
                 UserAPI.destroy(_.extend({}, context.admin, {id: testUtils.DataGenerator.Content.extraUsers[0].id}))
-                .then(function (response) {
-                    should.not.exist(response);
+                    .then(function (response) {
+                        should.not.exist(response);
 
-                    // Editor
-                    return UserAPI.destroy(_.extend({}, context.admin, {id: testUtils.DataGenerator.Content.extraUsers[1].id}));
-                }).then(function (response) {
+                        // Editor
+                        return UserAPI.destroy(_.extend({}, context.admin, {id: testUtils.DataGenerator.Content.extraUsers[1].id}));
+                    }).then(function (response) {
                     should.not.exist(response);
 
                     // Author

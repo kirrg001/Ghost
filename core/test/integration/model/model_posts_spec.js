@@ -14,7 +14,7 @@ var should = require('should'),
     common = require('../../../server/lib/common'),
     configUtils = require('../../utils/configUtils'),
     DataGenerator = testUtils.DataGenerator,
-    context = testUtils.context.owner,
+    ownerContext = testUtils.context.owner,
     sandbox = sinon.sandbox.create(),
     markdownToMobiledoc = testUtils.DataGenerator.markdownToMobiledoc;
 
@@ -50,6 +50,15 @@ describe('Post Model', function () {
 
             should.not.exist(firstPost.author_id);
             firstPost.author.should.be.an.Object();
+
+            if (options.withRelated && options.withRelated.indexOf('authors') !== -1) {
+                firstPost.authors.length.should.eql(1);
+                firstPost.authors[0].should.eql(firstPost.author);
+
+                should.exist(firstPost.primary_author);
+                firstPost.primary_author.name.should.eql(DataGenerator.Content.users[0].name);
+            }
+
             firstPost.url.should.equal('/html-ipsum/');
             firstPost.fields.should.be.an.Array();
             firstPost.tags.should.be.an.Array();
@@ -108,7 +117,9 @@ describe('Post Model', function () {
             });
 
             it('can findAll, returning all related data', function (done) {
-                PostModel.findAll({withRelated: ['author', 'fields', 'tags', 'created_by', 'updated_by', 'published_by']})
+                var options = {withRelated: ['author', 'authors', 'fields', 'tags', 'created_by', 'updated_by', 'published_by']};
+
+                PostModel.findAll(options)
                     .then(function (results) {
                         should.exist(results);
                         results.length.should.be.above(0);
@@ -117,7 +128,7 @@ describe('Post Model', function () {
                             return model.toJSON();
                         }), firstPost = _.find(posts, {title: testUtils.DataGenerator.Content.posts[0].title});
 
-                        checkFirstPostData(firstPost);
+                        checkFirstPostData(firstPost, options);
 
                         done();
                     }).catch(done);
@@ -432,7 +443,7 @@ describe('Post Model', function () {
                     post.id.should.equal(postId);
                     post.title.should.not.equal('new title');
 
-                    return PostModel.edit({title: 'new title'}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({title: 'new title'}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.title.should.equal('new title');
@@ -456,7 +467,7 @@ describe('Post Model', function () {
 
                     return PostModel.edit({
                         custom_excerpt: new Array(302).join('a')
-                    }, _.extend({}, context, {id: postId}));
+                    }, _.extend({}, ownerContext, {id: postId}));
                 }).then(function () {
                     done(new Error('expected validation error'));
                 }).catch(function (err) {
@@ -476,7 +487,7 @@ describe('Post Model', function () {
 
                     return PostModel.edit({
                         custom_excerpt: new Array(300).join('a')
-                    }, _.extend({}, context, {id: postId}));
+                    }, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     edited.get('custom_excerpt').length.should.eql(299);
                     done();
@@ -490,7 +501,7 @@ describe('Post Model', function () {
                     should.exist(results);
                     var post = results.toJSON();
                     post.title.should.not.equal('123');
-                    return PostModel.edit({title: 123}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({title: 123}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.title.should.equal('123');
@@ -505,7 +516,7 @@ describe('Post Model', function () {
                     should.exist(results);
                     results.attributes.html.should.match(/HTML Ipsum Presents/);
                     should.not.exist(results.attributes.plaintext);
-                    return PostModel.edit({updated_at: results.attributes.updated_at}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({updated_at: results.attributes.updated_at}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
 
@@ -525,7 +536,7 @@ describe('Post Model', function () {
                     post.id.should.equal(postId);
                     post.status.should.equal('draft');
 
-                    return PostModel.edit({status: 'published'}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({status: 'published'}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('published');
@@ -548,7 +559,7 @@ describe('Post Model', function () {
                     post.id.should.equal(postId);
                     post.status.should.equal('published');
 
-                    return PostModel.edit({status: 'draft'}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({status: 'draft'}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('draft');
@@ -574,7 +585,7 @@ describe('Post Model', function () {
                 }).then(function () {
                     return PostModel.edit({
                         status: 'scheduled'
-                    }, _.extend({}, context, {id: post.id}));
+                    }, _.extend({}, ownerContext, {id: post.id}));
                 }).then(function () {
                     done(new Error('expected error'));
                 }).catch(function (err) {
@@ -596,7 +607,7 @@ describe('Post Model', function () {
                     return PostModel.edit({
                         status: 'scheduled',
                         published_at: '0000-00-00 00:00:00'
-                    }, _.extend({}, context, {id: post.id}));
+                    }, _.extend({}, ownerContext, {id: post.id}));
                 }).catch(function (err) {
                     should.exist(err);
                     (err instanceof common.errors.ValidationError).should.eql(true);
@@ -618,7 +629,7 @@ describe('Post Model', function () {
                     return PostModel.edit({
                         status: 'scheduled',
                         published_at: newPublishedAt
-                    }, _.extend({}, context, {id: post.id}));
+                    }, _.extend({}, ownerContext, {id: post.id}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('scheduled');
@@ -644,7 +655,7 @@ describe('Post Model', function () {
 
                     return PostModel.edit({
                         status: 'draft'
-                    }, _.extend({}, context, {id: post.id}));
+                    }, _.extend({}, ownerContext, {id: post.id}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('draft');
@@ -668,7 +679,7 @@ describe('Post Model', function () {
                     return PostModel.edit({
                         status: 'scheduled',
                         published_at: moment().add(20, 'days').toDate()
-                    }, _.extend({}, context, {id: post.id}));
+                    }, _.extend({}, ownerContext, {id: post.id}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('scheduled');
@@ -691,7 +702,7 @@ describe('Post Model', function () {
 
                     return PostModel.edit({
                         status: 'scheduled'
-                    }, _.extend({}, context, {id: post.id}));
+                    }, _.extend({}, ownerContext, {id: post.id}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('scheduled');
@@ -723,7 +734,7 @@ describe('Post Model', function () {
                 }).then(function () {
                     return PostModel.edit({
                         status: 'scheduled'
-                    }, _.extend({}, context, {id: post.id}));
+                    }, _.extend({}, ownerContext, {id: post.id}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('scheduled');
@@ -748,7 +759,7 @@ describe('Post Model', function () {
                     return PostModel.edit({
                         status: 'scheduled',
                         published_at: moment().add(1, 'day').toDate()
-                    }, _.extend({}, context, {id: postId}));
+                    }, _.extend({}, ownerContext, {id: postId}));
                 }).then(function () {
                     done(new Error('change status from published to scheduled is not allowed right now!'));
                 }).catch(function (err) {
@@ -768,7 +779,7 @@ describe('Post Model', function () {
                     post.id.should.equal(postId);
                     post.status.should.equal('draft');
 
-                    return PostModel.edit({page: 1}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({page: 1}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('draft');
@@ -778,7 +789,7 @@ describe('Post Model', function () {
                     should.exist(eventsTriggered['post.deleted']);
                     should.exist(eventsTriggered['page.added']);
 
-                    return PostModel.edit({page: 0}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({page: 0}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('draft');
@@ -805,7 +816,7 @@ describe('Post Model', function () {
                         page: 1,
                         status: 'scheduled',
                         published_at: moment().add(10, 'days')
-                    }, _.extend({}, context, {id: post.id}));
+                    }, _.extend({}, ownerContext, {id: post.id}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('scheduled');
@@ -816,7 +827,7 @@ describe('Post Model', function () {
                     should.exist(eventsTriggered['page.added']);
                     should.exist(eventsTriggered['page.scheduled']);
 
-                    return PostModel.edit({page: 0}, _.extend({}, context, {id: edited.id}));
+                    return PostModel.edit({page: 0}, _.extend({}, ownerContext, {id: edited.id}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('scheduled');
@@ -842,7 +853,7 @@ describe('Post Model', function () {
                     post.id.should.equal(postId);
                     post.status.should.equal('published');
 
-                    return PostModel.edit({page: 1}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({page: 1}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('published');
@@ -854,7 +865,7 @@ describe('Post Model', function () {
                     should.exist(eventsTriggered['page.added']);
                     should.exist(eventsTriggered['page.published']);
 
-                    return PostModel.edit({page: 0}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({page: 0}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('published');
@@ -880,7 +891,7 @@ describe('Post Model', function () {
                     post.id.should.equal(postId);
                     post.status.should.equal('draft');
 
-                    return PostModel.edit({page: 1, status: 'published'}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({page: 1, status: 'published'}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('published');
@@ -891,7 +902,7 @@ describe('Post Model', function () {
                     should.exist(eventsTriggered['page.added']);
                     should.exist(eventsTriggered['page.published']);
 
-                    return PostModel.edit({page: 0, status: 'draft'}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({page: 0, status: 'draft'}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('draft');
@@ -910,7 +921,7 @@ describe('Post Model', function () {
                 var newPost = testUtils.DataGenerator.forModel.posts[2],
                     postId;
 
-                PostModel.add(newPost, context).then(function (results) {
+                PostModel.add(newPost, ownerContext).then(function (results) {
                     var post;
                     should.exist(results);
                     post = results.toJSON();
@@ -921,7 +932,7 @@ describe('Post Model', function () {
                     should.not.exist(post.published_at);
 
                     // Test changing an unrelated property
-                    return PostModel.edit({title: 'Hello World'}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({title: 'Hello World'}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('draft');
@@ -929,7 +940,7 @@ describe('Post Model', function () {
                     should.not.exist(edited.attributes.published_at);
 
                     // Test changing status and published_by on its own
-                    return PostModel.edit({published_by: 4}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({published_by: 4}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('draft');
@@ -951,18 +962,18 @@ describe('Post Model', function () {
                     post.status.should.equal('draft');
 
                     // Test changing status and published_by at the same time
-                    return PostModel.edit({status: 'published', published_by: 4}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({status: 'published', published_by: 4}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('published');
-                    edited.attributes.published_by.should.equal(context.context.user);
+                    edited.attributes.published_by.should.equal(ownerContext.context.user);
 
                     // Test changing status and published_by on its own
-                    return PostModel.edit({published_by: 4}, _.extend({}, context, {id: postId}));
+                    return PostModel.edit({published_by: 4}, _.extend({}, ownerContext, {id: postId}));
                 }).then(function (edited) {
                     should.exist(edited);
                     edited.attributes.status.should.equal('published');
-                    edited.attributes.published_by.should.equal(context.context.user);
+                    edited.attributes.published_by.should.equal(ownerContext.context.user);
 
                     done();
                 }).catch(done);
@@ -981,7 +992,7 @@ describe('Post Model', function () {
                         post = results.toJSON();
                         post.id.should.equal(postId);
 
-                        return PostModel.edit({published_at: '0000-00-00 00:00:00'}, _.extend({}, context, {id: postId}));
+                        return PostModel.edit({published_at: '0000-00-00 00:00:00'}, _.extend({}, ownerContext, {id: postId}));
                     })
                     .then(function () {
                         done(new Error('This test should fail.'));
@@ -1005,7 +1016,7 @@ describe('Post Model', function () {
                         post = results.toJSON();
                         post.id.should.equal(postId);
 
-                        return PostModel.edit({created_at: ''}, _.extend({}, context, {id: postId}));
+                        return PostModel.edit({created_at: ''}, _.extend({}, ownerContext, {id: postId}));
                     })
                     .then(function () {
                         done(new Error('This test should fail.'));
@@ -1030,28 +1041,13 @@ describe('Post Model', function () {
                 });
             });
 
-            it('[unsupported] can\'t add `author` as object', function () {
-                var newPost = testUtils.DataGenerator.forModel.posts[2];
-
-                // `post.author` relation get's ignored in Ghost - unsupported
-                newPost.author = {id: testUtils.DataGenerator.Content.users[3].id};
-                delete newPost.author_id;
-
-                return PostModel.add(newPost, context)
-                    .then(function (createdPost) {
-                        // fallsback to logged in user
-                        createdPost.get('author_id').should.eql(context.context.user);
-                        createdPost.get('author_id').should.not.eql(testUtils.DataGenerator.Content.users[3].id);
-                    });
-            });
-
             it('can add, defaults are all correct', function (done) {
                 var createdPostUpdatedDate,
                     newPost = testUtils.DataGenerator.forModel.posts[2],
                     newPostDB = testUtils.DataGenerator.Content.posts[2];
 
-                PostModel.add(newPost, context).then(function (createdPost) {
-                    return new PostModel({id: createdPost.id}).fetch();
+                PostModel.add(newPost, _.merge({withRelated: ['author']}, ownerContext)).then(function (createdPost) {
+                    return PostModel.findOne({id: createdPost.id, status: 'all'});
                 }).then(function (createdPost) {
                     should.exist(createdPost);
                     createdPost.has('uuid').should.equal(true);
@@ -1089,7 +1085,7 @@ describe('Post Model', function () {
                     should.exist(eventsTriggered['post.added']);
 
                     // Set the status to published to check that `published_at` is set.
-                    return createdPost.save({status: 'published'}, context);
+                    return createdPost.save({status: 'published'}, ownerContext);
                 }).then(function (publishedPost) {
                     publishedPost.get('published_at').should.be.instanceOf(Date);
                     publishedPost.get('published_by').should.equal(testUtils.DataGenerator.Content.users[0].id);
@@ -1110,7 +1106,7 @@ describe('Post Model', function () {
 
                 newPost.title = 123;
 
-                PostModel.add(newPost, context).then(function (createdPost) {
+                PostModel.add(newPost, ownerContext).then(function (createdPost) {
                     should.exist(createdPost);
                     done();
                 }).catch(done);
@@ -1124,7 +1120,7 @@ describe('Post Model', function () {
                     published_at: previousPublishedAtDate,
                     title: 'published_at test',
                     mobiledoc: markdownToMobiledoc('This is some content')
-                }, context).then(function (newPost) {
+                }, ownerContext).then(function (newPost) {
                     should.exist(newPost);
                     new Date(newPost.get('published_at')).getTime().should.equal(previousPublishedAtDate.getTime());
 
@@ -1141,7 +1137,7 @@ describe('Post Model', function () {
                     status: 'draft',
                     title: 'draft 1',
                     mobiledoc: markdownToMobiledoc('This is some content')
-                }, context).then(function (newPost) {
+                }, ownerContext).then(function (newPost) {
                     should.exist(newPost);
                     should.not.exist(newPost.get('published_at'));
 
@@ -1152,13 +1148,31 @@ describe('Post Model', function () {
                 }).catch(done);
             });
 
+            it('add multiple authors', function (done) {
+                PostModel.add({
+                    status: 'draft',
+                    title: 'draft 1',
+                    mobiledoc: markdownToMobiledoc('This is some content'),
+                    authors: [{
+                        id: testUtils.DataGenerator.forKnex.users[0].id,
+                        name: testUtils.DataGenerator.forKnex.users[0].name
+                    }]
+                }, _.merge({withRelated: ['authors']}, ownerContext)).then(function (newPost) {
+                    should.exist(newPost);
+                    newPost.toJSON().author.should.eql(testUtils.DataGenerator.forKnex.users[0].id);
+                    newPost.toJSON().authors.length.should.eql(1);
+                    newPost.toJSON().authors[0].id.should.eql(testUtils.DataGenerator.forKnex.users[0].id);
+                    done();
+                }).catch(done);
+            });
+
             it('add draft post with published_at -> we expect published_at to exist', function (done) {
                 PostModel.add({
                     status: 'draft',
                     published_at: moment().toDate(),
                     title: 'draft 1',
                     mobiledoc: markdownToMobiledoc('This is some content')
-                }, context).then(function (newPost) {
+                }, ownerContext).then(function (newPost) {
                     should.exist(newPost);
                     should.exist(newPost.get('published_at'));
 
@@ -1174,7 +1188,7 @@ describe('Post Model', function () {
                     status: 'scheduled',
                     title: 'scheduled 1',
                     mobiledoc: markdownToMobiledoc('This is some content')
-                }, context).catch(function (err) {
+                }, ownerContext).catch(function (err) {
                     should.exist(err);
                     (err instanceof common.errors.ValidationError).should.eql(true);
                     Object.keys(eventsTriggered).length.should.eql(0);
@@ -1188,7 +1202,7 @@ describe('Post Model', function () {
                     published_at: moment().subtract(1, 'minute'),
                     title: 'scheduled 1',
                     mobiledoc: markdownToMobiledoc('This is some content')
-                }, context).catch(function (err) {
+                }, ownerContext).catch(function (err) {
                     should.exist(err);
                     (err instanceof common.errors.ValidationError).should.eql(true);
                     Object.keys(eventsTriggered).length.should.eql(0);
@@ -1202,7 +1216,7 @@ describe('Post Model', function () {
                     published_at: moment().add(1, 'minute'),
                     title: 'scheduled 1',
                     mobiledoc: markdownToMobiledoc('This is some content')
-                }, context).catch(function (err) {
+                }, ownerContext).catch(function (err) {
                     (err instanceof common.errors.ValidationError).should.eql(true);
                     Object.keys(eventsTriggered).length.should.eql(0);
                     done();
@@ -1215,7 +1229,7 @@ describe('Post Model', function () {
                     published_at: moment().add(10, 'minute'),
                     title: 'scheduled 1',
                     mobiledoc: markdownToMobiledoc('This is some content')
-                }, context).then(function (post) {
+                }, ownerContext).then(function (post) {
                     should.exist(post);
 
                     Object.keys(eventsTriggered).length.should.eql(2);
@@ -1233,7 +1247,7 @@ describe('Post Model', function () {
                     published_at: moment().add(10, 'minute'),
                     title: 'scheduled 1',
                     mobiledoc: markdownToMobiledoc('This is some content')
-                }, context).then(function (post) {
+                }, ownerContext).then(function (post) {
                     should.exist(post);
 
                     Object.keys(eventsTriggered).length.should.eql(2);
@@ -1247,7 +1261,7 @@ describe('Post Model', function () {
             it('can add default title, if it\'s missing', function (done) {
                 PostModel.add({
                     mobiledoc: markdownToMobiledoc('Content')
-                }, context).then(function (newPost) {
+                }, ownerContext).then(function (newPost) {
                     should.exist(newPost);
                     newPost.get('title').should.equal('(Untitled)');
 
@@ -1263,8 +1277,8 @@ describe('Post Model', function () {
                         mobiledoc: markdownToMobiledoc('Test content')
                     };
 
-                PostModel.add(newPost, context).then(function (createdPost) {
-                    return new PostModel({id: createdPost.id}).fetch();
+                PostModel.add(newPost, ownerContext).then(function (createdPost) {
+                    return PostModel.findOne({id: createdPost.id, status: 'all'});
                 }).then(function (createdPost) {
                     should.exist(createdPost);
                     createdPost.get('title').should.equal(untrimmedCreateTitle.trim());
@@ -1272,7 +1286,7 @@ describe('Post Model', function () {
                     Object.keys(eventsTriggered).length.should.eql(1);
                     should.exist(eventsTriggered['post.added']);
 
-                    return createdPost.save({title: untrimmedUpdateTitle}, context);
+                    return createdPost.save({title: untrimmedUpdateTitle}, ownerContext);
                 }).then(function (updatedPost) {
                     updatedPost.get('title').should.equal(untrimmedUpdateTitle.trim());
 
@@ -1290,7 +1304,7 @@ describe('Post Model', function () {
                         return PostModel.add({
                             title: 'Test Title',
                             mobiledoc: markdownToMobiledoc('Test Content ' + (i + 1))
-                        }, context);
+                        }, ownerContext);
                     };
                 })).then(function (createdPosts) {
                     // Should have created 12 posts
@@ -1324,7 +1338,7 @@ describe('Post Model', function () {
                     mobiledoc: markdownToMobiledoc('Test Content 1')
                 };
 
-                PostModel.add(newPost, context).then(function (createdPost) {
+                PostModel.add(newPost, ownerContext).then(function (createdPost) {
                     createdPost.get('slug').should.equal('apprehensive-titles-have-too-many-spaces-and-m-dashes-and-also-n-dashes');
 
                     Object.keys(eventsTriggered).length.should.eql(1);
@@ -1340,7 +1354,7 @@ describe('Post Model', function () {
                     mobiledoc: markdownToMobiledoc('Test Content 1')
                 };
 
-                PostModel.add(newPost, context).then(function (createdPost) {
+                PostModel.add(newPost, ownerContext).then(function (createdPost) {
                     createdPost.get('slug').should.not.equal('rss');
 
                     Object.keys(eventsTriggered).length.should.eql(1);
@@ -1356,7 +1370,7 @@ describe('Post Model', function () {
                     mobiledoc: markdownToMobiledoc('Test Content 1')
                 };
 
-                PostModel.add(newPost, context).then(function (createdPost) {
+                PostModel.add(newPost, ownerContext).then(function (createdPost) {
                     createdPost.get('slug').should.equal('bhute-dhddkii-bhrvnnaaraa-aahet');
                     done();
                 }).catch(done);
@@ -1373,7 +1387,7 @@ describe('Post Model', function () {
                     };
 
                 // Create the first post
-                PostModel.add(firstPost, context)
+                PostModel.add(firstPost, ownerContext)
                     .then(function (createdFirstPost) {
                         // Store the slug for later
                         firstPost.slug = createdFirstPost.get('slug');
@@ -1382,7 +1396,7 @@ describe('Post Model', function () {
                         should.exist(eventsTriggered['post.added']);
 
                         // Create the second post
-                        return PostModel.add(secondPost, context);
+                        return PostModel.add(secondPost, ownerContext);
                     }).then(function (createdSecondPost) {
                     // Store the slug for comparison later
                     secondPost.slug = createdSecondPost.get('slug');
@@ -1393,7 +1407,7 @@ describe('Post Model', function () {
                     // Update with a conflicting slug from the first post
                     return createdSecondPost.save({
                         slug: firstPost.slug
-                    }, context);
+                    }, ownerContext);
                 }).then(function (updatedSecondPost) {
                     // Should have updated from original
                     updatedSecondPost.get('slug').should.not.equal(secondPost.slug);
@@ -1592,7 +1606,7 @@ describe('Post Model', function () {
                         return PostModel.edit({
                             title: 'New Post Title',
                             updated_at: moment().subtract(1, 'day').format()
-                        }, _.extend({}, context, {id: postToUpdate.id}));
+                        }, _.extend({}, ownerContext, {id: postToUpdate.id}));
                     })
                     .then(function () {
                         done(new Error('expected no success'));
@@ -1614,7 +1628,29 @@ describe('Post Model', function () {
                         return PostModel.edit({
                             tags: [{name: 'new-tag-1'}],
                             updated_at: moment().subtract(1, 'day').format()
-                        }, _.extend({}, context, {id: postToUpdate.id}));
+                        }, _.extend({}, ownerContext, {id: postToUpdate.id}));
+                    })
+                    .then(function () {
+                        done(new Error('expected no success'));
+                    })
+                    .catch(function (err) {
+                        err.code.should.eql('UPDATE_COLLISION');
+                        done();
+                    });
+            });
+
+            it('update post authors and updated_at is out of sync', function (done) {
+                var postToUpdate = {id: testUtils.DataGenerator.Content.posts[1].id};
+
+                PostModel.findOne({id: postToUpdate.id, status: 'all'})
+                    .then(function () {
+                        return Promise.delay(1000);
+                    })
+                    .then(function () {
+                        return PostModel.edit({
+                            authors: [{name: 'new-tag-1'}],
+                            updated_at: moment().subtract(1, 'day').format()
+                        }, _.extend({}, ownerContext, {id: postToUpdate.id}));
                     })
                     .then(function () {
                         done(new Error('expected no success'));
@@ -1635,7 +1671,7 @@ describe('Post Model', function () {
                     .then(function () {
                         return PostModel.edit({
                             tags: [{name: 'new-tag-1'}]
-                        }, _.extend({}, context, {id: postToUpdate.id}));
+                        }, _.extend({}, ownerContext, {id: postToUpdate.id}));
                     })
                     .then(function () {
                         done();
@@ -1653,7 +1689,7 @@ describe('Post Model', function () {
                     .then(function () {
                         return PostModel.edit({
                             updated_at: moment().subtract(1, 'day').format()
-                        }, _.extend({}, context, {id: postToUpdate.id}));
+                        }, _.extend({}, ownerContext, {id: postToUpdate.id}));
                     })
                     .then(function () {
                         done();
@@ -1675,7 +1711,7 @@ describe('Post Model', function () {
                         return PostModel.edit({
                             title: postToUpdate.title,
                             updated_at: moment().subtract(1, 'day').format()
-                        }, _.extend({}, context, {id: postToUpdate.id}));
+                        }, _.extend({}, ownerContext, {id: postToUpdate.id}));
                     })
                     .then(function () {
                         done();
@@ -1711,12 +1747,14 @@ describe('Post Model', function () {
     });
 
     describe('Post tag handling edge cases', function () {
-        beforeEach(testUtils.setup());
+        before(testUtils.teardown);
 
         var postJSON,
             tagJSON,
             editOptions,
             createTag = testUtils.DataGenerator.forKnex.createTag;
+
+        beforeEach(testUtils.setup('owner'));
 
         beforeEach(function () {
             tagJSON = [];
@@ -1737,18 +1775,16 @@ describe('Post Model', function () {
             post.status = 'published';
 
             return Promise.props({
-                post: PostModel.add(post, _.extend({}, context, {withRelated: ['tags']})),
-                role: RoleModel.add(testUtils.DataGenerator.forKnex.roles[2], context),
-                user: UserModel.add(testUtils.DataGenerator.forKnex.users[0], context),
-                tag1: TagModel.add(extraTags[0], context),
-                tag2: TagModel.add(extraTags[1], context),
-                tag3: TagModel.add(extraTags[2], context)
+                post: PostModel.add(post, _.extend({}, ownerContext, {withRelated: ['tags']})),
+                tag1: TagModel.add(extraTags[0], ownerContext),
+                tag2: TagModel.add(extraTags[1], ownerContext),
+                tag3: TagModel.add(extraTags[2], ownerContext)
             }).then(function (result) {
                 postJSON = result.post.toJSON({withRelated: ['tags']});
                 tagJSON.push(result.tag1.toJSON());
                 tagJSON.push(result.tag2.toJSON());
                 tagJSON.push(result.tag3.toJSON());
-                editOptions = _.extend({}, context, {id: postJSON.id, withRelated: ['tags']});
+                editOptions = _.extend({}, ownerContext, {id: postJSON.id, withRelated: ['tags']});
 
                 // reset the eventSpy here
                 sandbox.restore();
@@ -1792,22 +1828,6 @@ describe('Post Model', function () {
                 updatedPost.tags[0].slug.should.eql('eins');
                 updatedPost.tags[0].id.should.eql(postJSON.tags[0].id);
             });
-        });
-
-        it('[unsupported] can\'t edit `author` as object', function () {
-            var newJSON = _.cloneDeep(postJSON),
-                modelOptions = _.clone(editOptions);
-
-            newJSON.author.should.eql(testUtils.DataGenerator.Content.users[0].id);
-            newJSON.author = {id: testUtils.DataGenerator.Content.users[3].id};
-            delete newJSON.author_id;
-
-            modelOptions.withRelated.push('author');
-            return PostModel.edit(newJSON, modelOptions)
-                .then(function (updatedPost) {
-                    updatedPost.get('author_id').should.eql(testUtils.DataGenerator.Content.users[0].id);
-                    updatedPost.related('author').toJSON().slug.should.eql(testUtils.DataGenerator.Content.users[0].slug);
-                });
         });
 
         it('can\'t edit dates and authors of existing tag', function () {

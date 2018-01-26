@@ -49,11 +49,19 @@ ghostBookshelf.plugin('bookshelf-relations', {
     hooks: {
         belongsToMany: {
             after: function (existing, targets, options) {
-                // reorder tags
+                // reorder tags/authors
+                var queryOptions = {
+                    query: {
+                        where: {}
+                    }
+                };
+
                 return Promise.each(targets.models, function (target, index) {
+                    queryOptions.query.where[existing.relatedData.otherKey] = target.id;
+
                     return existing.updatePivot({
                         sort_order: index
-                    }, _.extend({}, options, {query: {where: {tag_id: target.id}}}));
+                    }, _.extend({}, options, queryOptions));
                 });
             },
             beforeRelationCreation: function onCreatingRelation(model, data) {
@@ -91,6 +99,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
             'fetching',
             'fetching:collection',
             'fetched',
+            'fetched:collection',
             'creating',
             'created',
             'updating',
@@ -127,8 +136,8 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
                 });
         });
 
-        // NOTE: Please keep here. If we don't initialize the parent, bookshelf-relations won't work.
-        proto.initialize.call(this);
+        // NOTE: Please keep here. If we don't initialize the parent, bookshelf-relations won't work
+        return proto.initialize.call(this);
     },
 
     /**
@@ -549,7 +558,9 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         // This applies default properties like 'staticPages' and 'status'
         // And then converts them to 'where' options... this behaviour is effectively deprecated in favour
         // of using filter - it's only be being kept here so that we can transition cleanly.
-        this.processOptions(options);
+        if (this.processOptions) {
+            this.processOptions(options);
+        }
 
         // Add Filter behaviour
         itemCollection.applyDefaultAndCustomFilters(options);
@@ -597,6 +608,11 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     findOne: function findOne(data, unfilteredOptions) {
         var options = this.filterOptions(unfilteredOptions, 'findOne');
         data = this.filterData(data);
+
+        if (this.processOptions) {
+            this.processOptions(options);
+        }
+
         return this.forge(data).fetch(options);
     },
 

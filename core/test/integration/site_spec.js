@@ -44,8 +44,25 @@ describe('Integration - Web - Site', function () {
             it('success', function () {
                 configUtils.set('url', 'https://example.com');
 
-                sandbox.stub(models.Post, 'findOne')
-                    .resolves(models.Post.forge(testUtils.DataGenerator.forKnex.createPost({slug: 'cars'})));
+                let post = models.Post.forge(testUtils.DataGenerator.forKnex.createPost({slug: 'cars'}));
+
+                // @TODO: COME UP WITH A TEST CONCEPT (!!!!!!!!!!!!!!!)
+                post.related = function () {
+                    return {
+                        models: [{
+                            id: post.get('author_id'),
+                            toJSON: function () {
+                                return {
+                                    id: post.get('author_id')
+                                };
+                            }
+                        }]
+                    };
+                };
+
+                post._originalOptions = {};
+
+                sandbox.stub(models.Post, 'findOne').resolves(post);
 
                 const req = {
                     secure: true,

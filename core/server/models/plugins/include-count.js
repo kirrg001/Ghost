@@ -25,6 +25,7 @@ module.exports = function (Bookshelf) {
                 });
             }
         },
+        // @TODO: put to authors extension?
         users: {
             posts: function addPostCountToTags(model, options) {
                 model.query('columns', 'users.*', function (qb) {

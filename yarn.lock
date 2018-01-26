@@ -538,17 +538,17 @@ body-parser@~1.14.0:
     raw-body "~2.1.5"
     type-is "~1.6.10"
 
-bookshelf-relations@0.1.10:
-  version "0.1.10"
-  resolved "https://registry.yarnpkg.com/bookshelf-relations/-/bookshelf-relations-0.1.10.tgz#91ad66e8d6800dc043241a0738a8515df5e394bc"
+bookshelf-relations@0.1.12:
+  version "0.1.12"
+  resolved "https://registry.yarnpkg.com/bookshelf-relations/-/bookshelf-relations-0.1.12.tgz#f2bcb0c340ca5a199cad7fc940412b38a5f55122"
   dependencies:
     bluebird "^3.4.1"
     ghost-ignition "^2.8.16"
     lodash "^4.17.4"
 
-bookshelf@0.10.3:
+"bookshelf@https://github.com/kirrg001/bookshelf/tarball/9c7190c37b06dd48d075c995f3523da78dea7111":
   version "0.10.3"
-  resolved "https://registry.yarnpkg.com/bookshelf/-/bookshelf-0.10.3.tgz#72558204e83815f8e5bba6fd808702563e72b3e4"
+  resolved "https://github.com/kirrg001/bookshelf/tarball/9c7190c37b06dd48d075c995f3523da78dea7111#7f668c555eb856e0f0e4065bff68d67f265d13e6"
   dependencies:
     babel-runtime "^6.6.1"
     bluebird "^3.4.3"

@@ -231,7 +231,12 @@ utils = {
                         method: method,
                         docName: docName
                     });
+
                     return Promise.reject(err);
+                }
+
+                if (common.errors.utils.isIgnitionError(err)) {
+                    throw err;
                 }
 
                 return Promise.reject(new common.errors.GhostError({

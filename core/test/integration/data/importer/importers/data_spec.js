@@ -602,6 +602,9 @@ describe('Import', function () {
 
                 // test posts
                 posts.length.should.equal(exportData.data.posts.length, 'Wrong number of posts');
+                // test tags
+                tags.length.should.equal(exportData.data.tags.length, 'no new tags');
+
                 posts[0].tags.length.should.eql(1);
                 posts[0].tags[0].slug.should.eql(exportData.data.tags[0].slug);
 
@@ -615,9 +618,6 @@ describe('Import', function () {
                 posts[2].tags.length.should.eql(2);
                 posts[2].tags[0].slug.should.eql(exportData.data.tags[1].slug);
                 posts[2].tags[1].slug.should.eql(exportData.data.tags[0].slug);
-
-                // test tags
-                tags.length.should.equal(exportData.data.tags.length, 'no new tags');
 
                 done();
             }).catch(done);

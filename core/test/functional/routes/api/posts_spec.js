@@ -22,7 +22,7 @@ describe('Post API', function () {
                     request = supertest.agent(config.get('url'));
                 })
                 .then(function () {
-                    return testUtils.doAuth(request, 'posts');
+                    return testUtils.doAuth(request, 'users', 'posts');
                 })
                 .then(function (token) {
                     ownerAccessToken = token;
@@ -726,8 +726,10 @@ describe('Post API', function () {
 
                         var jsonResponse = res.body,
                             changedTitle = 'My new Title',
-                            changedAuthor = ObjectId.generate();
+                            // That does not work!!
+                            changedAuthor = testUtils.DataGenerator.Content.extraUsers[0].id;
 
+                        jsonResponse.posts[0].author.should.not.eql(changedAuthor);
                         should.exist(jsonResponse.posts[0]);
                         jsonResponse.posts[0].title = changedTitle;
                         jsonResponse.posts[0].author = changedAuthor;
