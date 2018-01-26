@@ -23,7 +23,7 @@ class UsersImporter extends BaseImporter {
 
     fetchExisting(modelOptions) {
         // @TODO: remove include
-        return models.User.findAll(_.merge({columns: ['id', 'slug', 'email'], include: ['roles']}, modelOptions))
+        return models.User.findAll(_.merge({columns: ['id', 'slug', 'email'], withRelated: ['roles']}, modelOptions))
             .then((existingData) => {
                 this.existingData = existingData.toJSON();
             });

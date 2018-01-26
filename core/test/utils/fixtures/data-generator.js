@@ -351,6 +351,7 @@ DataGenerator.forKnex = (function () {
     var posts,
         tags,
         posts_tags,
+        posts_authors,
         apps,
         app_fields,
         roles,
@@ -654,6 +655,15 @@ DataGenerator.forKnex = (function () {
         }
     ];
 
+    posts_authors = [
+        {
+            id: ObjectId.generate(),
+            post_id: DataGenerator.Content.posts[0].id,
+            author_id: DataGenerator.Content.users[0].id,
+            sort_order: 0
+        }
+    ];
+
     apps = [
         createBasic(DataGenerator.Content.apps[0]),
         createBasic(DataGenerator.Content.apps[1]),
@@ -699,6 +709,7 @@ DataGenerator.forKnex = (function () {
         posts: posts,
         tags: tags,
         posts_tags: posts_tags,
+        posts_authors: posts_authors,
         apps: apps,
         app_fields: app_fields,
         roles: roles,

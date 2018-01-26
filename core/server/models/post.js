@@ -20,7 +20,7 @@ Post = ghostBookshelf.Model.extend({
 
     tableName: 'posts',
 
-    relationships: ['tags'],
+    relationships: ['tags', 'authors'],
 
     /**
      * The base model keeps only the columns, which are defined in the schema.
@@ -163,6 +163,21 @@ Post = ghostBookshelf.Model.extend({
             tagsToSave,
             ops = [];
 
+        // CASE: if both exist, but the primary id is not equal, error
+        if (this.get('authors') && this.get('authors').length && this.get('author_id')) {
+            if (this.get('authors')[0].author_id && this.get('authors')[0].author_id !== this.get('author_id')) {
+                throw new common.errors.IncorrectUsageError({
+                    message: 'The server could not understand the request.'
+                });
+            }
+        }
+
+        if (!this.get('authors') && this.hasChanged('author_id')) {
+            this.set('authors', [{
+                author_id: this.get('author_id')
+            }]);
+        }
+
         // CASE: disallow published -> scheduled
         // @TODO: remove when we have versioning based on updated_at
         if (newStatus !== olderStatus && newStatus === 'scheduled' && olderStatus === 'published') {
@@ -296,7 +311,7 @@ Post = ghostBookshelf.Model.extend({
     onCreating: function onCreating(model, attr, options) {
         options = options || {};
 
-        // set any dynamic default properties
+        // @deprecated
         if (!this.get('author_id')) {
             this.set('author_id', this.contextUser(options));
         }
@@ -305,6 +320,11 @@ Post = ghostBookshelf.Model.extend({
     },
 
     // Relations
+    authors: function authors() {
+        return this.belongsToMany('User', 'posts_authors', 'post_id', 'author_id').withPivot('sort_order').query('orderBy', 'sort_order', 'ASC');
+    },
+
+    // @deprecated
     author: function author() {
         return this.belongsTo('User', 'author_id');
     },
@@ -332,6 +352,7 @@ Post = ghostBookshelf.Model.extend({
     defaultColumnsToFetch: function defaultColumnsToFetch() {
         return ['id', 'published_at', 'slug', 'author_id'];
     },
+
     /**
      * If the `formats` option is not used, we return `html` be default.
      * Otherwise we return what is requested e.g. `?formats=mobiledoc,plaintext`
@@ -358,10 +379,12 @@ Post = ghostBookshelf.Model.extend({
 
         attrs = this.formatsToJSON(attrs, options);
 
+        // @TODO: why do we return `author:1`?
         if (!options.columns || (options.columns && options.columns.indexOf('author') > -1)) {
             attrs.author = attrs.author || attrs.author_id;
             delete attrs.author_id;
         }
+
         // If the current column settings allow it...
         if (!options.columns || (options.columns && options.columns.indexOf('primary_tag') > -1)) {
             // ... attach a computed property of primary_tag which is the first tag if it is public, else null

@@ -1,6 +1,47 @@
 {
     "models": [
         {
+            "name": "Role",
+            "entries": [
+                {
+                    "name":             "Administrator",
+                    "description":      "Administrators"
+                },
+                {
+                    "name":             "Editor",
+                    "description":      "Editors"
+                },
+                {
+                    "name":             "Author",
+                    "description":      "Authors"
+                },
+                {
+                    "name":             "Owner",
+                    "description":      "Blog Owner"
+                }
+            ]
+        },
+        {
+            "name": "User",
+            "entries": [
+                {
+                    "id": 1,
+                    "name": "Ghost",
+                    "email": "ghost@example.com",
+                    "status": "inactive",
+                    "roles": []
+                },
+                {
+                    "id": "5951f5fca366002ebd5dbef7",
+                    "name": "Ghost",
+                    "email": "ghost-author@example.com",
+                    "bio": "You can delete this user to remove all the welcome posts",
+                    "status": "active",
+                    "roles": ["Author"]
+                }
+            ]
+        },
+        {
             "name": "Post",
             "entries": [
                 {
@@ -140,27 +181,6 @@
                     "slug": "ghost-backup",
                     "status": "enabled",
                     "type": "web"
-                }
-            ]
-        },
-        {
-            "name": "Role",
-            "entries": [
-                {
-                    "name":             "Administrator",
-                    "description":      "Administrators"
-                },
-                {
-                    "name":             "Editor",
-                    "description":      "Editors"
-                },
-                {
-                    "name":             "Author",
-                    "description":      "Authors"
-                },
-                {
-                    "name":             "Owner",
-                    "description":      "Blog Owner"
                 }
             ]
         },
@@ -433,28 +453,7 @@
                     "object_type": "webhook"
                 }
             ]
-        },
-        {
-            "name": "User",
-            "entries": [
-                {
-                    "id": 1,
-                    "name": "Ghost",
-                    "email": "ghost@example.com",
-                    "status": "inactive",
-                    "roles": []
-                },
-                {
-                    "id": "5951f5fca366002ebd5dbef7",
-                    "name": "Ghost",
-                    "email": "ghost-author@example.com",
-                    "bio": "You can delete this user to remove all the welcome posts",
-                    "status": "active",
-                    "roles": ["Author"]
-                }
-            ]
         }
-
     ],
     "relations": [
         {

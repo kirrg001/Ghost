@@ -48,6 +48,12 @@ describe('Post Model', function () {
 
             should.not.exist(firstPost.author_id);
             firstPost.author.should.be.an.Object();
+
+            if (options.withRelated && options.withRelated.indexOf('authors') !== -1) {
+                firstPost.authors.length.should.eql(1);
+                firstPost.authors[0].should.eql(firstPost.author);
+            }
+
             firstPost.url.should.equal('/html-ipsum/');
             firstPost.fields.should.be.an.Array();
             firstPost.tags.should.be.an.Array();
@@ -105,7 +111,9 @@ describe('Post Model', function () {
             });
 
             it('can findAll, returning all related data', function (done) {
-                PostModel.findAll({withRelated: ['author', 'fields', 'tags', 'created_by', 'updated_by', 'published_by']})
+                var options = {withRelated: ['author', 'authors', 'fields', 'tags', 'created_by', 'updated_by', 'published_by']};
+
+                PostModel.findAll(options)
                     .then(function (results) {
                         should.exist(results);
                         results.length.should.be.above(0);
@@ -114,7 +122,7 @@ describe('Post Model', function () {
                             return model.toJSON();
                         }), firstPost = _.find(posts, {title: testUtils.DataGenerator.Content.posts[0].title});
 
-                        checkFirstPostData(firstPost);
+                        checkFirstPostData(firstPost, options);
 
                         done();
                     }).catch(done);
@@ -1033,7 +1041,7 @@ describe('Post Model', function () {
                     newPostDB = testUtils.DataGenerator.Content.posts[2];
 
                 PostModel.add(newPost, context).then(function (createdPost) {
-                    return new PostModel({id: createdPost.id}).fetch();
+                    return PostModel.findOne({id: createdPost.id, status: 'all'});
                 }).then(function (createdPost) {
                     should.exist(createdPost);
                     createdPost.has('uuid').should.equal(true);
@@ -1130,6 +1138,24 @@ describe('Post Model', function () {
                     Object.keys(eventsTriggered).length.should.eql(1);
                     should.exist(eventsTriggered['post.added']);
 
+                    done();
+                }).catch(done);
+            });
+
+            it('add multiple authors', function (done) {
+                PostModel.add({
+                    status: 'draft',
+                    title: 'draft 1',
+                    mobiledoc: markdownToMobiledoc('This is some content'),
+                    authors: [{
+                        id: testUtils.DataGenerator.forKnex.users[0].id,
+                        name: testUtils.DataGenerator.forKnex.users[0].name
+                    }]
+                }, _.merge({withRelated: ['authors']}, context)).then(function (newPost) {
+                    should.exist(newPost);
+                    newPost.toJSON().author.should.eql(testUtils.DataGenerator.forKnex.users[0].id);
+                    newPost.toJSON().authors.length.should.eql(1);
+                    newPost.toJSON().authors[0].id.should.eql(testUtils.DataGenerator.forKnex.users[0].id);
                     done();
                 }).catch(done);
             });
@@ -1246,7 +1272,7 @@ describe('Post Model', function () {
                     };
 
                 PostModel.add(newPost, context).then(function (createdPost) {
-                    return new PostModel({id: createdPost.id}).fetch();
+                    return PostModel.findOne({id: createdPost.id, status: 'all'});
                 }).then(function (createdPost) {
                     should.exist(createdPost);
                     createdPost.get('title').should.equal(untrimmedCreateTitle.trim());
@@ -1699,6 +1725,8 @@ describe('Post Model', function () {
             tagJSON,
             editOptions,
             createTag = testUtils.DataGenerator.forKnex.createTag;
+
+        beforeEach(testUtils.setup('owner'));
 
         beforeEach(function () {
             tagJSON = [];

@@ -67,6 +67,8 @@ fixtures = {
             return db.knex('tags').insert(DataGenerator.forKnex.tags);
         }).then(function () {
             return db.knex('posts_tags').insert(DataGenerator.forKnex.posts_tags);
+        }).then(function () {
+            return db.knex('posts_authors').insert(DataGenerator.forKnex.posts_authors);
         });
     },
 
