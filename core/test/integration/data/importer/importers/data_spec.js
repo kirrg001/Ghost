@@ -74,6 +74,7 @@ describe('Import', function () {
 
             testUtils.fixtures.loadExportFixture('export-003-duplicate-tags', {lts: true}).then(function (exported) {
                 exportData = exported;
+
                 return dataImporter.doImport(exportData, importOptions);
             }).then(function (importResult) {
                 should.exist(importResult.data.tags);
