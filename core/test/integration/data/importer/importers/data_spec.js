@@ -376,17 +376,17 @@ describe('Import', function () {
             }).then(function () {
                 done(new Error('Allowed import of duplicate data'));
             }).catch(function (response) {
-                response.length.should.equal(4);
+                response.length.should.equal(3);
 
                 // NOTE: a duplicated tag.slug is a warning
                 response[0].errorType.should.equal('ValidationError');
                 response[0].message.should.eql('Value in [tags.name] cannot be blank.');
+
                 response[1].errorType.should.equal('ValidationError');
                 response[1].message.should.eql('Value in [posts.title] cannot be blank.');
+
                 response[2].errorType.should.equal('ValidationError');
-                response[2].message.should.eql('Value in [tags.name] cannot be blank.');
-                response[3].errorType.should.equal('ValidationError');
-                response[3].message.should.eql('Value in [settings.key] cannot be blank.');
+                response[2].message.should.eql('Value in [settings.key] cannot be blank.');
                 done();
             }).catch(done);
         });
@@ -420,10 +420,14 @@ describe('Import', function () {
             }).then(function (importedData) {
                 // NOTE: we detect invalid author references as warnings, because ember can handle this
                 // The owner can simply update the author reference in the UI
-                importedData.problems.length.should.eql(3);
-                importedData.problems[2].message.should.eql('Entry was imported, but we were not able to ' +
-                    'update user reference field: published_by. The user does not exist, fallback to owner user.');
-                importedData.problems[2].help.should.eql('Post');
+                importedData.problems.length.should.eql(2);
+
+                importedData.problems[0].message.should.eql('Entry was not imported and ignored. Detected duplicated entry.');
+                importedData.problems[0].help.should.eql('User');
+
+                importedData.problems[1].message.should.eql('Entry was imported, but we were not able to ' +
+                    'resolve the following user references: author_id, published_by. The user does not exist, fallback to owner user.');
+                importedData.problems[1].help.should.eql('Post');
 
                 // Grab the data from tables
                 return Promise.all([
@@ -471,11 +475,9 @@ describe('Import', function () {
             }).then(function () {
                 done(new Error('Allowed import of invalid tags data'));
             }).catch(function (response) {
-                response.length.should.equal(2);
+                response.length.should.equal(1);
                 response[0].errorType.should.equal('ValidationError');
                 response[0].message.should.eql('Value in [tags.name] cannot be blank.');
-                response[1].errorType.should.equal('ValidationError');
-                response[1].message.should.eql('Value in [tags.name] cannot be blank.');
                 done();
             }).catch(done);
         });

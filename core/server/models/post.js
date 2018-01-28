@@ -202,7 +202,7 @@ Post = ghostBookshelf.Model.extend({
             //  and deduplicate upper/lowercase tags
             _.each(this.get('tags'), function each(item) {
                 for (i = 0; i < tagsToSave.length; i = i + 1) {
-                    if (tagsToSave[i].name.toLocaleLowerCase() === item.name.toLocaleLowerCase()) {
+                    if (tagsToSave[i].name && item.name && tagsToSave[i].name.toLocaleLowerCase() === item.name.toLocaleLowerCase()) {
                         return;
                     }
                 }
@@ -322,7 +322,7 @@ Post = ghostBookshelf.Model.extend({
     },
 
     tags: function tags() {
-        return this.belongsToMany('Tag').withPivot('sort_order').query('orderBy', 'sort_order', 'ASC');
+        return this.belongsToMany('Tag', 'posts_tags', 'post_id', 'tag_id').withPivot('sort_order').query('orderBy', 'sort_order', 'ASC');
     },
 
     fields: function fields() {
