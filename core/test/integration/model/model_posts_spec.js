@@ -54,9 +54,6 @@ describe('Post Model', function () {
             if (options.withRelated && options.withRelated.indexOf('authors') !== -1) {
                 firstPost.authors.length.should.eql(1);
                 firstPost.authors[0].should.eql(firstPost.author);
-
-                should.exist(firstPost.primary_author);
-                firstPost.primary_author.name.should.eql(DataGenerator.Content.users[0].name);
             }
 
             firstPost.url.should.equal('/html-ipsum/');

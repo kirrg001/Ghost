@@ -59,6 +59,7 @@ module.exports.extendModel = function extendModel(Post, Posts, ghostBookshelf) {
                     options.withRelated.push('authors');
                 }
 
+                console.log(fnName, options.withRelated);
                 return proto[fnName].call(self, model, attrs, options);
             };
         },
@@ -85,9 +86,11 @@ module.exports.extendModel = function extendModel(Post, Posts, ghostBookshelf) {
                 model.set('author_id', this.contextUser(options));
             }
 
-            model.set('authors', [{
-                id: model.get('author_id')
-            }]);
+            if (!model.get('authors')) {
+                model.set('authors', [{
+                    id: model.get('author_id')
+                }]);
+            }
 
             return this._handleOptions('onCreating')(model, attrs, options);
         },
@@ -100,12 +103,19 @@ module.exports.extendModel = function extendModel(Post, Posts, ghostBookshelf) {
         onSaving: function (model, attrs, options) {
             model.unset('author');
 
-            // CASE: you change `post.author_id` and `post.authors` and the primary author is not equal
-            if (model.get('authors') && model.get('authors').length && model.hasChanged('author_id')) {
-                if (model.get('authors')[0].id && model.get('authors')[0].id !== model.get('author_id')) {
-                    throw new common.errors.ValidationError({
-                        message: 'The server could not understand the request.'
-                    });
+            // CASE: `post.author_id` and `post.authors[0]` must be always equal
+            // CASE: you send `post.authors = []`
+            if (model.get('authors') && model.get('authors').length) {
+                if (model.get('authors')[0].id !== model.get('author_id')) {
+                    // CASE: simply fallback to the newer feature
+                    if (options.importing) {
+                        model.set('author_id', model.get('authors')[0].author_id);
+                    } else {
+                        throw new common.errors.ValidationError({
+                            message: 'The server could not understand the request.',
+                            help: 'Please double check your passed authors.'
+                        });
+                    }
                 }
             }
 
@@ -156,15 +166,9 @@ module.exports.extendModel = function extendModel(Post, Posts, ghostBookshelf) {
                 }
             }
 
-            if (options.columns && options.columns.indexOf('primary_author') !== -1) {
-                attrs.primary_author = attrs.authors[0];
-            }
-
             // CASE: `posts.authors` was not requested
             if (!this._originalOptions || !this._originalOptions.withRelated || this._originalOptions.withRelated.indexOf('authors') === -1) {
                 delete attrs.authors;
-            } else {
-                attrs.primary_author = attrs.authors[0];
             }
 
             return attrs;

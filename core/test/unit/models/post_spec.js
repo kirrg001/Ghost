@@ -99,7 +99,7 @@ describe('Models: Post', function () {
 
                 it('with authors, with author_id', function () {
                     const post = testUtils.DataGenerator.forKnex.createPost();
-                    post.author_id.should.eql('1');
+                    post.author_id.should.eql(testUtils.DataGenerator.forKnex.users[0].id);
                     post.authors = [{
                         author_id: testUtils.DataGenerator.forKnex.users[0].id,
                         post_id: post.id
@@ -111,6 +111,23 @@ describe('Models: Post', function () {
                             post.author.id.should.eql(testUtils.DataGenerator.forKnex.users[0].id);
                             post.authors.length.should.eql(1);
                             post.authors[0].id.should.eql(testUtils.DataGenerator.forKnex.users[0].id);
+                        });
+                });
+
+                it('with authors, with author_id, different primary author', function () {
+                    const post = testUtils.DataGenerator.forKnex.createPost();
+                    post.author_id.should.eql(testUtils.DataGenerator.forKnex.users[0].id);
+                    post.authors = [{
+                        author_id: testUtils.DataGenerator.forKnex.users[1].id,
+                        post_id: post.id
+                    }];
+
+                    return models.Post.add(post, {withRelated: ['author', 'authors']})
+                        .then(function () {
+                            'Expected Error'.should.eql(true);
+                        })
+                        .catch(function (err) {
+                            (err instanceof common.errors.ValidationError).should.be.true;
                         });
                 });
 

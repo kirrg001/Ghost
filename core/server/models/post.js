@@ -321,7 +321,9 @@ Post = ghostBookshelf.Model.extend({
     },
 
     authors: function authors() {
-        return this.belongsToMany('User', 'posts_authors', 'post_id', 'author_id').withPivot('sort_order').query('orderBy', 'sort_order', 'ASC');
+        return this.belongsToMany('User', 'posts_authors', 'post_id', 'author_id')
+            .withPivot('sort_order')
+            .query('orderBy', 'sort_order', 'ASC');
     },
 
     tags: function tags() {
