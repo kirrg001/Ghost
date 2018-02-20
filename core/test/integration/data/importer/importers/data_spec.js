@@ -511,7 +511,7 @@ describe('Import', function () {
                 posts.length.should.equal(1, 'Wrong number of posts');
 
                 // we fallback to owner user
-                // NOTE: ember can handle unknown authors, but still a fallback to an existing user is better.
+                // NOTE: ember can handle an unknown author, but still a fallback to an existing user is better.
                 posts[0].author_id.should.eql('1');
 
                 // test tags
@@ -900,7 +900,7 @@ describe('Import (new test structure)', function () {
             }).catch(done);
         });
 
-        it('imports posts & tags with correct authors, owners etc', function (done) {
+        it('imports posts & tags with correct author, owners etc', function (done) {
             var fetchImported = Promise.join(
                 knex('users').select(),
                 knex('posts').select(),
@@ -964,7 +964,7 @@ describe('Import (new test structure)', function () {
                     return tag.slug === exportData.data.tags[2].slug;
                 });
 
-                // Check the authors are correct
+                // Check that the author is correct
                 post1.author_id.should.equal(user2.id);
                 // This ensures that imported owner posts are getting imported with a new id
                 post2.author_id.should.equal(user1.id);
@@ -1135,7 +1135,7 @@ describe('Import (new test structure)', function () {
             }).catch(done);
         });
 
-        it('imports posts & tags with correct authors, owners etc', function (done) {
+        it('imports posts & tags with correct author, owners etc', function (done) {
             var fetchImported = Promise.join(
                 knex('users').select(),
                 knex('posts').select(),
@@ -1185,7 +1185,7 @@ describe('Import (new test structure)', function () {
                     return tag.slug === exportData.data.tags[2].slug;
                 });
 
-                // Check the authors are correct
+                // Check that the author is correct
                 post1.author_id.should.equal(user2.id);
                 post2.author_id.should.equal(user3.id);
                 post3.author_id.should.equal(user1.id);
@@ -1368,7 +1368,7 @@ describe('Import (new test structure)', function () {
             }).catch(done);
         });
 
-        it('imports posts & tags with correct authors, owners etc', function (done) {
+        it('imports posts & tags with correct author, owners etc', function (done) {
             var fetchImported = Promise.join(
                 knex('users').select(),
                 knex('posts').select(),
@@ -1421,7 +1421,7 @@ describe('Import (new test structure)', function () {
                     return tag.slug === exportData.data.tags[2].slug;
                 });
 
-                // Check the authors are correct
+                // Check that the author is correct
                 post1.author_id.should.equal(user2.id);
                 post2.author_id.should.equal(importedOwnerUser.id);
                 post3.author_id.should.equal(user3.id);
