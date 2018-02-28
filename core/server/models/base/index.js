@@ -36,8 +36,8 @@ ghostBookshelf.plugin(plugins.filter);
 // Load the Ghost include count plugin, which allows for the inclusion of cross-table counts
 ghostBookshelf.plugin(plugins.includeCount);
 
-// Load the Ghost pagination plugin, which gives us the `fetchPage` method on Models
-ghostBookshelf.plugin(plugins.pagination);
+// Plain SQL (only for READ)
+ghostBookshelf.plugin(plugins.plain);
 
 // Update collision plugin
 ghostBookshelf.plugin(plugins.collision);
@@ -549,10 +549,10 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         // This applies default properties like 'staticPages' and 'status'
         // And then converts them to 'where' options... this behaviour is effectively deprecated in favour
         // of using filter - it's only be being kept here so that we can transition cleanly.
-        this.processOptions(options);
+        // this.processOptions(options);
 
         // Add Filter behaviour
-        itemCollection.applyDefaultAndCustomFilters(options);
+        // itemCollection.applyDefaultAndCustomFilters(options);
 
         // Ensure only valid fields/columns are added to query
         // and append default columns to fetch
@@ -575,6 +575,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
 
             options.columns = requestedColumns;
             models = response.collection.toJSON(options);
+
 
             // re-add any computed properties that were stripped out before the call to fetchPage
             // pick only requested before returning JSON
