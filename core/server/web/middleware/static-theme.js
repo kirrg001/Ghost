@@ -17,6 +17,11 @@ function isWhiteListedFile(file) {
     return _.includes(whiteListedFiles, base);
 }
 
+// @TODO: 30ms
+function isFile(file) {
+    return path.extname(file) !== '';
+}
+
 function forwardToExpressStatic(req, res, next) {
     if (!themeUtils.getActive()) {
         return next();
@@ -31,9 +36,14 @@ function forwardToExpressStatic(req, res, next) {
 
 function staticTheme() {
     return function blackListStatic(req, res, next) {
+        if (!isFile(req.path)) {
+            return next();
+        }
+
         if (!isWhiteListedFile(req.path) && isBlackListedFileType(req.path)) {
             return next();
         }
+
         return forwardToExpressStatic(req, res, next);
     };
 }

@@ -1,14 +1,28 @@
 var api = require('../../api'),
     labs = require('../../services/labs'),
-    common = require('../../lib/common');
+    common = require('../../lib/common'),
+    frontendClient;
 
+// @TODO: null frontendclient if the client changes?
 module.exports = function getFrontendClient(req, res, next) {
     if (labs.isSet('publicAPI') !== true) {
         return next();
     }
 
+    if (frontendClient) {
+        if (frontendClient.status === 'enabled') {
+            res.locals.client = {
+                id: frontendClient.slug,
+                secret: frontendClient.secret
+            };
+        }
+
+        next();
+        return;
+    }
+
     return api.clients
-        .read({slug: 'ghost-frontend'})
+        .read({slug: 'ghost-frontend', fields: 'slug, secret'})
         .then(function handleClient(client) {
             client = client.clients[0];
 
@@ -18,6 +32,8 @@ module.exports = function getFrontendClient(req, res, next) {
                     secret: client.secret
                 };
             }
+
+            frontendClient = client;
 
             next();
         })

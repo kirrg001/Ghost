@@ -61,15 +61,12 @@ module.exports = function setupSiteApp() {
     siteApp.use(servePublicFile('public/ghost-sdk.min.js', 'application/javascript', constants.ONE_YEAR_S));
     // Serve sitemap.xsl file
     siteApp.use(servePublicFile('sitemap.xsl', 'text/xsl', constants.ONE_DAY_S));
-
     // Serve stylesheets for default templates
     siteApp.use(servePublicFile('public/ghost.css', 'text/css', constants.ONE_HOUR_S));
     siteApp.use(servePublicFile('public/ghost.min.css', 'text/css', constants.ONE_YEAR_S));
-
     // Serve images for default templates
     siteApp.use(servePublicFile('public/404-ghost@2x.png', 'png', constants.ONE_HOUR_S));
     siteApp.use(servePublicFile('public/404-ghost.png', 'png', constants.ONE_HOUR_S));
-
     // Serve blog images using the storage adapter
     siteApp.use('/' + urlService.utils.STATIC_IMAGE_URL_PREFIX, storage.getStorage().serve());
 
@@ -78,12 +75,14 @@ module.exports = function setupSiteApp() {
     // Moving this to being inside themes, where it probably should be requires the proxy to be refactored
     // Else we end up with circular dependencies
     require('../../helpers').loadCoreHelpers();
+
     debug('Helpers done');
 
     // Theme middleware
     // This should happen AFTER any shared assets are served, as it only changes things to do with templates
     // At this point the active theme object is already updated, so we have the right path, so it can probably
     // go after staticTheme() as well, however I would really like to simplify this and be certain
+    // 20ms
     siteApp.use(themeMiddleware);
     debug('Themes done');
 
@@ -124,6 +123,7 @@ module.exports = function setupSiteApp() {
     debug('General middleware done');
 
     // Set up Frontend routes (including private blogging routes)
+    // @TODO: 10ms-13ms
     siteApp.use(siteRoutes());
 
     // ### Error handlers

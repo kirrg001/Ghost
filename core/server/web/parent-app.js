@@ -22,10 +22,12 @@ module.exports = function setupParentApp() {
     // (X-Forwarded-Proto header will be checked, if present)
     parentApp.enable('trust proxy');
 
+    // stdout ~100ms, file ~20ms
     parentApp.use(logRequest);
 
     // enabled gzip compression by default
     if (config.get('compress') !== false) {
+        // 10ms
         parentApp.use(compress());
     }
 
@@ -51,6 +53,7 @@ module.exports = function setupParentApp() {
     parentApp.use('/ghost', require('./admin')());
 
     // BLOG
+    // 50-60ms
     parentApp.use(require('./site')());
 
     debug('ParentApp setup end');

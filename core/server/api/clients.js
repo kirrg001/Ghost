@@ -51,7 +51,7 @@ clients = {
 
         // Push all of our tasks into a `tasks` array in the correct order
         tasks = [
-            localUtils.validate(docName, {attrs: attrs}),
+            localUtils.validate(docName, {attrs: attrs, opts: ['fields']}),
             localUtils.convertOptions(),
             // TODO: add permissions
             // utils.handlePublicPermissions(docName, 'read'),

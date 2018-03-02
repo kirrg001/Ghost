@@ -58,7 +58,7 @@ themeMiddleware.updateTemplateData = function updateTemplateData(req, res, next)
             logo: settingsCache.get('logo'),
             amp: settingsCache.get('amp')
         },
-        labsData = _.cloneDeep(settingsCache.get('labs')),
+        labsData = settingsCache.get('labs'),
         themeData = {};
 
     if (activeTheme.get()) {
@@ -68,6 +68,7 @@ themeMiddleware.updateTemplateData = function updateTemplateData(req, res, next)
     // Request-specific information
     // These things are super dependent on the request, so they need to be in middleware
     // Serve the blog url without trailing slash
+    // @TODO: 2-4ms
     blogData.url = urlService.utils.urlFor('home', {secure: req.secure, trailingSlash: false}, true);
 
     // Pass 'secure' flag to the view engine
