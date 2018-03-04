@@ -84,12 +84,14 @@ function processQuery(query, slugParam) {
  * @returns {Promise} response
  */
 function fetchData(channelOptions) {
+    /*
     return Promise.resolve({
         posts: [],
         meta: {
             pagination: {}
         }
     });
+    */
 
     // @TODO improve this further
     var pageOptions = channelOptions.isRSS ?

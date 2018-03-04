@@ -12,7 +12,7 @@ module.exports = function renderer(req, res, data) {
     // Render Call
     debug('Rendering template: ' + res._template + ' for: ' + req.originalUrl);
     debug('res.locals', res.locals);
-    res.write('LOL');
-    res.end();
-    //res.render(res._template, data);
+    // res.write('LOL');
+    // res.end();
+    res.render(res._template, data);
 };

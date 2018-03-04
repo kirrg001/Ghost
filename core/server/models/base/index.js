@@ -38,6 +38,7 @@ ghostBookshelf.plugin(plugins.includeCount);
 
 // Plain SQL (only for READ)
 ghostBookshelf.plugin(plugins.plain);
+// ghostBookshelf.plugin(plugins.pagination);
 
 // Update collision plugin
 ghostBookshelf.plugin(plugins.collision);
@@ -544,7 +545,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
             requestedColumns = options.columns;
 
         // Set this to true or pass ?debug=true as an API option to get output
-        itemCollection.debug = options.debug && config.get('env') !== 'production';
+        // itemCollection.debug = options.debug && config.get('env') !== 'production';
 
         // This applies default properties like 'staticPages' and 'status'
         // And then converts them to 'where' options... this behaviour is effectively deprecated in favour
@@ -562,11 +563,11 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         }
 
         if (options.order) {
-            options.order = this.parseOrderOption(options.order, options.withRelated);
+            // options.order = this.parseOrderOption(options.order, options.withRelated);
         } else if (this.orderDefaultRaw) {
-            options.orderRaw = this.orderDefaultRaw();
+            // options.orderRaw = this.orderDefaultRaw();
         } else {
-            options.order = this.orderDefaultOptions();
+            // options.order = this.orderDefaultOptions();
         }
 
         return itemCollection.fetchPage(options).then(function formatResponse(response) {

@@ -42,7 +42,9 @@ module.exports = function plain(bookshelf) {
             return bookshelf.knex.raw('SELECT count(distinct ' + tableName + '.' + idAttribute + ') as aggregate from `' + tableName + '`' + where)
                 .then(function (countResult) {
                     totalItems = countResult[0][0] ? countResult[0][0].aggregate : 0;
-                    let query = 'SELECT * FROM `' + tableName + '`' + where;
+                    let query = 'SELECT id, html, author_id, title, slug, feature_image, featured, page, status, visibility, meta_title, meta_description, created_at, created_by, custom_excerpt, codeinjection_head, codeinjection_foot, og_image, og_title, og_description, twitter_image, twitter_title, twitter_description, custom_template FROM `' + tableName + '`' + where;
+
+                    query += ' order by status ASC, published_at DESC, updated_by DESC, id DESC';
 
                     if (limit !== 'all') {
                         query += ' LIMIT ' + limit + ' OFFSET ' + offset;
@@ -58,7 +60,7 @@ module.exports = function plain(bookshelf) {
                             return '"' + _.pick(o, 'id').id + '"';
                         });
 
-                        return bookshelf.knex.raw('SELECT * FROM `tags` inner join `posts_tags` on `posts_tags`.`tag_id` = `tags`.`id` where `posts_tags`.`post_id` in (' + ids + ') order by `sort_order` ASC');
+                        return bookshelf.knex.raw('SELECT tags.id, tags.slug, posts_tags.post_id FROM `tags` inner join `posts_tags` on `posts_tags`.`tag_id` = `tags`.`id` where `posts_tags`.`post_id` in (' + ids + ') order by `sort_order` ASC');
                     }
                 })
                 .then(function (relations) {
