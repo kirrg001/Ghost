@@ -1,3 +1,5 @@
+'use strict';
+
 var KnexMigrator = require('knex-migrator'),
     config = require('../../config'),
     common = require('../../lib/common'),

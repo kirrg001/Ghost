@@ -1,10 +1,12 @@
 var debug = require('ghost-ignition').debug('blog'),
     path = require('path'),
     express = require('express'),
+    url = require('url'),
 
     // App requires
     config = require('../../config'),
     constants = require('../../lib/constants'),
+    common = require('../../lib/common'),
     storage = require('../../adapters/storage'),
     urlService = require('../../services/url'),
 
@@ -122,6 +124,31 @@ module.exports = function setupSiteApp() {
     siteApp.use(frontendClient);
 
     debug('General middleware done');
+
+    siteApp.use(function (req, res, next) {
+        urlService.hasUrl(url.parse(req.originalUrl).pathname)
+            .then(function (response) {
+                if (!response.disabled) {
+                    return next();
+                }
+
+                if (response.redirect) {
+                    return urlService.utils.redirect301(res, response.redirectUrl);
+                }
+
+                next(new common.errors.NotFoundError({
+                    message: common.i18n.t('errors.errors.pageNotFound')
+                }));
+            })
+            .catch(() => {
+                next(new common.errors.NotFoundError({
+                    message: common.i18n.t('errors.errors.pageNotFound')
+                }));
+            });
+    });
+
+    // @temporary
+    require('../../services/channels/Channels2');
 
     // Set up Frontend routes (including private blogging routes)
     siteApp.use(siteRoutes());

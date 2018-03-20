@@ -102,6 +102,8 @@ module.exports = {
             _.each(settingsCollection.models, _private.updateSettingFromModel);
         }
 
+        common.events.emit('settings.cache.ready');
+
         // Bind to events to automatically keep up-to-date
         common.events.on('settings.edited', _private.updateSettingFromModel);
         common.events.on('settings.added', _private.updateSettingFromModel);

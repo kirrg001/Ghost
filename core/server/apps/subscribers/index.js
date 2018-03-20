@@ -1,9 +1,36 @@
-var router     = require('./lib/router'),
+'use strict';
+
+const EventEmitter = require('events').EventEmitter,
+    router = require('./lib/router'),
     registerHelpers = require('./lib/helpers'),
 
     // Dirty requires
+    common = require('../../lib/common'),
     config = require('../../config'),
     labs = require('../../services/labs');
+
+class App extends EventEmitter {
+    constructor() {
+        super();
+        this.listeners();
+
+        this.isEnabled = labs.isSet('subscribers');
+    }
+
+    listeners() {
+        common.events.on('settings.labs.edited', () => {
+            if (this.isEnabled && !labs.isSet('subscribers')) {
+                this.isEnabled = false;
+                this.emit('disabled');
+            }
+
+            if (!this.isEnabled && labs.isSet('subscribers')) {
+                this.isEnabled = true;
+                this.emit('enabled');
+            }
+        });
+    }
+}
 
 module.exports = {
     activate: function activate(ghost) {
@@ -18,5 +45,7 @@ module.exports = {
 
             next();
         });
-    }
+    },
+
+    app: new App()
 };

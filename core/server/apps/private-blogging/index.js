@@ -1,12 +1,15 @@
-var config = require('../../config'),
+'use strict';
+
+const EventEmitter = require('events').EventEmitter,
+    config = require('../../config'),
+    settingsCache = require('../../services/settings/cache'),
     urlService = require('../../services/url'),
     common = require('../../lib/common'),
     middleware = require('./lib/middleware'),
     router = require('./lib/router'),
-    registerHelpers = require('./lib/helpers'),
-    checkSubdir;
+    registerHelpers = require('./lib/helpers');
 
-checkSubdir = function checkSubdir() {
+const checkSubdir = function checkSubdir() {
     var paths;
 
     if (urlService.utils.getSubdir()) {
@@ -25,6 +28,29 @@ checkSubdir = function checkSubdir() {
     }
 };
 
+class App extends EventEmitter {
+    constructor() {
+        super();
+        this.listeners();
+
+        this.isEnabled = settingsCache.get('is_private');
+    }
+
+    listeners() {
+        common.events.on('settings.is_private.edited', () => {
+            if (this.isEnabled && !settingsCache.get('is_private')) {
+                this.isEnabled = false;
+                this.emit('disabled');
+            }
+
+            if (!this.isEnabled && settingsCache.get('is_private')) {
+                this.isEnabled = true;
+                this.emit('enabled');
+            }
+        });
+    }
+}
+
 module.exports = {
     activate: function activate(ghost) {
         var privateRoute = '/' + config.get('routeKeywords').private + '/';
@@ -39,5 +65,7 @@ module.exports = {
     setupMiddleware: function setupMiddleware(siteApp) {
         siteApp.use(middleware.checkIsPrivate);
         siteApp.use(middleware.filterPrivateRoutes);
-    }
+    },
+
+    app: new App()
 };

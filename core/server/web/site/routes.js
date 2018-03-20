@@ -1,5 +1,4 @@
 var debug = require('ghost-ignition').debug('site:routes'),
-
     routeService = require('../../services/route'),
     siteRouter = routeService.siteRouter,
 
@@ -41,6 +40,5 @@ module.exports = function siteRoutes() {
     siteRouter.mountRoute('*', controllers.entry);
 
     debug('Routes:', routeService.registry.getAll());
-
     return siteRouter.router();
 };
