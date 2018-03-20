@@ -1,5 +1,6 @@
 var debug = require('ghost-ignition').debug('site:routes'),
 
+    common = require('../../lib/common'),
     routeService = require('../../services/route'),
     siteRouter = routeService.siteRouter,
 
@@ -41,6 +42,86 @@ module.exports = function siteRoutes() {
     siteRouter.mountRoute('*', controllers.entry);
 
     debug('Routes:', routeService.registry.getAll());
+
+    /**
+     * @TODO:
+     *
+     * We will connect the routing service and the url service later.
+     * The data is not yet ready and prepared.
+     *
+     * @TODO:
+     *
+     * - apps are using the routing service
+     * - only trigger the event if the app is enabled
+     * - you can enable/disable an app without restarting
+     * - also: amp in sitemap https://developers.google.com/search/docs/guides/create-URLs
+     * - amp will die, so i would not add this for the first version and simply ignore that
+     */
+    // The data is later represented in a collection class. Collection class is by default dynamic.
+    // @TODO: test /podcast/settings.permalinks
+    common.events.emit('route.added', {
+        parent: '/',
+        route: '/{settings.permalinks}/',
+        config: {
+            type: 'posts',
+            apiOptions: {
+                filter: 'visibility:public+status:published+page:0+featured:false'
+            }
+        }
+    });
+
+    // The data is later represented in a collection class. Collection class is by default dynamic.
+    common.events.emit('route.added', {
+        parent: '/podcast/',
+        route: '/:slug/',
+        config: {
+            type: 'posts',
+            apiOptions: {
+                filter: 'page:1'
+            }
+        }
+    });
+
+    common.events.emit('route.added', {
+        route: '/subscribe/',
+        config: {
+            type: 'others'
+        }
+    });
+
+    common.events.emit('route.added', {
+        route: '/private/',
+        config: {
+            type: 'others'
+        }
+    });
+
+    common.events.emit('route.added', {
+        route: '*amp/',
+        config: {
+            type: 'others'
+        }
+    });
+
+    // The data is later represented in a taxonomy class. Taxonomy class is by default dynamic.
+    common.events.emit('route.added', {
+        parent: '/author/',
+        route: '/:slug/',
+        config: {
+            type: 'users',
+            apiOptions: {}
+        }
+    });
+
+    // The data is later represented in a taxonomy class. Taxonomy class is by default dynamic.
+    common.events.emit('route.added', {
+        parent: '/tag/',
+        route: '/:slug/',
+        config: {
+            type: 'tags',
+            apiOptions: {}
+        }
+    });
 
     return siteRouter.router();
 };

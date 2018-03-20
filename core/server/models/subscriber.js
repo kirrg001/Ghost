@@ -61,7 +61,7 @@ Subscriber = ghostBookshelf.Model.extend({
         }
     },
 
-    onDestroyed: function onDestroyed(model, options) {
+    onDestroying: function onDestroying(model, options) {
         const clonedModel = _.cloneDeep(model),
             triggerEvents = () => {
                 clonedModel.emitChange('deleted', options);

@@ -1,50 +1,63 @@
 'use strict';
 
 const _ = require('lodash'),
-    localUtils = require('./utils'),
-    prefetchDefaults = {
-        context: {
-            internal: true
-        },
-        limit: 'all'
-    };
+    EventEmitter = require('events').EventEmitter,
+    common = require('../../lib/common');
 
-class Resource {
-    constructor(config) {
-        this.name = config.name;
-        this.api = config.api;
-        this.prefetchOptions = config.prefetchOptions || {};
-        this.urlLookup = config.urlLookup || config.name;
-        this.events = config.events;
-        this.items = {};
+class Resource extends EventEmitter {
+    constructor(type, obj) {
+        super();
+
+        this.data = {};
+        this.config = {
+            type: type,
+            url: null
+        };
+
+        Object.assign(this.data, obj);
     }
 
-    fetchAll() {
-        const options = _.defaults(this.prefetchOptions, prefetchDefaults);
-
-        return require('../../api')[this.api]
-            .browse(options)
-            .then((resp) => {
-                this.items = resp[this.api];
-                return this.items;
+    mine(url) {
+        if (!this.config.url) {
+            this.config.url = url;
+        } else {
+            throw new common.errors.InternalServerError({
+                message: 'Resource is already taken.'
             });
+        }
     }
 
-    toUrl(item) {
-        const data = {
-            [this.urlLookup]: item
-        };
-        return localUtils.urlFor(this.urlLookup, data);
+    getType() {
+        return this.config.type;
     }
 
-    toData(item) {
-        return {
-            slug: item.slug,
-            resource: {
-                type: this.name,
-                id: item.id
-            }
-        };
+    getUrl() {
+        return this.config.url;
+    }
+
+    unsetUrl() {
+        this.config.url = null;
+    }
+
+    update(obj, options) {
+        options = options || {};
+
+        const keys = Object.keys(this.data);
+        Object.assign(this.data, _.pick(obj, keys));
+
+        if (options.noEvent) {
+            return;
+        }
+
+        this.emit('updated', this);
+    }
+
+    remove() {
+        this.emit('removed', this);
+    }
+
+    isTaken() {
+        return this.config.url !== null;
     }
 }
 

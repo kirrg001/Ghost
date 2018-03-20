@@ -36,7 +36,7 @@ User = ghostBookshelf.Model.extend({
         common.events.emit('user' + '.' + event, this, options);
     },
 
-    onDestroyed: function onDestroyed(model, options) {
+    onDestroying: function onDestroying(model, options) {
         const clonedModel = _.cloneDeep(model),
             triggerEvents = () => {
                 if (_.includes(activeStates, clonedModel.previous('status'))) {

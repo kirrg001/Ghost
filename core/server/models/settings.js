@@ -62,7 +62,7 @@ Settings = ghostBookshelf.Model.extend({
         common.events.emit('settings' + '.' + event, this, options);
     },
 
-    onDestroyed: function onDestroyed(model, options) {
+    onDestroying: function onDestroying(model, options) {
         const clonedModel = _.cloneDeep(model),
             triggerEvents = () => {
                 clonedModel.emitChange('deleted');

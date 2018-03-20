@@ -5,6 +5,7 @@ var debug = require('ghost-ignition').debug('blog'),
     // App requires
     config = require('../../config'),
     constants = require('../../lib/constants'),
+    common = require('../../lib/common'),
     storage = require('../../adapters/storage'),
     urlService = require('../../services/url'),
 
@@ -122,6 +123,19 @@ module.exports = function setupSiteApp() {
     siteApp.use(frontendClient);
 
     debug('General middleware done');
+
+    siteApp.use(function (req, res, next) {
+        // @TODO: without query params
+        urlService.hasUrl(req.originalUrl)
+            .then(function () {
+                next();
+            })
+            .catch(function () {
+                next(new common.errors.NotFoundError({
+                    message: common.i18n.t('errors.errors.pageNotFound')
+                }));
+            });
+    });
 
     // Set up Frontend routes (including private blogging routes)
     siteApp.use(siteRoutes());

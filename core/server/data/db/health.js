@@ -1,3 +1,5 @@
+'use strict';
+
 var KnexMigrator = require('knex-migrator'),
     config = require('../../config'),
     common = require('../../lib/common'),
@@ -9,6 +11,9 @@ module.exports.check = function healthCheck() {
     });
 
     return knexMigrator.isDatabaseOK()
+        .then(() => {
+            common.events.emit('db.ready');
+        })
         .catch(function (outerErr) {
             if (outerErr.code === 'DB_NOT_INITIALISED') {
                 throw outerErr;

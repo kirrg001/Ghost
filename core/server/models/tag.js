@@ -59,7 +59,8 @@ Tag = ghostBookshelf.Model.extend({
         }
     },
 
-    onDestroyed: function onDestroyed(model, options) {
+    // NOTE: `destroyed` event does not contain any model information anymore
+    onDestroying: function onDestroying(model, options) {
         const clonedModel = _.cloneDeep(model),
             triggerEvents = () => {
                 clonedModel.emitChange('deleted');
