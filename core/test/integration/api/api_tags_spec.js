@@ -1,10 +1,9 @@
 var should = require('should'),
-    testUtils = require('../../utils'),
     _ = require('lodash'),
-    // Stuff we are testing
-    context = testUtils.context,
-
-    TagAPI = require('../../../server/api/tags');
+    testUtils = require('../../utils'),
+    db = require('../../../server/data/db'),
+    TagAPI = require('../../../server/api/tags'),
+    context = testUtils.context;
 
 // there are some random generated tags in test database
 // which can't be sorted easily using _.sortBy()
@@ -52,13 +51,13 @@ describe('Tags API', function () {
 
         it('can add a tag (author)', function (done) {
             TagAPI.add({tags: [newTag]}, testUtils.context.author)
-            .then(function (results) {
-                should.exist(results);
-                should.exist(results.tags);
-                results.tags.length.should.be.above(0);
-                results.tags[0].visibility.should.eql('public');
-                done();
-            }).catch(done);
+                .then(function (results) {
+                    should.exist(results);
+                    should.exist(results.tags);
+                    results.tags.length.should.be.above(0);
+                    results.tags[0].visibility.should.eql('public');
+                    done();
+                }).catch(done);
         });
 
         it('add internal tag', function (done) {
@@ -77,11 +76,11 @@ describe('Tags API', function () {
 
         it('CANNOT add tag (contributor)', function (done) {
             TagAPI.add({tags: [newTag]}, testUtils.context.contributor)
-            .then(function () {
-                done(new Error('Add tag is not denied for contributor.'));
-            }, function () {
-                done();
-            }).catch(done);
+                .then(function () {
+                    done(new Error('Add tag is not denied for contributor.'));
+                }, function () {
+                    done();
+                }).catch(done);
         });
 
         it('No-auth CANNOT add tag', function (done) {
@@ -133,11 +132,11 @@ describe('Tags API', function () {
 
         it('CANNOT edit a tag (author)', function (done) {
             TagAPI.edit({tags: [{name: newTagName}]}, _.extend({}, context.author, {id: firstTag}))
-            .then(function () {
-                done(new Error('Add tag is not denied for author.'));
-            }, function () {
-                done();
-            }).catch(done);
+                .then(function () {
+                    done(new Error('Add tag is not denied for author.'));
+                }, function () {
+                    done();
+                }).catch(done);
         });
 
         it('No-auth CANNOT edit tag', function (done) {
@@ -165,13 +164,21 @@ describe('Tags API', function () {
     describe('Destroy', function () {
         var firstTag = testUtils.DataGenerator.Content.tags[0].id;
 
-        it('can destroy Tag', function (done) {
-            TagAPI.destroy(_.extend({}, testUtils.context.admin, {id: firstTag}))
+        it('can destroy Tag', function () {
+            return db.knex('posts_tags').where('tag_id', firstTag)
+                .then(function (response) {
+                    response.length.should.eql(2);
+                })
+                .then(function () {
+                    return TagAPI.destroy(_.extend({}, testUtils.context.admin, {id: firstTag}));
+                })
                 .then(function (results) {
                     should.not.exist(results);
-
-                    done();
-                }).catch(done);
+                    return db.knex('posts_tags').where('tag_id', firstTag);
+                })
+                .then(function (response) {
+                    response.length.should.eql(0);
+                });
         });
     });
 
