@@ -1,6 +1,9 @@
+'use strict';
+
 // # DB API
 // API for DB operations
 var Promise = require('bluebird'),
+    _ = require('lodash'),
     pipeline = require('../lib/promise/pipeline'),
     localUtils = require('./utils'),
     exporter = require('../data/export'),
@@ -98,7 +101,7 @@ db = {
     },
     /**
      * ### Delete All Content
-     * Remove all posts and tags
+     * Remove all posts and tags.
      *
      * @public
      * @param {{context}} options
@@ -110,18 +113,39 @@ db = {
 
         options = options || {};
 
+        /**
+         * NOTE:
+         * Ghost has no implementation of Bookshelf collections. This means calling `collection.invoke(`destroy`)
+         * won't trigger any of Ghost's model logic (except of events). But if we e.g. only fetch the `id` column,
+         * the events won't receive enough data to make decisions e.g. emit event when status was published.
+         *
+         * Also see https://github.com/bookshelf/bookshelf/issues/799 - Bookshelf is planning to remove collections.
+         */
         function deleteContent() {
-            var collections = [
-                models.Post.findAll(queryOpts),
-                models.Tag.findAll(queryOpts)
-            ];
+            return models.Base.transaction(function (transacting) {
+                queryOpts.transacting = transacting;
 
-            return Promise.each(collections, function then(Collection) {
-                return Collection.invokeThen('destroy', queryOpts);
-            }).return({db: []})
-                .catch(function (err) {
-                    throw new common.errors.GhostError({err: err});
-                });
+                return models.Post.findAll(queryOpts)
+                    .then((response) => {
+                        return Promise.map(response.models, (post) => {
+                            return models.Post.destroy(_.merge({id: post.id}, queryOpts));
+                        }, {concurrency: 100});
+                    })
+                    .then(() => {
+                        return models.Tag.findAll(queryOpts);
+                    })
+                    .then((response) => {
+                        return Promise.map(response.models, (tag) => {
+                            return models.Tag.destroy(_.merge({id: tag.id}, queryOpts));
+                        }, {concurrency: 100});
+                    })
+                    .return({db: []})
+                    .catch((err) => {
+                        throw new common.errors.GhostError({
+                            err: err
+                        });
+                    });
+            });
         }
 
         tasks = [

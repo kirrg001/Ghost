@@ -732,6 +732,11 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         var options = this.filterOptions(unfilteredOptions, 'destroy', {extraAllowedProperties: ['id']}),
             id = options.id;
 
+        if (options.columns) {
+            options.columns = _.intersection(options.columns, this.prototype.permittedAttributes());
+            options.columns = _.union(options.columns, this.prototype.defaultColumnsToFetch());
+        }
+
         // Fetch the object before destroying it, so that the changed data is available to events
         return this.forge({id: id})
             .fetch(options)

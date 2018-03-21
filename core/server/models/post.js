@@ -390,8 +390,9 @@ Post = ghostBookshelf.Model.extend({
     },
 
     defaultColumnsToFetch: function defaultColumnsToFetch() {
-        return ['id', 'published_at', 'slug', 'author_id'];
+        return ['id', 'page', 'status', 'published_at', 'slug', 'author_id'];
     },
+
     /**
      * If the `formats` option is not used, we return `html` be default.
      * Otherwise we return what is requested e.g. `?formats=mobiledoc,plaintext`
@@ -540,7 +541,8 @@ Post = ghostBookshelf.Model.extend({
             validOptions = {
                 findOne: ['columns', 'importing', 'withRelated', 'require'],
                 findPage: ['page', 'limit', 'columns', 'filter', 'order', 'status', 'staticPages'],
-                findAll: ['columns', 'filter']
+                findAll: ['columns', 'filter'],
+                destroy: ['columns']
             };
 
         // The post model additionally supports having a formats option
