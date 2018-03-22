@@ -1,8 +1,11 @@
-var ghostBookshelf = require('./base'),
-    Basetoken = require('./base/token'),
-    common = require('../lib/common'),
+'use strict';
 
-    Accesstoken,
+const _ = require('lodash'),
+    ghostBookshelf = require('./base'),
+    Basetoken = require('./base/token'),
+    common = require('../lib/common');
+
+let Accesstoken,
     Accesstokens;
 
 Accesstoken = Basetoken.extend({
@@ -13,8 +16,23 @@ Accesstoken = Basetoken.extend({
         common.events.emit('token' + '.' + event, this);
     },
 
-    onCreated: function onCreated(model) {
-        model.emitChange('added');
+    onCreated: function onCreated(model, attrs, options) {
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.emitChange('added', options);
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
+        }
     }
 });
 

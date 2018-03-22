@@ -80,87 +80,130 @@ Post = ghostBookshelf.Model.extend({
             return;
         }
 
-        var status = model.get('status');
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.emitChange('added', options);
 
-        model.emitChange('added');
+                if (['published', 'scheduled'].indexOf(clonedModel.get('status')) !== -1) {
+                    model.emitChange(clonedModel.get('status'), options);
+                }
+            };
 
-        if (['published', 'scheduled'].indexOf(status) !== -1) {
-            model.emitChange(status, {importing: options.importing});
-        }
-    },
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
 
-    onUpdated: function onUpdated(model) {
-        model.statusChanging = model.get('status') !== model.updated('status');
-        model.isPublished = model.get('status') === 'published';
-        model.isScheduled = model.get('status') === 'scheduled';
-        model.wasPublished = model.updated('status') === 'published';
-        model.wasScheduled = model.updated('status') === 'scheduled';
-        model.resourceTypeChanging = model.get('page') !== model.updated('page');
-        model.publishedAtHasChanged = model.hasDateChanged('published_at');
-        model.needsReschedule = model.publishedAtHasChanged && model.isScheduled;
-
-        // Handle added and deleted for post -> page or page -> post
-        if (model.resourceTypeChanging) {
-            if (model.wasPublished) {
-                model.emitChange('unpublished', {usePreviousResourceType: true});
-            }
-
-            if (model.wasScheduled) {
-                model.emitChange('unscheduled', {usePreviousResourceType: true});
-            }
-
-            model.emitChange('deleted', {usePreviousResourceType: true});
-            model.emitChange('added');
-
-            if (model.isPublished) {
-                model.emitChange('published');
-            }
-
-            if (model.isScheduled) {
-                model.emitChange('scheduled');
-            }
+                triggerEvents();
+            });
         } else {
-            if (model.statusChanging) {
-                // CASE: was published before and is now e.q. draft or scheduled
-                if (model.wasPublished) {
-                    model.emitChange('unpublished');
-                }
-
-                // CASE: was draft or scheduled before and is now e.q. published
-                if (model.isPublished) {
-                    model.emitChange('published');
-                }
-
-                // CASE: was draft or published before and is now e.q. scheduled
-                if (model.isScheduled) {
-                    model.emitChange('scheduled');
-                }
-
-                // CASE: from scheduled to something
-                if (model.wasScheduled && !model.isScheduled && !model.isPublished) {
-                    model.emitChange('unscheduled');
-                }
-            } else {
-                if (model.isPublished) {
-                    model.emitChange('published.edited');
-                }
-
-                if (model.needsReschedule) {
-                    model.emitChange('rescheduled');
-                }
-            }
-
-            // Fire edited if this wasn't a change between resourceType
-            model.emitChange('edited');
+            triggerEvents();
         }
     },
 
-    onDestroying: function onDestroying(model) {
-        if (model.previous('status') === 'published') {
-            model.emitChange('unpublished');
-        }
+    onUpdated: function onUpdated(model, attrs, options) {
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.statusChanging = clonedModel.get('status') !== clonedModel.updated('status');
+                clonedModel.isPublished = clonedModel.get('status') === 'published';
+                clonedModel.isScheduled = clonedModel.get('status') === 'scheduled';
+                clonedModel.wasPublished = clonedModel.updated('status') === 'published';
+                clonedModel.wasScheduled = clonedModel.updated('status') === 'scheduled';
+                clonedModel.resourceTypeChanging = clonedModel.get('page') !== clonedModel.updated('page');
+                clonedModel.publishedAtHasChanged = clonedModel.hasDateChanged('published_at');
+                clonedModel.needsReschedule = clonedModel.publishedAtHasChanged && clonedModel.isScheduled;
 
-        model.emitChange('deleted');
+                // Handle added and deleted for post -> page or page -> post
+                if (clonedModel.resourceTypeChanging) {
+                    if (clonedModel.wasPublished) {
+                        clonedModel.emitChange('unpublished', _.merge({usePreviousResourceType: true}, options));
+                    }
+
+                    if (clonedModel.wasScheduled) {
+                        clonedModel.emitChange('unscheduled', _.merge({usePreviousResourceType: true}, options));
+                    }
+
+                    clonedModel.emitChange('deleted', _.merge({usePreviousResourceType: true}, options));
+                    clonedModel.emitChange('added', options);
+
+                    if (clonedModel.isPublished) {
+                        clonedModel.emitChange('published', options);
+                    }
+
+                    if (clonedModel.isScheduled) {
+                        clonedModel.emitChange('scheduled', options);
+                    }
+                } else {
+                    if (clonedModel.statusChanging) {
+                        // CASE: was published before and is now e.q. draft or scheduled
+                        if (clonedModel.wasPublished) {
+                            clonedModel.emitChange('unpublished', options);
+                        }
+
+                        // CASE: was draft or scheduled before and is now e.q. published
+                        if (clonedModel.isPublished) {
+                            clonedModel.emitChange('published', options);
+                        }
+
+                        // CASE: was draft or published before and is now e.q. scheduled
+                        if (clonedModel.isScheduled) {
+                            clonedModel.emitChange('scheduled', options);
+                        }
+
+                        // CASE: from scheduled to something
+                        if (clonedModel.wasScheduled && !clonedModel.isScheduled && !clonedModel.isPublished) {
+                            clonedModel.emitChange('unscheduled', options);
+                        }
+                    } else {
+                        if (clonedModel.isPublished) {
+                            clonedModel.emitChange('published.edited', options);
+                        }
+
+                        if (clonedModel.needsReschedule) {
+                            clonedModel.emitChange('rescheduled', options);
+                        }
+                    }
+
+                    // Fire edited if this wasn't a change between resourceType
+                    clonedModel.emitChange('edited', options);
+                }
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
+        }
+    },
+
+    onDestroying: function onDestroying(model, options) {
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                if (clonedModel.previous('status') === 'published') {
+                    clonedModel.emitChange('unpublished', options);
+                }
+
+                clonedModel.emitChange('deleted', options);
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
+        }
     },
 
     onSaving: function onSaving(model, attr, options) {

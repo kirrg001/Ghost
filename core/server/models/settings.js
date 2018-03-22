@@ -1,14 +1,15 @@
-var Settings,
-    Promise = require('bluebird'),
+'use strict';
+
+const Promise = require('bluebird'),
     _ = require('lodash'),
     uuid = require('uuid'),
     crypto = require('crypto'),
     ghostBookshelf = require('./base'),
     common = require('../lib/common'),
     validation = require('../data/validation'),
+    internalContext = {context: {internal: true}};
 
-    internalContext = {context: {internal: true}},
-
+let Settings,
     defaultSettings;
 
 // For neatness, the defaults file is split into categories.
@@ -61,19 +62,64 @@ Settings = ghostBookshelf.Model.extend({
         common.events.emit('settings' + '.' + event, this, options);
     },
 
-    onDestroyed: function onDestroyed(model, response, options) {
-        model.emitChange('deleted');
-        model.emitChange(model.attributes.key + '.' + 'deleted', options);
+    onDestroyed: function onDestroyed(model, options) {
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.emitChange('deleted');
+                clonedModel.emitChange(clonedModel.attributes.key + '.' + 'deleted', options);
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
+        }
     },
 
     onCreated: function onCreated(model, response, options) {
-        model.emitChange('added');
-        model.emitChange(model.attributes.key + '.' + 'added', options);
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.emitChange('added');
+                clonedModel.emitChange(clonedModel.attributes.key + '.' + 'added', options);
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
+        }
     },
 
     onUpdated: function onUpdated(model, response, options) {
-        model.emitChange('edited');
-        model.emitChange(model.attributes.key + '.' + 'edited', options);
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.emitChange('edited');
+                clonedModel.emitChange(clonedModel.attributes.key + '.' + 'edited', options);
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
+        }
     },
 
     onValidate: function onValidate() {

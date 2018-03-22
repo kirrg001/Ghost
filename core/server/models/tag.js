@@ -1,6 +1,10 @@
-var ghostBookshelf = require('./base'),
-    common = require('../lib/common'),
-    Tag,
+'use strict';
+
+const _ = require('lodash'),
+    ghostBookshelf = require('./base'),
+    common = require('../lib/common');
+
+let Tag,
     Tags;
 
 Tag = ghostBookshelf.Model.extend({
@@ -17,16 +21,61 @@ Tag = ghostBookshelf.Model.extend({
         common.events.emit('tag' + '.' + event, this);
     },
 
-    onCreated: function onCreated(model) {
-        model.emitChange('added');
+    onCreated: function onCreated(model, attrs, options) {
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.emitChange('added');
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
+        }
     },
 
-    onUpdated: function onUpdated(model) {
-        model.emitChange('edited');
+    onUpdated: function onUpdated(model, attrs, options) {
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.emitChange('edited');
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
+        }
     },
 
-    onDestroyed: function onDestroyed(model) {
-        model.emitChange('deleted');
+    onDestroyed: function onDestroyed(model, options) {
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.emitChange('deleted');
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
+        }
     },
 
     onSaving: function onSaving(newTag, attr, options) {

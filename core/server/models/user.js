@@ -1,4 +1,6 @@
-var _ = require('lodash'),
+'use strict';
+
+const _ = require('lodash'),
     Promise = require('bluebird'),
     validator = require('validator'),
     ObjectId = require('bson-objectid'),
@@ -15,8 +17,9 @@ var _ = require('lodash'),
      * locked user: imported users, they get a random passport
      */
     inactiveStates = ['inactive', 'locked'],
-    allStates = activeStates.concat(inactiveStates),
-    User,
+    allStates = activeStates.concat(inactiveStates);
+
+let User,
     Users;
 
 User = ghostBookshelf.Model.extend({
@@ -33,36 +36,81 @@ User = ghostBookshelf.Model.extend({
         common.events.emit('user' + '.' + event, this, options);
     },
 
-    onDestroyed: function onDestroyed(model, response, options) {
-        if (_.includes(activeStates, model.previous('status'))) {
-            model.emitChange('deactivated', options);
-        }
+    onDestroyed: function onDestroyed(model, options) {
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                if (_.includes(activeStates, clonedModel.previous('status'))) {
+                    clonedModel.emitChange('deactivated', options);
+                }
 
-        model.emitChange('deleted');
+                clonedModel.emitChange('deleted');
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
+        }
     },
 
-    onCreated: function onCreated(model) {
-        model.emitChange('added');
+    onCreated: function onCreated(model, attrs, options) {
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.emitChange('added');
 
-        // active is the default state, so if status isn't provided, this will be an active user
-        if (!model.get('status') || _.includes(activeStates, model.get('status'))) {
-            model.emitChange('activated');
+                // active is the default state, so if status isn't provided, this will be an active user
+                if (!clonedModel.get('status') || _.includes(activeStates, clonedModel.get('status'))) {
+                    clonedModel.emitChange('activated');
+                }
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
         }
     },
 
     onUpdated: function onUpdated(model, response, options) {
-        model.statusChanging = model.get('status') !== model.updated('status');
-        model.isActive = _.includes(activeStates, model.get('status'));
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.statusChanging = clonedModel.get('status') !== clonedModel.updated('status');
+                clonedModel.isActive = _.includes(activeStates, clonedModel.get('status'));
 
-        if (model.statusChanging) {
-            model.emitChange(model.isActive ? 'activated' : 'deactivated', options);
+                if (clonedModel.statusChanging) {
+                    clonedModel.emitChange(clonedModel.isActive ? 'activated' : 'deactivated', options);
+                } else {
+                    if (clonedModel.isActive) {
+                        clonedModel.emitChange('activated.edited');
+                    }
+                }
+
+                clonedModel.emitChange('edited');
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
         } else {
-            if (model.isActive) {
-                model.emitChange('activated.edited');
-            }
+            triggerEvents();
         }
-
-        model.emitChange('edited');
     },
 
     isActive: function isActive() {

@@ -1,7 +1,11 @@
-var Promise = require('bluebird'),
+'use strict';
+
+const Promise = require('bluebird'),
+    _ = require('lodash'),
     ghostBookshelf = require('./base'),
-    common = require('../lib/common'),
-    Webhook,
+    common = require('../lib/common');
+
+let Webhook,
     Webhooks;
 
 Webhook = ghostBookshelf.Model.extend({
@@ -13,16 +17,61 @@ Webhook = ghostBookshelf.Model.extend({
         common.events.emit('webhook' + '.' + event, this, options);
     },
 
-    onCreated: function onCreated(model, response, options) {
-        model.emitChange('added', options);
+    onCreated: function onCreated(model, attrs, options) {
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.emitChange('added', options);
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
+        }
     },
 
-    onUpdated: function onUpdated(model, response, options) {
-        model.emitChange('edited', options);
+    onUpdated: function onUpdated(model, attrs, options) {
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.emitChange('edited', options);
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
+        }
     },
 
-    onDestroyed: function onDestroyed(model, response, options) {
-        model.emitChange('deleted', options);
+    onDestroyed: function onDestroyed(model, options) {
+        const clonedModel = _.cloneDeep(model),
+            triggerEvents = () => {
+                clonedModel.emitChange('deleted', options);
+            };
+
+        if (options.transacting) {
+            options.transacting.once('committed', (committed) => {
+                if (!committed) {
+                    return;
+                }
+
+                triggerEvents();
+            });
+        } else {
+            triggerEvents();
+        }
     }
 }, {
     findAllByEvent: function findAllByEvent(event, unfilteredOptions) {
