@@ -1,6 +1,7 @@
 'use strict';
 
 const debug = require('ghost-ignition').debug('services:url:queue'),
+    EventEmitter = require('events').EventEmitter,
     common = require('../../lib/common');
 
 /**
@@ -64,9 +65,9 @@ const debug = require('ghost-ignition').debug('services:url:queue'),
  *   - unique actions e.g. add post 1
  *   - one event might only allow a single action to avoid collisions e.g. you initialise data twice
  */
-class Queue {
-    constructor(type) {
-        this.type = type;
+class Queue extends EventEmitter {
+    constructor() {
+        super();
         this.queue = {};
         this.toNotify = {};
     }
@@ -76,7 +77,7 @@ class Queue {
      *   - 0: don't wait for more subscribers [default]
      *   - 100: wait long enough till all subscribers have registered (e.g. bootstrap)
      */
-    add(options, fn) {
+    register(options, fn) {
         if (!options.hasOwnProperty('tolerance')) {
             options.tolerance = 0;
         }
@@ -89,7 +90,7 @@ class Queue {
             };
         }
 
-        debug('add', this.type, options.event, options.tolerance);
+        debug('add', options.event, options.tolerance);
 
         this.queue[options.event].subscribers.push(fn);
     }
@@ -102,16 +103,16 @@ class Queue {
         clearTimeout(this.toNotify[action].timeout);
         this.toNotify[action].timeout = null;
 
-        debug('run', this.type, action, event, this.queue[event].subscribers.length, this.toNotify[action].notified.length);
+        debug('run', action, event, this.queue[event].subscribers.length, this.toNotify[action].notified.length);
 
         if (this.queue[event].subscribers.length && this.queue[event].subscribers.length !== this.toNotify[action].notified.length) {
             const fn = this.queue[event].subscribers[this.toNotify[action].notified.length];
 
-            debug('execute', this.type, action, event, this.toNotify[action].notified.length);
+            debug('execute', action, event, this.toNotify[action].notified.length);
 
             return fn(eventData)
                 .then(() => {
-                    debug('executed', this.type, action, event, this.toNotify[action].notified.length);
+                    debug('executed', action, event, this.toNotify[action].notified.length);
                     this.toNotify[action].notified.push(fn);
                     this.run(options);
                 })
@@ -127,10 +128,14 @@ class Queue {
             // CASE 3: wait for more subscribers
             if (options.tolerance === 0) {
                 delete this.toNotify[action];
-            } else if ((this.toNotify[action].timeoutInMS / this.queue[event].tolerance) > this.queue[event].tolerance) {
+                debug('ended', event, action);
+                this.emit('ended', event);
+            } else if (this.toNotify[action].timeoutInMS > this.queue[event].tolerance) {
+                debug('ended', event, action);
+                this.emit('ended', event);
                 delete this.toNotify[action];
             } else {
-                this.toNotify[action].timeoutInMS = this.toNotify[action].timeoutInMS * 2;
+                this.toNotify[action].timeoutInMS = this.toNotify[action].timeoutInMS * 1.1;
 
                 this.toNotify[action].timeout = setTimeout(() => {
                     this.run(options);
@@ -145,7 +150,7 @@ class Queue {
         // happens only for high tolerant events
         if (!this.queue.hasOwnProperty(options.event)) {
             this.queue[options.event] = {
-                tolerance: options.tolerance,
+                tolerance: options.tolerance || 0,
                 subscribers: []
             };
         }
@@ -175,6 +180,7 @@ class Queue {
             notified: []
         };
 
+        this.emit('started', options.event);
         this.run(options);
     }
 }

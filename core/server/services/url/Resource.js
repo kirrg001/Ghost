@@ -11,15 +11,19 @@ class Resource extends EventEmitter {
         this.data = {};
         this.config = {
             type: type,
-            url: null
+            taken: false
         };
 
         Object.assign(this.data, obj);
     }
 
-    mine(url) {
-        if (!this.config.url) {
-            this.config.url = url;
+    getType() {
+        return this.config.type;
+    }
+
+    take() {
+        if (!this.config.taken) {
+            this.config.taken = true;
         } else {
             throw new common.errors.InternalServerError({
                 message: 'Resource is already taken.'
@@ -27,16 +31,12 @@ class Resource extends EventEmitter {
         }
     }
 
-    getType() {
-        return this.config.type;
+    free() {
+        this.config.taken = false;
     }
 
-    getUrl() {
-        return this.config.url;
-    }
-
-    unsetUrl() {
-        this.config.url = null;
+    isTaken() {
+        return this.config.taken === true;
     }
 
     update(obj, options) {
@@ -54,10 +54,6 @@ class Resource extends EventEmitter {
 
     remove() {
         this.emit('removed', this);
-    }
-
-    isTaken() {
-        return this.config.url !== null;
     }
 }
 

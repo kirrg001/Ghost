@@ -65,36 +65,47 @@ const resourcesConfig = [
  * NOTE: We are querying knex directly, because the Bookshelf ORM overhead is too slow.
  */
 class Resources {
-    constructor() {
-        this.queues = {};
+    constructor(queue) {
+        this.queue = queue;
         this.data = {};
         this.listeners();
     }
 
     listeners() {
         common.events.on('db.ready', () => {
+            const ops = [];
             debug('db ready');
 
             _.map(resourcesConfig, (resourceConfig) => {
                 this.data[resourceConfig.type] = [];
-                this.queues[resourceConfig.type] = new Queue(resourceConfig.type);
-                this.fetch(resourceConfig);
+                ops.push(this.fetch(resourceConfig));
             });
+
+            Promise.all(ops)
+                .then(() => {
+                    this.queue.start({
+                        event: 'init',
+                        tolerance: 100
+                    });
+                });
         });
 
         common.events.onMany([
             'post.published',
             'page.published'
         ], (model) => {
-            let type = model.tableName;
+            const type = model.tableName;
             const resource = new Resource(type, model.toJSON());
 
             this.data[type].push(resource);
 
-            this.queues[type].start({
+            this.queue.start({
                 event: 'added',
                 action: 'added:' + model.id,
-                eventData: resource
+                eventData: {
+                    id: model.id,
+                    type: type
+                }
             });
         });
 
@@ -111,7 +122,7 @@ class Resources {
         common.events.onMany([
             'post.published.edited'
         ], (model) => {
-            let type = model.tableName;
+            const type = model.tableName;
 
             this.data[type].every((resource) => {
                 if (resource.data.id === model.id) {
@@ -121,10 +132,13 @@ class Resources {
                         resource.update(model.toJSON(), {noEvent: true});
 
                         // pretend it was added ;)
-                        this.queues[type].start({
+                        this.queue.start({
                             event: 'added',
                             action: 'added:' + model.id,
-                            eventData: resource
+                            eventData: {
+                                id: model.id,
+                                type: type
+                            }
                         });
                     }
 
@@ -140,8 +154,8 @@ class Resources {
             'post.unpublished',
             'page.unpublished'
         ], (model) => {
-            let type = model.tableName,
-                index = null;
+            const type = model.tableName;
+            let index = null;
 
             this.data[type].every((resource, _index) => {
                 if (resource.data.id === model.id) {
@@ -169,32 +183,34 @@ class Resources {
         });
     }
 
-    hasType(type) {
-        return _.find(resourcesConfig, {type: type});
-    }
-
-    free(resource) {
-        // pretend it was added ;)
-        this.queues[resource.getType()].start({
+    free(type, resource) {
+        this.queue.start({
             event: 'added',
             action: 'added:' + resource.data.id,
-            eventData: resource
+            eventData: {
+                id: resource.data.id,
+                type: type
+            }
         });
     }
 
-    onAll(type, cb) {
-        this.queues[type].add({
-            event: 'init',
-            tolerance: 100
-        }, () => {
-            return cb(this.data[type]);
-        });
+    getAll(type) {
+        return this.data[type];
     }
 
-    onAdded(type, cb) {
-        this.queues[type].add({
-            event: 'added'
-        }, cb);
+    getByIdAndType(type, id) {
+        return _.find(this.data[type], {data: {id: id}});
+    }
+
+    create(type, data) {
+        const resource = new Resource(type, data);
+
+        if (!this.data[type]) {
+            this.data[type] = [];
+        }
+
+        this.data[type].push(resource);
+        return resource;
     }
 
     fetch(resourceConfig) {
@@ -218,11 +234,6 @@ class Resources {
             if (!resourceConfig.apiOptions.include) {
                 _.each(objects, (object) => {
                     this.data[resourceConfig.type].push(new Resource(resourceConfig.type, object));
-                });
-
-                this.queues[resourceConfig.type].start({
-                    event: 'init',
-                    tolerance: 100
                 });
 
                 return;
@@ -274,14 +285,9 @@ class Resources {
                     });
 
                     debug('attached relations', resourceConfig.type);
-                    this.queues[resourceConfig.type].start({
-                        event: 'init',
-                        tolerance: 100
-                    });
                 });
         });
     }
 }
 
-// Singleton
-module.exports = new Resources();
+module.exports = Resources;

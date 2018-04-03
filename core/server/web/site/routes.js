@@ -60,8 +60,14 @@ module.exports = function siteRoutes() {
     // The data is later represented in a collection class. Collection class is by default dynamic.
     // @TODO: test /podcast/settings.permalinks
     common.events.emit('route.added', {
-        parent: '/',
-        route: '/{settings.permalinks}/',
+        route: {
+            parent: '/',
+            extensions: ['rss/', 'page/\\d+/'],
+            permalink: {
+                value: '/{settings.permalinks}/',
+                extensions: ['amp/']
+            }
+        },
         config: {
             type: 'posts',
             apiOptions: {
@@ -72,8 +78,14 @@ module.exports = function siteRoutes() {
 
     // The data is later represented in a collection class. Collection class is by default dynamic.
     common.events.emit('route.added', {
-        parent: '/podcast/',
-        route: '/:slug/',
+        route: {
+            parent: '/podcast/',
+            extensions: ['rss/', 'page/\\d+/'],
+            permalink: {
+                value: '/podcast/:slug/',
+                extensions: ['amp/']
+            }
+        },
         config: {
             type: 'posts',
             apiOptions: {
@@ -83,21 +95,22 @@ module.exports = function siteRoutes() {
     });
 
     common.events.emit('route.added', {
-        route: '/subscribe/',
+        route: {
+            parent: '/subscribe/',
+            extensions: false,
+            permalink: false
+        },
         config: {
             type: 'others'
         }
     });
 
     common.events.emit('route.added', {
-        route: '/private/',
-        config: {
-            type: 'others'
-        }
-    });
-
-    common.events.emit('route.added', {
-        route: '*amp/',
+        route: {
+            parent: '/private/',
+            extensions: false,
+            permalink: false
+        },
         config: {
             type: 'others'
         }
@@ -105,8 +118,14 @@ module.exports = function siteRoutes() {
 
     // The data is later represented in a taxonomy class. Taxonomy class is by default dynamic.
     common.events.emit('route.added', {
-        parent: '/author/',
-        route: '/:slug/',
+        route: {
+            parent: null,
+            extensionss: false,
+            permalink: {
+                value: '/author/:slug/',
+                extensions: ['rss/']
+            }
+        },
         config: {
             type: 'users',
             apiOptions: {}
@@ -115,8 +134,14 @@ module.exports = function siteRoutes() {
 
     // The data is later represented in a taxonomy class. Taxonomy class is by default dynamic.
     common.events.emit('route.added', {
-        parent: '/tag/',
-        route: '/:slug/',
+        route: {
+            parent: null,
+            permalink: {
+                value: '/tag/:slug/',
+                extensions: ['rss/']
+            },
+            extensions: false
+        },
         config: {
             type: 'tags',
             apiOptions: {}
