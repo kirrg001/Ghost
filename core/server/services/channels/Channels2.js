@@ -1,22 +1,25 @@
 'use strict';
 
 const _ = require('lodash');
+const path = require('path');
 const EventEmitter = require('events').EventEmitter;
 const apps = require('../../apps');
 const common = require('../../lib/common');
+const settingsCache = require('../settings/cache');
 
 /**
  * @temporary
  *
  * This is not designed yet. This is all temporary.
  */
-class RouterBase extends EventEmitter {
+class Channel extends EventEmitter {
     constructor(obj) {
         super();
 
         this.route = _.defaults(obj.route, {value: null, extensions: {}});
         this.config = obj.config;
         this.isEnabled = true;
+        this.mainRoute = true;
     }
 
     getRoute() {
@@ -40,7 +43,7 @@ class RouterBase extends EventEmitter {
     }
 }
 
-class Collection extends RouterBase {
+class Collection extends Channel {
     constructor(obj) {
         super(obj);
 
@@ -64,8 +67,24 @@ class Collection extends RouterBase {
             redirect: true
         };
 
-        this.listeners();
+        this.permalinks.getValue = (resource) => {
+            /**
+             * @deprecated Remove in Ghost 2.0
+             */
+            if (this.permalinks.value.match(/settings\.permalinks/)) {
+                const value = this.permalinks.value.replace(/\/{settings\.permalinks}\//, settingsCache.get('permalinks'));
 
+                if (resource.data.page) {
+                    return path.join(this.route.value, '/:slug/');
+                }
+
+                return path.join(this.route.value, value);
+            }
+
+            return path.join(this.route.value, this.permalinks.value);
+        };
+
+        this.listeners();
         common.events.emit('channel.created', this);
     }
 
@@ -74,6 +93,15 @@ class Collection extends RouterBase {
     }
 
     listeners() {
+        /**
+         * @deprecated Remove in Ghost 2.0
+         */
+        if (this.getPermalinks() && this.getPermalinks().value.match(/settings\.permalinks/)) {
+            common.events.on('settings.permalinks.edited', () => {
+                this.emit('updated');
+            });
+        }
+
         apps.amp.app.addListener('disabled', () => {
             this.getPermalinks().extensions.amp.enabled = false;
         });
@@ -88,16 +116,27 @@ class Collection extends RouterBase {
     }
 }
 
-class Taxonomy extends RouterBase {
+class Taxonomy extends Channel {
     constructor(obj) {
         super(obj);
 
+        this.mainRoute = false;
         this.permalinks = _.defaults(obj.permalinks, {value: null, extensions: {}});
+
+        this.permalinks.extensions.pagination = {
+            route: 'page/\\d+/',
+            enabled: true,
+            redirect: false
+        };
 
         this.permalinks.extensions.rss = {
             route: 'rss/',
             enabled: true,
             redirect: false
+        };
+
+        this.permalinks.getValue = () => {
+            return path.join(this.route.value, this.permalinks.value);
         };
 
         common.events.emit('channel.created', this);
@@ -112,7 +151,7 @@ class Taxonomy extends RouterBase {
     }
 }
 
-class App extends RouterBase {
+class App extends Channel {
     constructor(obj) {
         super(obj);
 
@@ -155,7 +194,7 @@ const collection2 = new Collection({
         value: '/podcast/'
     },
     permalinks: {
-        value: '/podcast/:slug/'
+        value: '/:slug/'
     },
     config: {
         type: 'posts',
@@ -187,10 +226,10 @@ const app2 = new App({
 
 const taxonomy1 = new Taxonomy({
     route: {
-        value: null
+        value: '/author/'
     },
     permalinks: {
-        value: '/author/:slug/'
+        value: '/:slug/'
     },
     config: {
         type: 'users',
@@ -200,10 +239,10 @@ const taxonomy1 = new Taxonomy({
 
 const taxonomy2 = new Taxonomy({
     route: {
-        value: null
+        value: '/tag/'
     },
     permalinks: {
-        value: '/tag/:slug/'
+        value: '/:slug/'
     },
     config: {
         type: 'tags',

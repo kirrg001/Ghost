@@ -144,7 +144,7 @@ module.exports = function setupSiteApp() {
     });
 
     // @temporary
-    require('../../services/channels/RouterBase');
+    require('../../services/channels/Channels2');
 
     // Set up Frontend routes (including private blogging routes)
     siteApp.use(siteRoutes());

@@ -38,27 +38,23 @@ class UrlGenerator {
     }
 
     listeners() {
-        /**
-         * @deprecated Remove in Ghost 2.0
-         */
-        if (this.channel.getPermalinks() && this.channel.getPermalinks().value.match(/settings\.permalinks/)) {
-            common.events.on('settings.permalinks.edited', () => {
-                const myUrls = this.urls.getByUid(this.uid);
+        // NOTE: currently only used if the permalink setting changes and it's used for this url generator.
+        this.channel.addListener('updated', () => {
+            const myUrls = this.urls.getByUid(this.uid);
 
-                myUrls.forEach((url) => {
-                    const resource = this.urls.getUrl(url).resource;
-                    this.urls.removeUrl(url);
+            myUrls.forEach((url) => {
+                const resource = this.urls.getUrl(url).resource;
+                this.urls.removeUrl(url);
 
-                    resource.free();
-                    const newUrl = this.generateUrl(resource);
+                resource.free();
+                const newUrl = this.generateUrl(resource);
 
-                    this.urls.add({
-                        url: newUrl,
-                        urlGenerator: this
-                    }, resource);
-                });
+                this.urls.add({
+                    url: newUrl,
+                    urlGenerator: this
+                }, resource);
             });
-        }
+        });
 
         this.channel.addListener('enabled', () => {
             try {
@@ -103,14 +99,16 @@ class UrlGenerator {
                 return Promise.resolve();
             }
 
-            try {
-                this.urls.add({
-                    url: this.channel.getRoute().value,
-                    urlGenerator: this
-                }, this.resources.create(this.channel.getType(), {}));
-            } catch (err) {
-                debug('Ignore. Detected url collision.', this.toString());
-                return Promise.resolve();
+            if (this.channel.mainRoute) {
+                try {
+                    this.urls.add({
+                        url: this.channel.getRoute().value,
+                        urlGenerator: this
+                    }, this.resources.create(this.channel.getType(), {}));
+                } catch (err) {
+                    debug('Ignore. Detected url collision.', this.toString());
+                    return Promise.resolve();
+                }
             }
 
             if (!this.channel.getPermalinks()) {
@@ -229,19 +227,7 @@ class UrlGenerator {
     }
 
     generateUrl(resource) {
-        let url = this.channel.getPermalinks().value;
-
-        /**
-         * @deprecated Remove in Ghost 2.0
-         */
-        if (url.match(/settings\.permalinks/)) {
-            if (this.channel.getType() === 'posts' && resource.data.page) {
-                url = url.replace(/\/{settings\.permalinks}\//, '/:slug/');
-            } else {
-                url = url.replace(/\/{settings\.permalinks}\//, settingsCache.get('permalinks'));
-            }
-        }
-
+        const url = this.channel.getPermalinks().getValue(resource);
         return this.replacepermalink(url, resource);
     }
 
