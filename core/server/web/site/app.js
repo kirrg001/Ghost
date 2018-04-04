@@ -1,6 +1,7 @@
 var debug = require('ghost-ignition').debug('blog'),
     path = require('path'),
     express = require('express'),
+    url = require('url'),
 
     // App requires
     config = require('../../config'),
@@ -125,8 +126,7 @@ module.exports = function setupSiteApp() {
     debug('General middleware done');
 
     siteApp.use(function (req, res, next) {
-        // @TODO: without query params
-        urlService.hasUrl(req.originalUrl)
+        urlService.hasUrl(url.parse(req.originalUrl).pathname)
             .then(function (response) {
                 if (!response.disabled) {
                     return next();
