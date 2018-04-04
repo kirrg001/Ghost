@@ -2,9 +2,10 @@
 
 const _ = require('lodash');
 const debug = require('ghost-ignition').debug('services:url:urls');
+const common = require('../../lib/common');
 
 /**
- * This is a tree of url nodes.
+ * Keeps track of all urls.
  */
 class Urls {
     constructor() {
@@ -31,10 +32,12 @@ class Urls {
             urlGenerator: urlGenerator,
             resource: resource
         };
+
+        common.events.emit('url.added', resource);
     }
 
     hasUrl(url) {
-        // CASE: direct match
+        // CASE: direct match, yippi
         if (this.urls[url]) {
             return {
                 found: true
@@ -45,8 +48,9 @@ class Urls {
             found: false
         };
 
+        // CASE: extensions are not registered as official url, they can be enabled/disabled.
         Object.keys(this.urls).every((existingUrl) => {
-            const response = this.urls[existingUrl].urlGenerator.isValid(url, existingUrl);
+            const response = this.urls[existingUrl].urlGenerator.is(url, existingUrl);
 
             if (response.found) {
                 toReturn.found = true;
@@ -65,7 +69,10 @@ class Urls {
         return toReturn;
     }
 
-    getByUid(uid) {
+    /**
+     * Get all urls by `uid`.
+     */
+    getUrlsByUid(uid) {
         return _.reduce(Object.keys(this.urls), (toReturn, key) => {
             if (this.urls[key].urlGenerator.uid === uid) {
                 toReturn.push(key);
@@ -80,11 +87,12 @@ class Urls {
     }
 
     removeUrl(url) {
+        debug('removed', url);
         delete this.urls[url];
     }
 
     removeByResource(uid, resource) {
-        const urls = this.getByUid(uid);
+        const urls = this.getUrlsByUid(uid);
 
         urls.every((url) => {
             if (this.urls[url].resource === resource) {

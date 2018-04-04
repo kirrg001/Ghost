@@ -9,6 +9,7 @@ class Resource extends EventEmitter {
         super();
 
         this.uid = Math.random().toString(36).substring(7);
+
         this.data = {};
         this.config = {
             type: type,
@@ -40,13 +41,21 @@ class Resource extends EventEmitter {
         return this.config.taken === true;
     }
 
-    update(obj, options) {
-        options = options || {};
-
+    /**
+     * @TODO:
+     * - add `hasChanged` logic
+     * - hard to realise
+     * - e.g. the normalisation from the model layer is missing
+     * - e.g. dates, booleans (0 vs true)
+     * - hard to compare two objects, if they are not in the same format
+     * - as we are working with pure knex, it would be the best to re-fetch the model
+     * - but then the data is never formatted correctly and shouldn't be used for any further processing?
+     */
+    update(obj) {
         const keys = Object.keys(this.data);
         Object.assign(this.data, _.pick(obj, keys));
 
-        if (options.noEvent) {
+        if (!this.isTaken()) {
             return;
         }
 

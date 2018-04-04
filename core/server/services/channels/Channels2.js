@@ -19,7 +19,11 @@ class Channel extends EventEmitter {
         this.route = _.defaults(obj.route, {value: null, extensions: {}});
         this.config = obj.config;
         this.isEnabled = true;
-        this.mainRoute = true;
+        this.registerRoute = true;
+    }
+
+    isGreedy() {
+        return false;
     }
 
     getRoute() {
@@ -67,17 +71,12 @@ class Collection extends Channel {
             redirect: true
         };
 
-        this.permalinks.getValue = (resource) => {
+        this.permalinks.getValue = () => {
             /**
              * @deprecated Remove in Ghost 2.0
              */
             if (this.permalinks.value.match(/settings\.permalinks/)) {
                 const value = this.permalinks.value.replace(/\/{settings\.permalinks}\//, settingsCache.get('permalinks'));
-
-                if (resource.data.page) {
-                    return path.join(this.route.value, '/:slug/');
-                }
-
                 return path.join(this.route.value, value);
             }
 
@@ -120,8 +119,8 @@ class Taxonomy extends Channel {
     constructor(obj) {
         super(obj);
 
-        this.mainRoute = false;
-        this.permalinks = _.defaults(obj.permalinks, {value: null, extensions: {}});
+        this.registerRoute = false;
+        this.permalinks = {value: '/:slug/', extensions: {}};
 
         this.permalinks.extensions.pagination = {
             route: 'page/\\d+/',
@@ -174,6 +173,37 @@ class App extends Channel {
     }
 }
 
+class StaticPages extends Channel {
+    constructor(obj) {
+        super(obj);
+
+        this.registerRoute = false;
+        this.permalinks = {value: '/:slug/', extensions: {}};
+
+        this.permalinks.getValue = () => {
+            return path.join(this.route.value, this.permalinks.value);
+        };
+
+        common.events.emit('channel.created', this);
+    }
+
+    getPermalinks() {
+        return this.permalinks;
+    }
+}
+
+const staticPages = new StaticPages({
+    route: {
+        value: '/'
+    },
+    config: {
+        type: 'pages',
+        apiOptions: {
+            filter: 'status:published'
+        }
+    }
+});
+
 const collection1 = new Collection({
     route: {
         value: '/'
@@ -184,7 +214,7 @@ const collection1 = new Collection({
     config: {
         type: 'posts',
         apiOptions: {
-            filter: 'visibility:public+status:published+page:0+featured:false'
+            filter: 'visibility:public+status:published+featured:false'
         }
     }
 });
@@ -199,7 +229,7 @@ const collection2 = new Collection({
     config: {
         type: 'posts',
         apiOptions: {
-            filter: 'page:1'
+            filter: 'featured:true'
         }
     }
 });
@@ -228,9 +258,6 @@ const taxonomy1 = new Taxonomy({
     route: {
         value: '/author/'
     },
-    permalinks: {
-        value: '/:slug/'
-    },
     config: {
         type: 'users',
         apiOptions: {}
@@ -240,9 +267,6 @@ const taxonomy1 = new Taxonomy({
 const taxonomy2 = new Taxonomy({
     route: {
         value: '/tag/'
-    },
-    permalinks: {
-        value: '/:slug/'
     },
     config: {
         type: 'tags',

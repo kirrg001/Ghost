@@ -3,46 +3,69 @@
 const debug = require('ghost-ignition').debug('services:url:resources'),
     Promise = require('bluebird'),
     _ = require('lodash'),
-    Queue = require('./queue'),
     Resource = require('./Resource'),
     common = require('../../lib/common');
 
 /**
  * These are the default resources and filters.
- * The default filter is the basic resource ground, it's like a minimal filter.
- * This is a simple version of a data cache.
+ * These are the minimum filters for public accessibility of resources.
  *
- * @TODO: move events here
+ * @TODO:
+ * - optimise how we select the fields
+ * - choose all fields, but exclude none exposed fields
+ * - exclude formats
+ * - how to
  */
 const resourcesConfig = [
     {
         type: 'posts',
         apiOptions: {
-            filter: 'visibility:public+status:published',
-            fields: 'id,slug,title,status,visibility,featured,page,updated_at,created_at,published_at',
+            filter: 'visibility:public+status:published+page:0',
+            fields: 'id,slug,title,status,visibility,featured,updated_at,created_at,published_at',
             include: [
                 {
                     type: 'tags',
+                    alias: 'primary_tag',
                     innerJoin: {
                         relation: 'posts_tags',
                         condition: ['tags.id', '=', 'tag_id']
                     },
                     select: ['post_id', 'tags.id', 'tags.slug'],
+                    keep: ['id', 'slug'],
                     whereIn: 'post_id',
                     where: ['sort_order', '=', 0]
                 },
                 {
                     type: 'users',
-                    alias: 'authors',
+                    alias: 'primary_author',
                     innerJoin: {
                         relation: 'posts_authors',
                         condition: ['users.id', '=', 'author_id']
                     },
                     select: ['post_id', 'users.id', 'users.slug'],
+                    keep: ['id', 'slug'],
                     whereIn: 'post_id',
                     where: ['sort_order', '=', 0]
                 }
             ]
+        },
+        events: {
+            add: ['post.published'],
+            update: ['post.published.edited'],
+            remove: ['post.unpublished']
+        }
+    },
+    {
+        type: 'pages',
+        modelName: 'posts',
+        apiOptions: {
+            filter: 'visibility:public+status:published+page:1',
+            fields: 'id,slug,title,status,visibility,featured,updated_at,created_at,published_at'
+        },
+        events: {
+            add: ['page.published'],
+            update: ['page.published.edited'],
+            remove: ['page.unpublished']
         }
     },
     {
@@ -50,13 +73,23 @@ const resourcesConfig = [
         apiOptions: {
             filter: 'visibility:public',
             fields: 'id,slug,visibility,updated_at,created_at'
+        },
+        events: {
+            add: ['tag.added'],
+            update: ['tag.edited'],
+            remove: ['tag.deleted']
         }
     },
     {
         type: 'users',
         apiOptions: {
             filter: 'visibility:public',
-            fields: 'id,email,slug,visibility,updated_at,created_at'
+            fields: 'id,slug,visibility,updated_at,created_at'
+        },
+        events: {
+            add: ['user.activated'],
+            update: ['user.activated.edited'],
+            remove: ['user.deactivated']
         }
     }
 ];
@@ -68,21 +101,28 @@ class Resources {
     constructor(queue) {
         this.queue = queue;
         this.data = {};
-        this.listeners();
+        this._listeners();
     }
 
-    listeners() {
+    _listeners() {
+        /**
+         * Is triggered when the database is ready.
+         * See server/data/db/health.
+         *
+         * This is the trigger to start fetching our resources.
+         */
         common.events.on('db.ready', () => {
             const ops = [];
             debug('db ready');
 
-            _.map(resourcesConfig, (resourceConfig) => {
+            _.each(resourcesConfig, (resourceConfig) => {
                 this.data[resourceConfig.type] = [];
-                ops.push(this.fetch(resourceConfig));
+                ops.push(this._fetch(resourceConfig));
             });
 
             Promise.all(ops)
                 .then(() => {
+                    // CASE: all resources are fetched, start the queue
                     this.queue.start({
                         event: 'init',
                         tolerance: 100
@@ -90,140 +130,32 @@ class Resources {
                 });
         });
 
-        common.events.onMany([
-            'post.published',
-            'page.published'
-        ], (model) => {
-            const type = model.tableName;
-            const resource = new Resource(type, model.toJSON());
-
-            this.data[type].push(resource);
-
-            this.queue.start({
-                event: 'added',
-                action: 'added:' + model.id,
-                eventData: {
-                    id: model.id,
-                    type: type
-                }
-            });
-        });
-
         /**
-         * CASE:
-         *  - post is published
-         *  - resource exists, but nobody owns it
-         *
-         * CASE:
-         *   - post is published
-         *   - resource exists and is owned
-         *   - but the data changed and it's no longer owned
+         * Register model events.
+         * If models are added, updated, removed - we have to know that.
          */
-        common.events.onMany([
-            'post.published.edited'
-        ], (model) => {
-            const type = model.tableName;
-
-            this.data[type].every((resource) => {
-                if (resource.data.id === model.id) {
-                    if (resource.isTaken()) {
-                        resource.update(model.toJSON());
-                    } else {
-                        resource.update(model.toJSON(), {noEvent: true});
-
-                        // pretend it was added ;)
-                        this.queue.start({
-                            event: 'added',
-                            action: 'added:' + model.id,
-                            eventData: {
-                                id: model.id,
-                                type: type
-                            }
-                        });
-                    }
-
-                    // break!
-                    return false;
-                }
-
-                return true;
-            });
-        });
-
-        common.events.onMany([
-            'post.unpublished',
-            'page.unpublished'
-        ], (model) => {
-            const type = model.tableName;
-            let index = null;
-
-            this.data[type].every((resource, _index) => {
-                if (resource.data.id === model.id) {
-                    if (resource.isTaken()) {
-                        resource.remove();
-                    }
-
-                    index = _index;
-
-                    // break!
-                    return false;
-                }
-
-                return true;
+        _.each(resourcesConfig, (resourceConfig) => {
+            common.events.onMany(resourceConfig.events.add, (model) => {
+                this._onResourceAdded(resourceConfig.type, model);
             });
 
-            // CASE: there are possible cases that the resource was not fetched e.g. visibility is internal
-            if (index === null) {
-                debug('can\'t find resource', model.id);
-                return;
-            }
+            common.events.onMany(resourceConfig.events.update, (model) => {
+                this._onResourceUpdated(resourceConfig.type, model);
+            });
 
-            delete this.data[type][index];
+            common.events.onMany(resourceConfig.events.remove, (model) => {
+                this._onResourceRemoved(resourceConfig.type, model);
+            });
         });
     }
 
-    free(type, resource) {
-        this.queue.start({
-            event: 'added',
-            action: 'added:' + resource.data.id,
-            eventData: {
-                id: resource.data.id,
-                type: type
-            }
-        });
-    }
-
-    removeResource(type, resource) {
-        const index = _.findIndex(this.data[type], {uid: resource.id});
-        delete this.data[type][index];
-    }
-
-    getAll(type) {
-        return this.data[type];
-    }
-
-    getByIdAndType(type, id) {
-        return _.find(this.data[type], {data: {id: id}});
-    }
-
-    create(type, data) {
-        const resource = new Resource(type, data);
-
-        if (!this.data[type]) {
-            this.data[type] = [];
-        }
-
-        this.data[type].push(resource);
-        return resource;
-    }
-
-    fetch(resourceConfig) {
+    _fetch(resourceConfig) {
         const gql = require('ghost-gql'),
             db = require('../../data/db');
 
-        debug('fetch', resourceConfig.type, resourceConfig.apiOptions);
+        debug('_fetch', resourceConfig.type, resourceConfig.apiOptions);
 
-        let query = db.knex(resourceConfig.type);
+        let query = db.knex(resourceConfig.modelName || resourceConfig.type);
 
         // select fields
         query.select(resourceConfig.apiOptions.fields.split(','));
@@ -269,7 +201,7 @@ class Resources {
 
                             // arr => obj (faster access)
                             return relations.reduce((obj, item) => {
-                                obj[item.id] = item;
+                                obj[item[toInclude.whereIn]] = _.pick(item, toInclude.keep);
                                 return obj;
                             }, {});
                         });
@@ -282,7 +214,11 @@ class Resources {
 
                     _.each(objects, (object) => {
                         _.each(Object.keys(relations), (relation) => {
-                            object[relation] = [relations[relation][object.id]];
+                            if (!relations[relation][object.id]) {
+                                return;
+                            }
+
+                            object[relation] = relations[relation][object.id];
                         });
 
                         this.data[resourceConfig.type].push(new Resource(resourceConfig.type, object));
@@ -291,6 +227,114 @@ class Resources {
                     debug('attached relations', resourceConfig.type);
                 });
         });
+    }
+
+    _onResourceAdded(type, model) {
+        const resource = new Resource(type, _.pick(model.toJSON(), _.find(resourcesConfig, {type: type}).apiOptions.fields.split(',')));
+
+        this.data[type].push(resource);
+
+        this.queue.start({
+            event: 'added',
+            action: 'added:' + model.id,
+            eventData: {
+                id: model.id,
+                type: type
+            }
+        });
+    }
+
+    /**
+     * CASE:
+     *  - post was fetched on bootstrap
+     *  - that means, the post is already published
+     *  - resource exists, but nobody owns it
+     *  - if the model changes, it can be that somebody will then own the post
+     *
+     * CASE:
+     *   - post was fetched on bootstrap
+     *   - that means, the post is already published
+     *   - resource exists and is owned by somebody
+     *   - but the data changed and is maybe no longer owned?
+     *   - e.g. featured:false changes and your filter requires featured posts
+     *
+     * @TODO:
+     *   - big underlying problem: can we rely on the fields we receive here?
+     */
+    _onResourceUpdated(type, model) {
+        this.data[type].every((resource) => {
+            if (resource.data.id === model.id) {
+                resource.update(model.toJSON());
+
+                // CASE: pretend it was added
+                if (!resource.isTaken()) {
+                    this.queue.start({
+                        event: 'added',
+                        action: 'added:' + model.id,
+                        eventData: {
+                            id: model.id,
+                            type: type
+                        }
+                    });
+                }
+
+                // break!
+                return false;
+            }
+
+            return true;
+        });
+    }
+
+    _onResourceRemoved(type, model) {
+        let index = null;
+
+        this.data[type].every((resource, _index) => {
+            if (resource.data.id === model.id) {
+                if (resource.isTaken()) {
+                    resource.remove();
+                }
+
+                index = _index;
+
+                // break!
+                return false;
+            }
+
+            return true;
+        });
+
+        // CASE: there are possible cases that the resource was not fetched e.g. visibility is internal
+        if (index === null) {
+            debug('can\'t find resource', model.id);
+            return;
+        }
+
+        delete this.data[type][index];
+    }
+
+    removeResource(type, resource) {
+        const index = _.findIndex(this.data[type], {uid: resource.id});
+        delete this.data[type][index];
+    }
+
+    getAll(type) {
+        return this.data[type];
+    }
+
+    getByIdAndType(type, id) {
+        return _.find(this.data[type], {data: {id: id}});
+    }
+
+    create(type, data) {
+        const resource = new Resource(type, data);
+
+        if (!this.data[type]) {
+            this.data[type] = [];
+        }
+
+        this.data[type].push(resource);
+        return resource;
     }
 }
 

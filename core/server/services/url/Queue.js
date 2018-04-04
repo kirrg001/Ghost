@@ -5,65 +5,62 @@ const debug = require('ghost-ignition').debug('services:url:queue'),
     common = require('../../lib/common');
 
 /**
+ * ### Purpose of this queue
  *
- * Ghost fetches as earliest as possible the resources.
- * Parallel to this, the routes are fetched/prepared and registered.
- * So the challenge is to handle both resources availability and route registration.
- * Furthermore, we need to ensure that the first route of a type, receives the data first.
- * We need to ensure that each `url` is owned by exactly one route.
+ * Ghost fetches as earliest as possible the resources from the database. The reason is simply: we
+ * want to know all urls as soon as possible.
+ *
+ * Parallel to this, the routes/channels are read/prepared and registered in express.
+ * So the challenge is to handle both resource availability and route registration.
+ * If you start an event, all subscribers of it are executed in a sequence. The queue will wait
+ * till the current subscriber has finished it's work.
+ * The url service must ensure that each url in the system exists once. The order of
+ * subscribers defines who will possibly own an url first.
+ *
+ * If an event has finished, the subscribers of this event still remain in the queue.
+ * That means:
+ *
+ * - you can re-run an event
+ * - you can add more subscribers to an existing queue
+ * - you can order subscribers (helpful if you want to order routes/channels)
+ *
+ * Each subscriber represents one instance of the url generator. One url generator represents one channel/route.
+ *
+ * ### Tolerance option
+ *
+ * You can define a tolerance value per event. If you want to wait an amount of time till you think
+ * all subscribers have registered.
+ *
+ * ### Some examples to understand cases
  *
  * e.g.
- *  - resources have finished, event is triggered e.g. `resources:fetched`
- *  - no listeners yet, we need to wait, express initialises
- *  - okay, routes are coming in, they are waiting for data
+ *  - resources have been loaded, event has started
+ *  - no subscribers yet, we need to wait, express still initialises
+ *  - okay, routes are coming in
+ *  - we notify the subscribers
  *
  * e.g.
- *  - resources are in progress
+ *  - resources are in the progress of fetching from the database
  *  - routes are already waiting for the resources
  *
  * e.g.
- *  - resources are in progress
- *  - 2 routes are already registered
- *  - resources finished, event is triggered
- *  - 2 more routes registered
- *
- * Long running events will remain listening, but the timeout is exponential.
- * The event will be waked up as soon as there is a new subscriber.
- *
- * e.g.
- *   - we add a UI for routes
- *   - user adds a new route
- *   - with a specific position (position defines who will possibly owns the resource first)
- *   - we have to reinitialise all routes
- *      - the alternative is to only reinitialise url generators which are below my position, but error prone
- *
- * e.g.
- *   - we add a UI for routes
- *   - user orders routes
- *   - the queue array order represents the route order (priority, first filter which matches will own the resource)
- *   - all url generators need to reinitialise
- *   - the url generator owns a number of resources
- *   - queue will be reinitialised
- *
- * e.g.
- *   - we add a UI for routes
- *   - you remove a route
- *   - the target url generator can free it's resources
- *   - but we need to check if any other route will then own the post
- *   - so the order of url generators will be re-asked if they want to own the free resources
- *   - we first would need to reset everything
- *   - this is the easiest implementation and less error prone
- *   - and you don't change your routes every day
- *
- * Events:
+ *  - resources are in the progress of fetching from the database
+ *  - 2 subscribers are already registered
+ *  - resources finished, event starts
+ *  - 2 more subscribers are coming in
+
+ * ### Events
  *   - unique events e.g. added, updated, init, all
- *   - each subscriber subscribes to events
+ *   - has subscribers
  *   - we remember the subscriber
  *
- * Actions:
+ * ### Actions
  *   - one event can have multiple actions
- *   - unique actions e.g. add post 1
+ *   - unique actions e.g. add post 1, add post 2
  *   - one event might only allow a single action to avoid collisions e.g. you initialise data twice
+ *   - if an event has no action, the name of the action is the name of the event
+ *   - in this case the event can only run once at a time
+ *   - makes use of `toNotify` to remember who was notified already
  */
 class Queue extends EventEmitter {
     constructor() {
@@ -125,7 +122,7 @@ class Queue extends EventEmitter {
         } else {
             // CASE 1: zero tolerance, kill run fn
             // CASE 2: okay, i was tolerant enough, kill me
-            // CASE 3: wait for more subscribers
+            // CASE 3: wait for more subscribers, i am still tolerant
             if (options.tolerance === 0) {
                 delete this.toNotify[action];
                 debug('ended', event, action);
@@ -145,7 +142,7 @@ class Queue extends EventEmitter {
     }
 
     start(options) {
-        // CASE: nobody is in the queue waiting yet
+        // CASE: nobody is in the event queue waiting yet
         // e.g. all resources are fetched already, but no subscribers (bootstrap)
         // happens only for high tolerant events
         if (!this.queue.hasOwnProperty(options.event)) {
@@ -155,7 +152,8 @@ class Queue extends EventEmitter {
             };
         }
 
-        // CASE: the queue supports killing an event, when it the event only allows one action (event === action)
+        // CASE: the queue supports killing an event, when the event has no action
+        // e.g. `init` event
         if (!options.action) {
             options.action = options.event;
 
@@ -166,6 +164,8 @@ class Queue extends EventEmitter {
                     clearTimeout(this.toNotify[options.action].timeout);
                     this.toNotify[options.action].timeout = null;
                 } else {
+                    // CASE: event is started behind each other and the async operation is in progress
+                    // @TODO: this needs a test, not sure what todo here without a test
                     throw new common.errors.IncorrectUsageError({
                         message: 'This can\'t happen.'
                     });

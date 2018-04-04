@@ -6,9 +6,12 @@ const _ = require('lodash'),
     jsonpath = require('jsonpath'),
     debug = require('ghost-ignition').debug('services:url:generator'),
     config = require('../../config'),
-    common = require('../../lib/common'),
     settingsCache = require('../settings/cache'),
-    getMatchFilter = (filter) => {
+    /**
+     * @TODO: This is a fake version of the upcoming GQL tool.
+     * GQL will offer a tool to match a JSON against a filter.
+     */
+    transformFilter = (filter) => {
         filter = '$[?(' + filter + ')]';
         filter = filter.replace(/(\w+):(\w+)/g, '@.$1 == "$2"');
         filter = filter.replace(/"true"/g, 'true');
@@ -29,18 +32,19 @@ class UrlGenerator {
 
         debug('constructor', this.toString());
 
+        // CASE: channels can define custom filters, but not required.
         if (this.channel.getFilter()) {
-            this.matchFilter = getMatchFilter(this.channel.getFilter());
-            debug('matching filter', this.matchFilter);
+            this.filter = transformFilter(this.channel.getFilter());
+            debug('filter', this.filter);
         }
 
-        this.listeners();
+        this._listeners();
     }
 
-    listeners() {
+    _listeners() {
         // NOTE: currently only used if the permalink setting changes and it's used for this url generator.
         this.channel.addListener('updated', () => {
-            const myUrls = this.urls.getByUid(this.uid);
+            const myUrls = this.urls.getUrlsByUid(this.uid);
 
             myUrls.forEach((url) => {
                 const resource = this.urls.getUrl(url).resource;
@@ -56,6 +60,10 @@ class UrlGenerator {
             });
         });
 
+        /**
+         * Channels can be disabled by default, right now only for apps.
+         * But they are getting enabled during runtime.
+         */
         this.channel.addListener('enabled', () => {
             try {
                 this.urls.add({
@@ -72,110 +80,76 @@ class UrlGenerator {
             this.resources.removeResource(this.channel.getType(), resource);
             this.urls.removeUrl(this.channel.getRoute().value);
         });
-    }
 
-    toString() {
-        return this.channel.toString();
-    }
-
-    /**
-     * Every UrlGenerator will be notified when the system is ready to generator urls.
-     * This depends on having the resources fetched from the database.
-     * Each UrlGenerator is waiting in an ordered line.
-     */
-    init() {
+        /**
+         * Listen on two events:
+         *
+         * - init: bootstrap or url reset
+         * - added: resource was added
+         */
         this.queue.register({
             event: 'init',
             tolerance: 100
-        }, () => {
-            debug('on init', this.toString());
-
-            // CASE: channel is disabled
-            // You can enable/disable channels and you can disable/enable extensions.
-            // e.g. disable channel: app
-            // e.g. disable extension: amp
-            if (!this.channel.isEnabled) {
-                debug('is disabled', this.toString());
-                return Promise.resolve();
-            }
-
-            if (this.channel.mainRoute) {
-                try {
-                    this.urls.add({
-                        url: this.channel.getRoute().value,
-                        urlGenerator: this
-                    }, this.resources.create(this.channel.getType(), {}));
-                } catch (err) {
-                    debug('Ignore. Detected url collision.', this.toString());
-                    return Promise.resolve();
-                }
-            }
-
-            if (!this.channel.getPermalinks()) {
-                debug('no permalink', this.toString());
-                return Promise.resolve();
-            }
-
-            // get the resources of my type e.g. posts.
-            const resources = this.resources.getAll(this.channel.getType());
-
-            _.each(resources, (resource) => {
-                const url = this.generateUrl(resource);
-
-                if (resource.isTaken()) {
-                    return;
-                }
-
-                // CASE: route has no custom filter, it will own the resource for sure
-                if (!this.matchFilter) {
-                    this.urls.add({
-                        url: url,
-                        urlGenerator: this
-                    }, resource);
-
-                    this.resourceListeners(resource);
-                    return;
-                }
-
-                // CASE: find out if my filter matches the resource
-                if (jsonpath.query(resource, this.matchFilter).length) {
-                    this.urls.add({
-                        url: url,
-                        urlGenerator: this
-                    }, resource);
-
-                    this.resourceListeners(resource);
-                }
-            });
-
-            return Promise.resolve();
-        });
+        }, this._onInit.bind(this));
 
         this.queue.register({
             event: 'added'
-        }, (event) => {
-            const resource = this.resources.getByIdAndType(this.channel.getType(), event.id);
+        }, this._onAdded.bind(this));
+    }
 
-            if (!resource) {
+    _onInit() {
+        debug('_onInit', this.toString());
+
+        // CASE: channel is disabled
+        // You can enable/disable channels and you can disable/enable extensions.
+        // e.g. disable channel: app
+        // e.g. disable extension: amp
+        if (!this.channel.isEnabled) {
+            debug('is disabled', this.toString());
+            return Promise.resolve();
+        }
+
+        // CASE: a channel can have a base route, but it's not allowed to be served e.g. taxonomies
+        if (this.channel.registerRoute) {
+            try {
+                this.urls.add({
+                    url: this.channel.getRoute().value,
+                    urlGenerator: this
+                }, this.resources.create(this.channel.getType(), {}));
+            } catch (err) {
+                debug('Ignore. Detected url collision.', this.toString());
                 return Promise.resolve();
             }
+        }
 
+        if (!this.channel.getPermalinks()) {
+            debug('no permalink', this.toString());
+            return Promise.resolve();
+        }
+
+        // get the resources of my type e.g. posts.
+        const resources = this.resources.getAll(this.channel.getType());
+
+        _.each(resources, (resource) => {
             const url = this.generateUrl(resource);
 
             if (resource.isTaken()) {
-                return Promise.resolve();
+                return;
             }
 
-            debug('onAdded');
-
-            if (!this.matchFilter) {
+            // CASE: route has no custom filter, it will own the resource for sure
+            if (!this.filter) {
                 this.urls.add({
                     url: url,
                     urlGenerator: this
                 }, resource);
 
                 this.resourceListeners(resource);
-            } else if (jsonpath.query(resource, this.matchFilter).length) {
+                return;
+            }
+
+            // CASE: find out if my filter matches the resource
+            if (jsonpath.query(resource, this.filter).length) {
                 this.urls.add({
                     url: url,
                     urlGenerator: this
@@ -183,12 +157,53 @@ class UrlGenerator {
 
                 this.resourceListeners(resource);
             }
-
-            return Promise.resolve();
         });
+
+        return Promise.resolve();
     }
 
-    replacepermalink(url, resource) {
+    _onAdded(event) {
+        const resource = this.resources.getByIdAndType(this.channel.getType(), event.id);
+
+        // @TODO: does this case exist? test it!
+        if (!resource) {
+            return Promise.resolve();
+        }
+
+        if (resource.isTaken()) {
+            return Promise.resolve();
+        }
+
+        const url = this.generateUrl(resource);
+        debug('onAdded');
+
+        // CASE 1: no custom filter, i'll own this resource
+        // CASE 2: custom filter, my filter needs to match the resource
+        if (!this.filter) {
+            this.urls.add({
+                url: url,
+                urlGenerator: this
+            }, resource);
+
+            this.resourceListeners(resource);
+        } else if (jsonpath.query(resource, this.filter).length) {
+            this.urls.add({
+                url: url,
+                urlGenerator: this
+            }, resource);
+
+            this.resourceListeners(resource);
+        }
+
+        return Promise.resolve();
+    }
+
+    /**
+     * @TODO:
+     * This is a copy of `replacePermalink` of our url utility, see ./utils
+     * But it has modifications, because the whole url utility doesn't work anymore.
+     */
+    _replacePermalink(url, resource) {
         var output = url,
             primaryTagFallback = config.get('routeKeywords').primaryTagFallback,
             publishedAtMoment = moment.tz(resource.data.published_at || Date.now(), settingsCache.get('active_timezone')),
@@ -203,7 +218,7 @@ class UrlGenerator {
                     return publishedAtMoment.format('DD');
                 },
                 author: function () {
-                    return resource.data.author.slug;
+                    return resource.data.primary_author.slug;
                 },
                 primary_tag: function () {
                     return resource.data.primary_tag ? resource.data.primary_tag.slug : primaryTagFallback;
@@ -226,11 +241,19 @@ class UrlGenerator {
         return output;
     }
 
-    generateUrl(resource) {
-        const url = this.channel.getPermalinks().getValue(resource);
-        return this.replacepermalink(url, resource);
+    toString() {
+        return this.channel.toString();
     }
 
+    generateUrl(resource) {
+        const url = this.channel.getPermalinks().getValue();
+        return this._replacePermalink(url, resource);
+    }
+
+    /**
+     * I want to know if my resources changes.
+     * Register events of resource.
+     */
     resourceListeners(resource) {
         const onUpdate = (updatedResource) => {
             this.urls.removeByResource(this.uid, updatedResource);
@@ -238,7 +261,7 @@ class UrlGenerator {
 
             const url = this.generateUrl(updatedResource);
 
-            if (!this.matchFilter) {
+            if (!this.filter) {
                 this.urls.add({
                     url: url,
                     urlGenerator: this
@@ -249,14 +272,22 @@ class UrlGenerator {
             // CASE: data has changed, does the resource still match my filter?
             // if yes, unset url to be able to re-add url (only do if slug changed, not implemented)
             // if no, other url generator need to know
-            if (jsonpath.query(updatedResource, this.matchFilter).length) {
+            if (jsonpath.query(updatedResource, this.filter).length) {
                 this.urls.add({
                     url: url,
                     urlGenerator: this
                 }, updatedResource);
             } else {
                 debug('free, this is not mine anymore', updatedResource.data.id);
-                this.resources.free(this.channel.getType(), updatedResource);
+
+                this.queue.start({
+                    event: 'added',
+                    action: 'added:' + resource.data.id,
+                    eventData: {
+                        id: resource.data.id,
+                        type: this.channel.getType()
+                    }
+                });
             }
         };
 
@@ -270,17 +301,20 @@ class UrlGenerator {
     }
 
     /**
-     * I know already that this is my url.
-     * Is this a main route or a permalink?
+     * You can use this function to figure out if a url looks like a url.
+     *
+     * e.g.
+     *  - /author/ghost/ is my url
+     *  - /author/ghost/rss/ is an extension of my url
      */
-    isValid(url, myUrl) {
+    is(thisUrl, myUrl) {
         let extensions = this.channel.getRoute().extensions;
         let toReturn = {
             found: false
         };
 
         Object.keys(extensions).every((extension) => {
-            const shortUrl = url.replace(new RegExp(extensions[extension].route), '');
+            const shortUrl = thisUrl.replace(new RegExp(extensions[extension].route), '');
 
             if (shortUrl === myUrl) {
                 if (extensions[extension].enabled) {
@@ -309,7 +343,7 @@ class UrlGenerator {
         extensions = this.channel.getPermalinks().extensions;
 
         Object.keys(extensions).every((extension) => {
-            const shortUrl = url.replace(new RegExp(extensions[extension].route), '');
+            const shortUrl = thisUrl.replace(new RegExp(extensions[extension].route), '');
 
             if (shortUrl === myUrl) {
                 if (extensions[extension].enabled) {
@@ -331,5 +365,4 @@ class UrlGenerator {
     }
 }
 
-module
-    .exports = UrlGenerator;
+module.exports = UrlGenerator;

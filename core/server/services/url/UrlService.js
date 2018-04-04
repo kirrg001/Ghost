@@ -30,7 +30,6 @@ class UrlService {
         common.events.on('channel.created', (channel) => {
             let urlGenerator = new UrlGenerator(channel, this.queue, this.resources, this.urls);
             this.urlGenerators.push(urlGenerator);
-            urlGenerator.init();
         });
 
         /**
