@@ -8,6 +8,7 @@ class Resource extends EventEmitter {
     constructor(type, obj) {
         super();
 
+        this.uid = Math.random().toString(36).substring(7);
         this.data = {};
         this.config = {
             type: type,

@@ -127,15 +127,24 @@ module.exports = function setupSiteApp() {
     siteApp.use(function (req, res, next) {
         // @TODO: without query params
         urlService.hasUrl(req.originalUrl)
-            .then(function () {
-                next();
+            .then(function (response) {
+                if (!response.disabled) {
+                    return next();
+                }
+
+                if (response.redirect) {
+                    return urlService.utils.redirect301(res, response.redirectUrl);
+                }
             })
-            .catch(function () {
+            .catch(() => {
                 next(new common.errors.NotFoundError({
                     message: common.i18n.t('errors.errors.pageNotFound')
                 }));
             });
     });
+
+    // @temporary
+    require('../../services/channels/RouterBase');
 
     // Set up Frontend routes (including private blogging routes)
     siteApp.use(siteRoutes());

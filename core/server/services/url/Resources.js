@@ -159,7 +159,6 @@ class Resources {
 
             this.data[type].every((resource, _index) => {
                 if (resource.data.id === model.id) {
-
                     if (resource.isTaken()) {
                         resource.remove();
                     }
@@ -192,6 +191,11 @@ class Resources {
                 type: type
             }
         });
+    }
+
+    removeResource(type, resource) {
+        const index = _.findIndex(this.data[type], {uid: resource.id});
+        delete this.data[type][index];
     }
 
     getAll(type) {

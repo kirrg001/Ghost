@@ -46,10 +46,8 @@ class UrlService {
      *  It depends on the order of route registration who owns the URL first.
      */
     listeners() {
-        // @TODO: subscribe app can be activated during runtime
-        // @TODO: how?
-        common.events.on('route.added', (entry) => {
-            let urlGenerator = new UrlGenerator(entry, this.queue, this.resources, this.urls);
+        common.events.on('channel.created', (channel) => {
+            let urlGenerator = new UrlGenerator(channel, this.queue, this.resources, this.urls);
             this.urlGenerators.push(urlGenerator);
             urlGenerator.init();
         });
@@ -71,9 +69,11 @@ class UrlService {
         debug('hasUrl ?', url);
 
         return new Promise((resolve, reject) => {
-            if (this.urls.hasUrl(url)) {
-                debug('url exists');
-                return resolve();
+            const response = this.urls.hasUrl(url);
+
+            if (response.found) {
+                debug(response);
+                return resolve(response);
             }
 
             if (!this.finished) {

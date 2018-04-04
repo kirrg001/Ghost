@@ -12,9 +12,8 @@ class Urls {
     }
 
     add(options, resource) {
-        const extensions = options.extensions;
         const url = options.url;
-        const uid = options.uid;
+        const urlGenerator = options.urlGenerator;
 
         // ignore url e.g. null
         if (!url) {
@@ -29,49 +28,46 @@ class Urls {
         resource.take();
 
         this.urls[url] = {
-            uid: uid,
-            resource: resource,
-            extensions: extensions || []
+            urlGenerator: urlGenerator,
+            resource: resource
         };
     }
 
     hasUrl(url) {
+        // CASE: direct match
         if (this.urls[url]) {
-            return true;
+            return {
+                found: true
+            };
         }
 
-        let found = false;
+        let toReturn = {
+            found: false
+        };
 
-        // CASE: extension?
-        Object.keys(this.urls).every((key) => {
-            const extensions = this.urls[key].extensions;
-            let match = false;
+        Object.keys(this.urls).every((existingUrl) => {
+            const response = this.urls[existingUrl].urlGenerator.isValid(url, existingUrl);
 
-            extensions.every((extension) => {
-                const shortUrl = url.replace(new RegExp(extension), '');
+            if (response.found) {
+                toReturn.found = true;
 
-                if (key === shortUrl) {
-                    match = true;
-                    return false;
+                if (response.disabled) {
+                    toReturn.disabled = true;
+                    toReturn.redirect = response.redirect;
+                    toReturn.redirectUrl = url.replace(new RegExp(response.extension), '');
                 }
 
-                return true;
-            });
-
-            if (!match) {
-                return true;
+                return false;
             }
-
-            found = true;
-            return false;
+            return true;
         });
 
-        return found === true;
+        return toReturn;
     }
 
     getByUid(uid) {
         return _.reduce(Object.keys(this.urls), (toReturn, key) => {
-            if (this.urls[key].uid === uid) {
+            if (this.urls[key].urlGenerator.uid === uid) {
                 toReturn.push(key);
             }
 
