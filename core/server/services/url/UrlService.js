@@ -1,7 +1,6 @@
 'use strict';
 
-const _ = require('lodash'),
-    Promise = require('bluebird'),
+const Promise = require('bluebird'),
     _debug = require('ghost-ignition').debug._base,
     debug = _debug('ghost:services:url:*'),
     common = require('../../lib/common'),
@@ -14,7 +13,7 @@ const _ = require('lodash'),
 class UrlService {
     constructor() {
         this.utils = localUtils;
-        this.finished = true;
+        this.finished = false;
         this.urlGenerators = [];
 
         this.urls = new Urls();
@@ -24,40 +23,28 @@ class UrlService {
         this.listeners();
     }
 
-    /**
-     * Happens as soon as the routes are registered in express.
-     * Or, you can add routes during the runtime.
-     *
-     * e.g. imagine we have an interface later. You can add/modify/delete routes.
-     * We can add a `updateRoute` fn, it will search for it's url generator and update all the urls.
-     * We also need to ensure that e.g. if a filter changes during the runtime, we need to re-ask if the
-     * filter matches a resource.
-     *
-     * We could also order the routes with e.g. `reorderRoutes`, which will change the order of the
-     * url generator array and the queue order - need to figure out how to easily change this.
-     *
-     * There are two types of routes:
-     *  - 1. collections (permalink based, need to be generated)
-     *  - 2. static routes (e.g. for apps, static home page)
-     *
-     *  Still, every route is unique.
-     *
-     *  e.g. you add /subscribe/ and there is a slug subscribe and a permlink /:slug/ which would own the post.
-     *  It depends on the order of route registration who owns the URL first.
-     */
     listeners() {
+        /**
+         * The purpose of this event is to notify the url service as soon as a channel get's created.
+         */
         common.events.on('channel.created', (channel) => {
             let urlGenerator = new UrlGenerator(channel, this.queue, this.resources, this.urls);
             this.urlGenerators.push(urlGenerator);
             urlGenerator.init();
         });
 
+        /**
+         * The queue will notify us if url generation has finished.
+         */
         this.queue.addListener('ended', (event) => {
             if (event === 'init') {
                 this.finished = true;
             }
         });
 
+        /**
+         * The queue will notify us if url generation has started.
+         */
         this.queue.addListener('started', (event) => {
             if (event === 'init') {
                 this.finished = false;
