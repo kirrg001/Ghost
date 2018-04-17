@@ -1,14 +1,14 @@
-var _       = require('lodash'),
-    xml     = require('xml'),
-    moment  = require('moment'),
+'use strict';
+
+const _ = require('lodash'),
+    xml = require('xml'),
+    moment = require('moment'),
     urlService = require('../../../services/url'),
-    localUtils   = require('./utils'),
-    RESOURCES,
-    XMLNS_DECLS;
+    localUtils = require('./utils');
 
-RESOURCES = ['pages', 'posts', 'authors', 'tags'];
+const RESOURCES = ['pages', 'posts', 'authors', 'tags'];
 
-XMLNS_DECLS = {
+const XMLNS_DECLS = {
     _attr: {
         xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9'
     }
