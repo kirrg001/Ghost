@@ -1,23 +1,34 @@
-var _       = require('lodash'),
-    Promise = require('bluebird'),
+'use strict';
+
+const _ = require('lodash'),
+    common = require('../../../lib/common'),
     IndexMapGenerator = require('./index-generator'),
     PagesMapGenerator = require('./page-generator'),
     PostsMapGenerator = require('./post-generator'),
     UsersMapGenerator = require('./user-generator'),
-    TagsMapGenerator  = require('./tag-generator'),
-    SiteMapManager;
+    TagsMapGenerator  = require('./tag-generator');
+
+let SiteMapManager;
 
 SiteMapManager = function (opts) {
     opts = opts || {};
 
-    this.initialized = false;
-
     this.pages = opts.pages || this.createPagesGenerator(opts);
     this.posts = opts.posts || this.createPostsGenerator(opts);
-    this.authors = opts.authors || this.createUsersGenerator(opts);
+
+    // @TODO: fix
+    this.users = this.authors = opts.authors || this.createUsersGenerator(opts);
     this.tags = opts.tags || this.createTagsGenerator(opts);
 
     this.index = opts.index || this.createIndexGenerator(opts);
+
+    common.events.on('url.added', (obj) => {
+        this[obj.resource.config.type].addUrl(obj.url.absolute, obj.resource.data);
+    });
+
+    common.events.on('url.removed', (obj) => {
+        this[obj.resource.config.type].removeUrl(obj.url.absolute, obj.resource.data);
+    });
 };
 
 _.extend(SiteMapManager.prototype, {
@@ -41,34 +52,12 @@ _.extend(SiteMapManager.prototype, {
         return new TagsMapGenerator(opts);
     },
 
-    init: function () {
-        var self = this,
-            initOps = [
-                this.pages.init(),
-                this.posts.init(),
-                this.authors.init(),
-                this.tags.init()
-            ];
-
-        return Promise.all(initOps).then(function () {
-            self.initialized = true;
-        });
-    },
-
     getIndexXml: function () {
-        if (!this.initialized) {
-            return '';
-        }
-
-        return this.index.getIndexXml();
+        return this.index.getXml();
     },
 
     getSiteMapXml: function (type) {
-        if (!this.initialized || !this[type]) {
-            return null;
-        }
-
-        return this[type].siteMapContent;
+        return this[type].getXml();
     }
 });
 
