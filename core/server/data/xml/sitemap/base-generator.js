@@ -155,10 +155,7 @@ _.extend(BaseSiteMapGenerator.prototype, {
     },
 
     removeFromLookups: function (datum) {
-        var lookup = this.nodeLookup;
         delete this.nodeLookup[datum.id];
-
-        lookup = this.nodeTimeLookup;
         delete this.nodeTimeLookup[datum.id];
     }
 });
