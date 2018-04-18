@@ -23,11 +23,11 @@ SiteMapManager = function (opts) {
     this.index = opts.index || this.createIndexGenerator(opts);
 
     common.events.on('url.added', (obj) => {
-        this[obj.resource.config.type].addOrUpdateUrl(obj.url, obj.resource.data);
+        this[obj.resource.config.type].addOrUpdateUrl(obj.url.absolute, obj.resource.data);
     });
 
     common.events.on('url.removed', (obj) => {
-        this[obj.resource.config.type].removeUrl(obj.url, obj.resource.data);
+        this[obj.resource.config.type].removeUrl(obj.url.absolute, obj.resource.data);
     });
 };
 
@@ -53,11 +53,11 @@ _.extend(SiteMapManager.prototype, {
     },
 
     getIndexXml: function () {
-        return this.index.getIndexXml();
+        return this.index.getXml();
     },
 
     getSiteMapXml: function (type) {
-        return this[type].siteMapContent;
+        return this[type].getXml();
     }
 });
 

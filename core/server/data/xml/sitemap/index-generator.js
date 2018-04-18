@@ -20,7 +20,7 @@ function SiteMapIndexGenerator(opts) {
 }
 
 _.extend(SiteMapIndexGenerator.prototype, {
-    getIndexXml: function () {
+    getXml: function () {
         var urlElements = this.generateSiteMapUrlElements(),
             data = {
                 // Concat the elements to the _attr declaration

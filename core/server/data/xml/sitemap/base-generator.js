@@ -19,7 +19,7 @@ const XMLNS_DECLS = {
 function BaseSiteMapGenerator() {
     this.nodeLookup = {};
     this.nodeTimeLookup = {};
-    this.siteMapContent = '';
+    this.siteMapContent = null;
 }
 
 _.extend(BaseSiteMapGenerator.prototype, {
@@ -47,26 +47,22 @@ _.extend(BaseSiteMapGenerator.prototype, {
         return localUtils.getDeclarations() + xml(data);
     },
 
-    updateXmlFromNodes: function (urlElements) {
-        var content = this.generateXmlFromNodes(urlElements);
-
-        this.setSiteMapContent(content);
-
-        return content;
-    },
-
     addOrUpdateUrl: function (url, datum) {
         const node = this.createUrlNodeFromDatum(url, datum);
 
         if (node) {
             this.updateLookups(datum, node);
-            this.updateXmlFromNodes();
+
+            // force regeneration of xml
+            this.siteMapContent = null;
         }
     },
 
     removeUrl: function (url, datum) {
         this.removeFromLookups(datum);
-        this.updateXmlFromNodes();
+
+        // force regeneration of xml
+        this.siteMapContent = null;
     },
 
     getUrlForImage: function (image) {
@@ -137,8 +133,14 @@ _.extend(BaseSiteMapGenerator.prototype, {
         return !!imageUrl;
     },
 
-    setSiteMapContent: function (content) {
+    getXml: function () {
+        if (this.siteMapContent) {
+            return this.siteMapContent;
+        }
+
+        const content = this.generateXmlFromNodes();
         this.siteMapContent = content;
+        return content;
     },
 
     // @TODO: Check if the node values changed, and if not don't regenerate
