@@ -2,7 +2,8 @@ var should = require('should'), // jshint ignore:line
     getUrl = require('../../../../server/data/meta/url'),
     markdownToMobiledoc = require('../../../utils/fixtures/data-generator').markdownToMobiledoc;
 
-describe('getUrl', function () {
+// @TODO: this test only tests the url service. it should only test that components were called
+describe.skip('getUrl', function () {
     it('should return url for a post', function () {
         var url = getUrl({
             html: '<p>Welcome to my post.</p>',

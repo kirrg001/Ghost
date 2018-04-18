@@ -11,23 +11,26 @@ function sanitizeAmpUrl(url) {
     return url;
 }
 
+// @TODO: why data.post vs data?
 function getUrl(data, absolute) {
-    if (schema.isPost(data)) {
-        return urlService.utils.urlFor('post', {post: data, secure: data.secure}, absolute);
+    if (schema.isPost(data.post || data)) {
+        return urlService.getUrlByResourceId(data.post ? data.post.id : data.id, {secure: data.secure, absolute: absolute});
     }
 
-    if (schema.isTag(data)) {
-        return urlService.utils.urlFor('tag', {tag: data, secure: data.secure}, absolute);
+    if (schema.isTag(data.tag || data)) {
+        return urlService.getUrlByResourceId(data.tag ? data.tag.id : data.id, {secure: data.secure, absolute: absolute});
     }
 
-    if (schema.isUser(data)) {
-        return urlService.utils.urlFor('author', {author: data, secure: data.secure}, absolute);
+    if (schema.isUser(data.author || data)) {
+        return urlService.getUrlByResourceId(data.author ? data.author.id : data.id, {secure: data.secure, absolute});
     }
 
     if (schema.isNav(data)) {
         return urlService.utils.urlFor('nav', {nav: data, secure: data.secure}, absolute);
     }
 
+    // CASE: does not look like a resource
+    // @TODO: what is the real case here? O_O
     // sanitize any trailing `/amp` in the url
     return sanitizeAmpUrl(urlService.utils.urlFor(data, {}, absolute));
 }

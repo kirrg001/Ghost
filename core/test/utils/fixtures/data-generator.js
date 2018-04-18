@@ -477,7 +477,8 @@ DataGenerator.forKnex = (function () {
             created_at: new Date(),
             updated_at: new Date(),
             updated_by: DataGenerator.Content.users[0].id,
-            visibility: 'public'
+            visibility: 'public',
+            location: 'location'
         });
     }
 

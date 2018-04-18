@@ -35,7 +35,7 @@ module.exports = function entryController(req, res, next) {
         }
 
         // CASE: permalink is not valid anymore, we redirect him permanently to the correct one
-        if (post.url !== req.path) {
+        if (post.url !== req.originalUrl) {
             return urlService.utils.redirect301(res, post.url);
         }
 
