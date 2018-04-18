@@ -143,7 +143,12 @@ _.extend(BaseSiteMapGenerator.prototype, {
         return content;
     },
 
-    // @TODO: Check if the node values changed, and if not don't regenerate
+    /**
+     * @NOTE
+     * The url service currently has no url update event.
+     * It removes and adds the url. If the url service extends it's
+     * feature set, we can detect if a node has changed.
+     */
     updateLookups: function (datum, node) {
         this.nodeLookup[datum.id] = node;
         this.nodeTimeLookup[datum.id] = this.getLastModifiedForDatum(datum);
@@ -151,10 +156,10 @@ _.extend(BaseSiteMapGenerator.prototype, {
 
     removeFromLookups: function (datum) {
         var lookup = this.nodeLookup;
-        delete lookup[datum.id];
+        delete this.nodeLookup[datum.id];
 
         lookup = this.nodeTimeLookup;
-        delete lookup[datum.id];
+        delete this.nodeTimeLookup[datum.id];
     }
 });
 
