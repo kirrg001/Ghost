@@ -16,6 +16,7 @@ const should = require('should'),
 
 should.Assertion.add('ValidUrlNode', function (options) {
     // Check urlNode looks correct
+    /*eslint no-invalid-this: "off"*/
     let urlNode = this.obj;
     let flatNode;
 
