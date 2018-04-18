@@ -47,7 +47,7 @@ class BaseSiteMapGenerator {
         return localUtils.getDeclarations() + xml(data);
     }
 
-    addOrUpdateUrl(url, datum) {
+    addUrl(url, datum) {
         const node = this.createUrlNodeFromDatum(url, datum);
 
         if (node) {

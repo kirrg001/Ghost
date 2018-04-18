@@ -9,7 +9,7 @@ class PageMapGenerator extends BaseMapGenerator {
         super();
 
         _.extend(this, opts);
-        this.addOrUpdateUrl(urlService.utils.urlFor('home', true), {slug: 'name'});
+        this.addUrl(urlService.utils.urlFor('home', true), {slug: 'name'});
     }
 
     /**

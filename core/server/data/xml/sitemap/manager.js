@@ -23,7 +23,7 @@ SiteMapManager = function (opts) {
     this.index = opts.index || this.createIndexGenerator(opts);
 
     common.events.on('url.added', (obj) => {
-        this[obj.resource.config.type].addOrUpdateUrl(obj.url.absolute, obj.resource.data);
+        this[obj.resource.config.type].addUrl(obj.url.absolute, obj.resource.data);
     });
 
     common.events.on('url.removed', (obj) => {
