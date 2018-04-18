@@ -14,13 +14,13 @@ const XMLNS_DECLS = {
     }
 };
 
-function SiteMapIndexGenerator(opts) {
-    // Grab the other site map generators from the options
-    _.extend(this, _.pick(opts, RESOURCES));
-}
+class SiteMapIndexGenerator {
+    constructor(opts) {
+        // Grab the other site map generators from the options
+        _.extend(this, _.pick(opts, RESOURCES));
+    }
 
-_.extend(SiteMapIndexGenerator.prototype, {
-    getXml: function () {
+    getXml() {
         var urlElements = this.generateSiteMapUrlElements(),
             data = {
                 // Concat the elements to the _attr declaration
@@ -29,9 +29,9 @@ _.extend(SiteMapIndexGenerator.prototype, {
 
         // Return the xml
         return localUtils.getDeclarations() + xml(data);
-    },
+    }
 
-    generateSiteMapUrlElements: function () {
+    generateSiteMapUrlElements() {
         var self = this;
 
         return _.map(RESOURCES, function (resourceType) {
@@ -48,6 +48,6 @@ _.extend(SiteMapIndexGenerator.prototype, {
             };
         });
     }
-});
+}
 
 module.exports = SiteMapIndexGenerator;

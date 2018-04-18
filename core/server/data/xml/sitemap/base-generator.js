@@ -16,14 +16,14 @@ const XMLNS_DECLS = {
     }
 };
 
-function BaseSiteMapGenerator() {
-    this.nodeLookup = {};
-    this.nodeTimeLookup = {};
-    this.siteMapContent = null;
-}
+class BaseSiteMapGenerator {
+    constructor() {
+        this.nodeLookup = {};
+        this.nodeTimeLookup = {};
+        this.siteMapContent = null;
+    }
 
-_.extend(BaseSiteMapGenerator.prototype, {
-    generateXmlFromNodes: function () {
+    generateXmlFromNodes() {
         var self = this,
             // Get a mapping of node to timestamp
             timedNodes = _.map(this.nodeLookup, function (node, id) {
@@ -45,9 +45,9 @@ _.extend(BaseSiteMapGenerator.prototype, {
 
         // Return the xml
         return localUtils.getDeclarations() + xml(data);
-    },
+    }
 
-    addOrUpdateUrl: function (url, datum) {
+    addOrUpdateUrl(url, datum) {
         const node = this.createUrlNodeFromDatum(url, datum);
 
         if (node) {
@@ -56,28 +56,24 @@ _.extend(BaseSiteMapGenerator.prototype, {
             // force regeneration of xml
             this.siteMapContent = null;
         }
-    },
+    }
 
-    removeUrl: function (url, datum) {
+    removeUrl(url, datum) {
         this.removeFromLookups(datum);
 
         // force regeneration of xml
         this.siteMapContent = null;
-    },
+    }
 
-    getUrlForImage: function (image) {
-        return urlService.utils.urlFor('image', {image: image}, true);
-    },
-
-    getPriorityForDatum: function () {
+    getPriorityForDatum() {
         return 1.0;
-    },
+    }
 
-    getLastModifiedForDatum: function (datum) {
+    getLastModifiedForDatum(datum) {
         return datum.updated_at || datum.published_at || datum.created_at;
-    },
+    }
 
-    createUrlNodeFromDatum: function (url, datum) {
+    createUrlNodeFromDatum(url, datum) {
         const priority = this.getPriorityForDatum(datum);
         let node, imgNode;
 
@@ -97,9 +93,9 @@ _.extend(BaseSiteMapGenerator.prototype, {
         }
 
         return node;
-    },
+    }
 
-    createImageNodeFromDatum: function (datum) {
+    createImageNodeFromDatum(datum) {
         // Check for cover first because user has cover but the rest only have image
         var image = datum.cover_image || datum.profile_image || datum.feature_image,
             imageUrl,
@@ -110,10 +106,10 @@ _.extend(BaseSiteMapGenerator.prototype, {
         }
 
         // Grab the image url
-        imageUrl = this.getUrlForImage(image);
+        imageUrl = urlService.utils.urlFor('image', {image: image}, true);
 
         // Verify the url structure
-        if (!this.validateImageUrl(imageUrl)) {
+        if (!imageUrl) {
             return;
         }
 
@@ -127,13 +123,9 @@ _.extend(BaseSiteMapGenerator.prototype, {
         return {
             'image:image': imageEl
         };
-    },
+    }
 
-    validateImageUrl: function (imageUrl) {
-        return !!imageUrl;
-    },
-
-    getXml: function () {
+    getXml() {
         if (this.siteMapContent) {
             return this.siteMapContent;
         }
@@ -141,7 +133,7 @@ _.extend(BaseSiteMapGenerator.prototype, {
         const content = this.generateXmlFromNodes();
         this.siteMapContent = content;
         return content;
-    },
+    }
 
     /**
      * @NOTE
@@ -149,15 +141,15 @@ _.extend(BaseSiteMapGenerator.prototype, {
      * It removes and adds the url. If the url service extends it's
      * feature set, we can detect if a node has changed.
      */
-    updateLookups: function (datum, node) {
+    updateLookups(datum, node) {
         this.nodeLookup[datum.id] = node;
         this.nodeTimeLookup[datum.id] = this.getLastModifiedForDatum(datum);
-    },
+    }
 
-    removeFromLookups: function (datum) {
+    removeFromLookups(datum) {
         delete this.nodeLookup[datum.id];
         delete this.nodeTimeLookup[datum.id];
     }
-});
+}
 
 module.exports = BaseSiteMapGenerator;
