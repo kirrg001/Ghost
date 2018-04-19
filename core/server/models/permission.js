@@ -1,3 +1,5 @@
+'use strict';
+
 var ghostBookshelf = require('./base'),
 
     Permission,
@@ -6,6 +8,26 @@ var ghostBookshelf = require('./base'),
 Permission = ghostBookshelf.Model.extend({
 
     tableName: 'permissions',
+
+    relationships: ['roles'],
+    relationshipBelongsTo: {
+        roles: 'roles'
+    },
+
+    /**
+     * The base model keeps only the columns, which are defined in the schema.
+     * We have to add the relations on top, otherwise bookshelf-relations
+     * has no access to the nested relations, which should be updated.
+     */
+    permittedAttributes: function permittedAttributes() {
+        let filteredKeys = ghostBookshelf.Model.prototype.permittedAttributes.apply(this, arguments);
+
+        this.relationships.forEach((key) => {
+            filteredKeys.push(key);
+        });
+
+        return filteredKeys;
+    },
 
     roles: function roles() {
         return this.belongsToMany('Role');

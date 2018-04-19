@@ -26,12 +26,17 @@ Invite = ghostBookshelf.Model.extend({
         return options;
     },
 
-    add: function add(data, options) {
-        var hash = crypto.createHash('sha256'),
-            text = '';
+    add: function add(data, unfilteredOptions) {
+        const options = Invite.filterOptions(unfilteredOptions, 'add'),
+            hash = crypto.createHash('sha256');
+
+        let text = '';
 
         data.expires = Date.now() + constants.ONE_WEEK_MS;
-        data.status = 'pending';
+
+        if (data.status && !options.context || !options.context.internal) {
+            data.status = 'pending';
+        }
 
         // @TODO: call a util fn?
         hash.update(String(data.expires));

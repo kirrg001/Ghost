@@ -1,3 +1,5 @@
+'use strict';
+
 var should = require('should'),
     supertest = require('supertest'),
     testUtils = require('../../../utils'),
@@ -217,14 +219,20 @@ describe('Authentication API', function () {
     });
 
     it('reset password', function (done) {
+        let settings;
+
         models.Settings
             .findOne({key: 'db_hash'})
             .then(function (response) {
+                settings = response;
+                return models.User.getOwnerUser(testUtils.context.internal);
+            })
+            .then(function (ownerUser) {
                 var token = security.tokens.resetToken.generateHash({
                     expires: Date.now() + (1000 * 60),
                     email: user.email,
-                    dbHash: response.attributes.value,
-                    password: userForKnex.password
+                    dbHash: settings.attributes.value,
+                    password: ownerUser.get('password')
                 });
 
                 request.put(testUtils.API.getApiQuery('authentication/passwordreset'))

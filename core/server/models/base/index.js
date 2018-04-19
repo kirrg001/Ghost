@@ -68,7 +68,14 @@ ghostBookshelf.plugin('bookshelf-relations', {
 
                     return existing.updatePivot({
                         sort_order: index
-                    }, _.extend({}, options, queryOptions));
+                    }, _.extend({}, options, queryOptions)).catch(function (err) {
+                        // @TODO: how to get the relation table name?
+                        if (err.message.match(/sort_order/)) {
+                            return;
+                        }
+
+                        throw err;
+                    });
                 });
             },
             beforeRelationCreation: function onCreatingRelation(model, data) {
