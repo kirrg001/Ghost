@@ -68,8 +68,6 @@ function init() {
         debug('Permissions done');
         return Promise.join(
             themes.init(),
-            // Initialize apps
-            apps.init(),
             // Initialize xmrpc ping
             xmlrpc.listen(),
             // Initialize slack ping
@@ -89,6 +87,8 @@ function init() {
         }
 
         debug('Express Apps done');
+    }).then(function () {
+        return apps.init();
     }).then(function () {
         parentApp.use(auth.init());
         debug('Auth done');

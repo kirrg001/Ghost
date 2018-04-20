@@ -17,7 +17,7 @@ describe('templates', function () {
     });
 
     describe('[private] getChannelTemplateHierarchy', function () {
-        var channelTemplateList = _private.getChannelTemplateHierarchy;
+        var channelTemplateList = _private.getCollectionTemplateHierarchy;
 
         it('should return just index for empty channelOpts', function () {
             channelTemplateList({}).should.eql(['index']);
@@ -260,7 +260,7 @@ describe('templates', function () {
             });
 
             it('will return correct view for a tag', function () {
-                var view = _private.getTemplateForChannel({name: 'tag', slugParam: 'development', slugTemplate: true});
+                var view = _private.getTemplateForCollection({name: 'tag', slugParam: 'development', slugTemplate: true});
                 should.exist(view);
                 view.should.eql('index');
             });
@@ -275,20 +275,20 @@ describe('templates', function () {
             });
 
             it('will return correct view for a tag', function () {
-                var view = _private.getTemplateForChannel({name: 'tag', slugParam: 'design', slugTemplate: true});
+                var view = _private.getTemplateForCollection({name: 'tag', slugParam: 'design', slugTemplate: true});
                 should.exist(view);
                 view.should.eql('tag-design');
             });
 
             it('will return correct view for a tag', function () {
-                var view = _private.getTemplateForChannel({name: 'tag', slugParam: 'development', slugTemplate: true});
+                var view = _private.getTemplateForCollection({name: 'tag', slugParam: 'development', slugTemplate: true});
                 should.exist(view);
                 view.should.eql('tag');
             });
         });
 
         it('will fall back to index even if no index.hbs', function () {
-            var view = _private.getTemplateForChannel({name: 'tag', slugParam: 'development', slugTemplate: true});
+            var view = _private.getTemplateForCollection({name: 'tag', slugParam: 'development', slugTemplate: true});
             should.exist(view);
             view.should.eql('index');
         });
@@ -385,7 +385,7 @@ describe('templates', function () {
 
             stubs.pickTemplate = sandbox.stub(_private, 'pickTemplate').returns('testFromPickTemplate');
             stubs.getTemplateForEntry = sandbox.stub(_private, 'getTemplateForEntry').returns('testFromEntry');
-            stubs.getTemplateForChannel = sandbox.stub(_private, 'getTemplateForChannel').returns('testFromChannel');
+            stubs.getTemplateForCollection = sandbox.stub(_private, 'getTemplateForChannel').returns('testFromChannel');
             stubs.getTemplateForError = sandbox.stub(_private, 'getTemplateForError').returns('testFromError');
         });
 
@@ -402,7 +402,7 @@ describe('templates', function () {
             // And nothing got called
             stubs.pickTemplate.called.should.be.false();
             stubs.getTemplateForEntry.called.should.be.false();
-            stubs.getTemplateForChannel.called.should.be.false();
+            stubs.getTemplateForCollection.called.should.be.false();
             stubs.getTemplateForError.called.should.be.false();
         });
 
@@ -418,7 +418,7 @@ describe('templates', function () {
             // And nothing got called
             stubs.pickTemplate.called.should.be.false();
             stubs.getTemplateForEntry.called.should.be.false();
-            stubs.getTemplateForChannel.called.should.be.false();
+            stubs.getTemplateForCollection.called.should.be.false();
             stubs.getTemplateForError.called.should.be.false();
         });
 
@@ -438,7 +438,7 @@ describe('templates', function () {
             // Only pickTemplate got called
             stubs.pickTemplate.called.should.be.true();
             stubs.getTemplateForEntry.called.should.be.false();
-            stubs.getTemplateForChannel.called.should.be.false();
+            stubs.getTemplateForCollection.called.should.be.false();
             stubs.getTemplateForError.called.should.be.false();
 
             stubs.pickTemplate.calledWith('test', 'path/to/local/test.hbs').should.be.true();
@@ -460,7 +460,7 @@ describe('templates', function () {
             // Only pickTemplate got called
             stubs.pickTemplate.called.should.be.true();
             stubs.getTemplateForEntry.called.should.be.false();
-            stubs.getTemplateForChannel.called.should.be.false();
+            stubs.getTemplateForCollection.called.should.be.false();
             stubs.getTemplateForError.called.should.be.false();
 
             stubs.pickTemplate.calledWith('test', 'path/to/local/test.hbs').should.be.true();
@@ -483,7 +483,7 @@ describe('templates', function () {
             // Only pickTemplate got called
             stubs.pickTemplate.called.should.be.false();
             stubs.getTemplateForEntry.called.should.be.true();
-            stubs.getTemplateForChannel.called.should.be.false();
+            stubs.getTemplateForCollection.called.should.be.false();
             stubs.getTemplateForError.called.should.be.false();
 
             stubs.getTemplateForEntry.calledWith({slug: 'test'}).should.be.true();
@@ -505,10 +505,10 @@ describe('templates', function () {
             // Only pickTemplate got called
             stubs.pickTemplate.called.should.be.false();
             stubs.getTemplateForEntry.called.should.be.false();
-            stubs.getTemplateForChannel.called.should.be.true();
+            stubs.getTemplateForCollection.called.should.be.true();
             stubs.getTemplateForError.called.should.be.false();
 
-            stubs.getTemplateForChannel.calledWith({testChannel: 'test'}).should.be.true();
+            stubs.getTemplateForCollection.calledWith({testChannel: 'test'}).should.be.true();
         });
 
         it('calls getTemplateForError if there is an error', function () {
@@ -532,7 +532,7 @@ describe('templates', function () {
             // Only pickTemplate got called
             stubs.pickTemplate.called.should.be.false();
             stubs.getTemplateForEntry.called.should.be.false();
-            stubs.getTemplateForChannel.called.should.be.false();
+            stubs.getTemplateForCollection.called.should.be.false();
             stubs.getTemplateForError.called.should.be.true();
 
             stubs.getTemplateForError.calledWith(404).should.be.true();

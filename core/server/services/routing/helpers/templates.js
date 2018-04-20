@@ -1,12 +1,14 @@
+'use strict';
+
 // # Templates
 //
 // Figure out which template should be used to render a request
 // based on the templates which are allowed, and what is available in the theme
-// TODO: consider where this should live as it deals with channels, singles, and errors
-var _ = require('lodash'),
+// TODO: consider where this should live as it deals with collections, entries, and errors
+const _ = require('lodash'),
     path = require('path'),
-    config = require('../../config'),
-    themes = require('../../services/themes'),
+    config = require('../../../config'),
+    themes = require('../../themes'),
     _private = {};
 
 /**
@@ -20,7 +22,7 @@ var _ = require('lodash'),
  * @returns {String[]}
  */
 _private.getErrorTemplateHierarchy = function getErrorTemplateHierarchy(statusCode) {
-    var errorCode = _.toString(statusCode),
+    const errorCode = _.toString(statusCode),
         templateList = ['error'];
 
     // Add error class template: E.g. error-4xx.hbs or error-5xx.hbs
@@ -33,30 +35,30 @@ _private.getErrorTemplateHierarchy = function getErrorTemplateHierarchy(statusCo
 };
 
 /**
- * ## Get Channel Template Hierarchy
+ * ## Get Collection Template Hierarchy
  *
  * Fetch the ordered list of templates that can be used to render this request.
  * 'index' is the default / fallback
- * For channels with slugs: [:channelName-:slug, :channelName, index]
- * For channels without slugs: [:channelName, index]
- * Channels can also have a front page template which is used if this is the first page of the channel, e.g. 'home.hbs'
+ * For collections with slugs: [:collectionName-:slug, :collectionName, index]
+ * For collections without slugs: [:collectionName, index]
+ * Collections can also have a front page template which is used if this is the first page of the collections, e.g. 'home.hbs'
  *
- * @param {Object} channelOpts
+ * @param {Object} routingOptions
  * @returns {String[]}
  */
-_private.getChannelTemplateHierarchy = function getChannelTemplateHierarchy(channelOpts) {
-    var templateList = ['index'];
+_private.getCollectionTemplateHierarchy = function getCollectionTemplateHierarchy(routingOptions) {
+    const templateList = ['index'];
 
-    if (channelOpts.name && channelOpts.name !== 'index') {
-        templateList.unshift(channelOpts.name);
+    if (routingOptions.name && routingOptions.name !== 'index') {
+        templateList.unshift(routingOptions.name);
 
-        if (channelOpts.slugTemplate && channelOpts.slugParam) {
-            templateList.unshift(channelOpts.name + '-' + channelOpts.slugParam);
+        if (routingOptions.slugTemplate && routingOptions.slugParam) {
+            templateList.unshift(routingOptions.name + '-' + routingOptions.slugParam);
         }
     }
 
-    if (channelOpts.frontPageTemplate && channelOpts.postOptions.page === 1) {
-        templateList.unshift(channelOpts.frontPageTemplate);
+    if (routingOptions.frontPageTemplate && routingOptions.page === 1) {
+        templateList.unshift(routingOptions.frontPageTemplate);
     }
 
     return templateList;
@@ -74,8 +76,8 @@ _private.getChannelTemplateHierarchy = function getChannelTemplateHierarchy(chan
  * @returns {String[]}
  */
 _private.getEntryTemplateHierarchy = function getEntryTemplateHierarchy(postObject) {
-    var templateList = ['post'],
-        slugTemplate = 'post-' + postObject.slug;
+    const templateList = ['post'];
+    let slugTemplate = 'post-' + postObject.slug;
 
     if (postObject.page) {
         templateList.unshift('page');
@@ -101,7 +103,7 @@ _private.getEntryTemplateHierarchy = function getEntryTemplateHierarchy(postObje
  * @param {String} fallback - a fallback template
  */
 _private.pickTemplate = function pickTemplate(templateList, fallback) {
-    var template;
+    let template;
 
     if (!_.isArray(templateList)) {
         templateList = [templateList];
@@ -111,37 +113,45 @@ _private.pickTemplate = function pickTemplate(templateList, fallback) {
         template = fallback;
     } else {
         template = _.find(templateList, function (template) {
+            if (!template) {
+                return;
+            }
+
             return themes.getActive().hasTemplate(template);
         });
     }
 
     if (!template) {
-        template = fallback;
+        if (!fallback) {
+            template = 'index';
+        } else {
+            template = fallback;
+        }
     }
 
     return template;
 };
 
 _private.getTemplateForEntry = function getTemplateForEntry(postObject) {
-    var templateList = _private.getEntryTemplateHierarchy(postObject),
+    const templateList = _private.getEntryTemplateHierarchy(postObject),
         fallback = templateList[templateList.length - 1];
     return _private.pickTemplate(templateList, fallback);
 };
 
-_private.getTemplateForChannel = function getTemplateForChannel(channelOpts) {
-    var templateList = _private.getChannelTemplateHierarchy(channelOpts),
+_private.getTemplateForCollection = function getTemplateForCollection(routingOptions) {
+    const templateList = _private.getCollectionTemplateHierarchy(routingOptions),
         fallback = templateList[templateList.length - 1];
     return _private.pickTemplate(templateList, fallback);
 };
 
 _private.getTemplateForError = function getTemplateForError(statusCode) {
-    var templateList = _private.getErrorTemplateHierarchy(statusCode),
+    const templateList = _private.getErrorTemplateHierarchy(statusCode),
         fallback = path.resolve(config.get('paths').defaultViews, 'error.hbs');
     return _private.pickTemplate(templateList, fallback);
 };
 
 module.exports.setTemplate = function setTemplate(req, res, data) {
-    var routeConfig = res._route || {};
+    const routeConfig = res._route || {};
 
     if (res._template && !req.err) {
         return;
@@ -156,8 +166,8 @@ module.exports.setTemplate = function setTemplate(req, res, data) {
         case 'custom':
             res._template = _private.pickTemplate(routeConfig.templateName, routeConfig.defaultTemplate);
             break;
-        case 'channel':
-            res._template = _private.getTemplateForChannel(res.locals.channel);
+        case 'collection':
+            res._template = _private.getTemplateForCollection(res.locals.routingType);
             break;
         case 'entry':
             res._template = _private.getTemplateForEntry(data.post);

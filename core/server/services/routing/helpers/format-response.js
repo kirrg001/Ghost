@@ -1,4 +1,6 @@
-var _   = require('lodash');
+'use strict;';
+
+const _ = require('lodash');
 
 /**
  * formats variables for handlebars in multi-post contexts.
@@ -37,6 +39,6 @@ function formatResponse(post) {
 }
 
 module.exports = {
-    channel: formatPageResponse,
+    collection: formatPageResponse,
     entry: formatResponse
 };

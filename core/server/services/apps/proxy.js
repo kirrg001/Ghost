@@ -3,7 +3,7 @@ var _ = require('lodash'),
     helpers = require('../../helpers/register'),
     filters = require('../../filters'),
     common = require('../../lib/common'),
-    router = require('../route').appRouter,
+    appRouter = require('../routing').appRouter,
     generateProxyFunctions;
 
 generateProxyFunctions = function (name, permissions, isInternal) {
@@ -77,7 +77,7 @@ generateProxyFunctions = function (name, permissions, isInternal) {
         // Expose the route service...
         routeService: {
             // This allows for mounting an entirely new Router at a path...
-            registerRouter: checkRegisterPermissions('routes', router.mountRouter.bind(router))
+            registerRouter: checkRegisterPermissions('routes', appRouter.mountRouter.bind(appRouter))
         },
         // Mini proxy to the API - needs review
         api: {

@@ -62,6 +62,7 @@ describe('Integration - Web - Site', function () {
 
                 return testUtils.mocks.express.invoke(app, req)
                     .then(function (response) {
+                        console.log(response);
                         response.statusCode.should.eql(200);
                         response.template.should.eql('post');
                         urlService.hasFinished.calledOnce.should.be.true();

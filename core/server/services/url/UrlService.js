@@ -128,7 +128,66 @@ class UrlService {
             return obj.url;
         }
 
-        return null;
+        if (options.absolute) {
+            return this.utils.createUrl('undefined', options.absolute, options.secure);
+        }
+
+        return '/undefined/';
+    }
+
+    owns(routingTypeId, url) {
+        debug('owns', routingTypeId, url);
+
+        let urlGenerator;
+
+        this.urlGenerators.every((_urlGenerator) => {
+            if (_urlGenerator.routingType.identifier === routingTypeId) {
+                urlGenerator = _urlGenerator;
+                return false;
+            }
+
+            return true;
+        });
+
+        if (!urlGenerator) {
+            return false;
+        }
+
+        return urlGenerator.hasUrl(url);
+    }
+
+    getPermalinkByUrl(url) {
+        let objects = this.urls.getByUrl(url);
+
+        if (!objects.length) {
+            if (!this.hasFinished()) {
+                throw new common.errors.InternalServerError({
+                    message: 'UrlService is processing.',
+                    code: 'URLSERVICE_NOT_READY'
+                });
+            } else {
+                return null;
+            }
+        }
+
+        if (objects.length > 1) {
+            objects = _.reduce(objects, (toReturn, object) => {
+                if (!toReturn.length) {
+                    toReturn.push(object);
+                } else {
+                    const i1 = _.findIndex(this.urlGenerators, {uid: toReturn[0].generatorId});
+                    const i2 = _.findIndex(this.urlGenerators, {uid: object.generatorId});
+
+                    if (i2 < i1) {
+                        toReturn = [];
+                        toReturn.push(object);
+                    }
+                }
+            }, []);
+        }
+
+        return _.find(this.urlGenerators, {uid: objects[0].generatorId}).routingType.getPermalinks()
+            .getValue({withUrlOptions: true});
     }
 
     reset() {

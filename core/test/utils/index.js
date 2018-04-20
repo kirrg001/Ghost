@@ -491,7 +491,25 @@ fixtures = {
 
 /** Test Utility Functions **/
 initData = function initData() {
-    return knexMigrator.init();
+    return knexMigrator.init()
+        .then(function () {
+            urlService.finished = false;
+            common.events.emit('db.ready');
+
+            let timeout;
+
+            return new Promise(function (resolve) {
+                (function retry() {
+                    clearTimeout(timeout);
+
+                    if (urlService.hasFinished()) {
+                        return resolve();
+                    }
+
+                    timeout = setTimeout(retry, 50);
+                })();
+            });
+        });
 };
 
 clearBruteData = function clearBruteData() {
@@ -884,6 +902,7 @@ startGhost = function startGhost(options) {
         redirectsFile: true,
         forceStart: false,
         copyThemes: true,
+        copySettings: true,
         contentFolder: path.join(os.tmpdir(), uuid.v1(), 'ghost-test'),
         subdir: false
     }, options);
@@ -903,6 +922,7 @@ startGhost = function startGhost(options) {
     fs.ensureDirSync(path.join(contentFolderForTests, 'images'));
     fs.ensureDirSync(path.join(contentFolderForTests, 'logs'));
     fs.ensureDirSync(path.join(contentFolderForTests, 'adapters'));
+    fs.ensureDirSync(path.join(contentFolderForTests, 'settings'));
 
     if (options.copyThemes) {
         // Copy all themes into the new test content folder. Default active theme is always casper. If you want to use a different theme, you have to set the active theme (e.g. stub)
@@ -911,6 +931,10 @@ startGhost = function startGhost(options) {
 
     if (options.redirectsFile) {
         fs.copySync(path.join(__dirname, 'fixtures', 'data', 'redirects.json'), path.join(contentFolderForTests, 'data', 'redirects.json'));
+    }
+
+    if (options.copySettings) {
+        fs.copySync(path.join(__dirname, 'fixtures', 'settings', 'routes.yaml'), path.join(contentFolderForTests, 'settings', 'routes.yaml'));
     }
 
     // truncate database and re-run fixtures

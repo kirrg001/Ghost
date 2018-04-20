@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * # Response context
  *
@@ -10,10 +12,9 @@
  * 2. req.params.page - always has the page parameter, regardless of if the URL contains a keyword (RSS pages don't)
  * 3. data - used for telling the difference between posts and pages
  */
+const labs = require('../../labs'),
 
-var labs = require('../../services/labs'),
-
-    // Context patterns, should eventually come from Channel configuration
+    // @TODO: fix this, this is app specific and should be dynamic
     // routeKeywords.private: 'private'
     privatePattern = new RegExp('^\\/private\\/'),
     // routeKeywords.subscribe: 'subscribe'
@@ -49,8 +50,8 @@ function setResponseContext(req, res, data) {
     }
 
     // Each page can only have at most one of these
-    if (res.locals.channel) {
-        res.locals.context = res.locals.context.concat(res.locals.channel.context);
+    if (res.locals.routingType) {
+        res.locals.context = res.locals.context.concat(res.locals.routingType.context);
     } else if (privatePattern.test(res.locals.relativeUrl)) {
         res.locals.context.push('private');
     } else if (subscribePattern.test(res.locals.relativeUrl) && labs.isSet('subscribers') === true) {

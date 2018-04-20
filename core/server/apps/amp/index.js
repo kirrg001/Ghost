@@ -21,7 +21,6 @@ module.exports = {
         var ampRoute = '*/amp/';
 
         ghost.routeService.registerRouter(ampRoute, ampRouter);
-
         registerHelpers(ghost);
     }
 };

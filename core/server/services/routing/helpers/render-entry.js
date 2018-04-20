@@ -1,4 +1,6 @@
-var debug = require('ghost-ignition').debug('channels:render-post'),
+'use strict';
+
+const debug = require('ghost-ignition').debug('services:routing:helpers:render-post'),
     formatResponse = require('./format-response'),
     renderer = require('./renderer');
 /*
@@ -12,9 +14,7 @@ module.exports = function renderEntry(req, res) {
     return function renderEntry(entry) {
         // Renderer begin
         // Format data 2 - 1 is in preview/entry
-        var data = formatResponse.entry(entry);
-
         // Render Call
-        return renderer(req, res, data);
+        return renderer(req, res, formatResponse.entry(entry));
     };
 };

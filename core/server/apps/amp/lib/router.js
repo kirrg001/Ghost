@@ -1,12 +1,13 @@
+'use strict';
+
 var path = require('path'),
     express = require('express'),
     ampRouter = express.Router(),
 
     // Dirty requires
     common = require('../../../lib/common'),
-    postLookup = require('../../../controllers/frontend/post-lookup'),
-    renderer = require('../../../controllers/frontend/renderer'),
-
+    urlService = require('../../../services/url'),
+    helpers = require('../../../services/routing/helpers'),
     templateName = 'amp';
 
 function _renderer(req, res, next) {
@@ -28,7 +29,7 @@ function _renderer(req, res, next) {
     }
 
     // Render Call
-    return renderer(req, res, data);
+    return helpers.renderer(req, res, data);
 }
 
 // This here is a controller.
@@ -36,7 +37,15 @@ function _renderer(req, res, next) {
 function getPostData(req, res, next) {
     req.body = req.body || {};
 
-    postLookup(res.locals.relativeUrl)
+    const urlWithSubdirectoryWithoutAmp = req.originalUrl.match(/(.*?\/)amp/)[1];
+    const urlWithoutSubdirectoryWithoutAmp = res.locals.relativeUrl.match(/(.*?\/)amp/)[1];
+    const permalinks = urlService.getPermalinkByUrl(urlWithSubdirectoryWithoutAmp);
+
+    if (!permalinks) {
+        return next(new common.errors.NotFoundError({message: common.i18n.t('errors.errors.pageNotFound')}));
+    }
+
+    helpers.postLookup(urlWithoutSubdirectoryWithoutAmp, {permalinks: permalinks})
         .then(function handleResult(result) {
             if (result && result.post) {
                 req.body.post = result.post;

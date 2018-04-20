@@ -143,7 +143,7 @@ class UrlGenerator {
         let url = this.routingType.getPermalinks().getValue();
         url = this._replacePermalink(url, resource);
 
-        return localUtils.createUrl(url, false, false);
+        return localUtils.createUrl(url, false, false, true);
     }
 
     /**
@@ -187,6 +187,8 @@ class UrlGenerator {
         output = output.replace(/(:[a-z_]+)/g, function (match) {
             if (_.has(permalink, match.substr(1))) {
                 return permalink[match.substr(1)]();
+            } else {
+                return '';
             }
         });
 
@@ -234,6 +236,16 @@ class UrlGenerator {
         resource.removeAllListeners();
         resource.addListener('updated', onUpdate.bind(this));
         resource.addListener('removed', onRemoved.bind(this));
+    }
+
+    hasUrl(url) {
+        const existingUrl = this.urls.getByUrl(url);
+
+        if (existingUrl && existingUrl[0].generatorId === this.uid) {
+            return true;
+        }
+
+        return false;
     }
 
     getUrls() {
