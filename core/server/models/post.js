@@ -77,9 +77,7 @@ Post = ghostBookshelf.Model.extend({
 
         var resourceType = this.get('page') ? 'page' : 'post';
 
-        if (options.useUpdatedAttribute) {
-            resourceType = this.updated('page') ? 'page' : 'post';
-        } else if (options.usePreviousAttribute) {
+        if (options.usePreviousAttribute) {
             resourceType = this.previous('page') ? 'page' : 'post';
         }
 
@@ -112,26 +110,26 @@ Post = ghostBookshelf.Model.extend({
     },
 
     onUpdated: function onUpdated(model, attrs, options) {
-        model.statusChanging = model.get('status') !== model.updated('status');
+        model.statusChanging = model.get('status') !== model.previous('status');
         model.isPublished = model.get('status') === 'published';
         model.isScheduled = model.get('status') === 'scheduled';
-        model.wasPublished = model.updated('status') === 'published';
-        model.wasScheduled = model.updated('status') === 'scheduled';
-        model.resourceTypeChanging = model.get('page') !== model.updated('page');
+        model.wasPublished = model.previous('status') === 'published';
+        model.wasScheduled = model.previous('status') === 'scheduled';
+        model.resourceTypeChanging = model.get('page') !== model.previous('page');
         model.publishedAtHasChanged = model.hasDateChanged('published_at');
         model.needsReschedule = model.publishedAtHasChanged && model.isScheduled;
 
         // Handle added and deleted for post -> page or page -> post
         if (model.resourceTypeChanging) {
             if (model.wasPublished) {
-                model.emitChange('unpublished', Object.assign({useUpdatedAttribute: true}, options));
+                model.emitChange('unpublished', Object.assign({usePreviousAttribute: true}, options));
             }
 
             if (model.wasScheduled) {
-                model.emitChange('unscheduled', Object.assign({useUpdatedAttribute: true}, options));
+                model.emitChange('unscheduled', Object.assign({usePreviousAttribute: true}, options));
             }
 
-            model.emitChange('deleted', Object.assign({useUpdatedAttribute: true}, options));
+            model.emitChange('deleted', Object.assign({usePreviousAttribute: true}, options));
             model.emitChange('added', options);
 
             if (model.isPublished) {
@@ -666,7 +664,7 @@ Post = ghostBookshelf.Model.extend({
                         .then((found) => {
                             if (found) {
                                 // Pass along the updated attributes for checking status changes
-                                found._updatedAttributes = post._updatedAttributes;
+                                found._previousAttributes = post._previousAttributes;
                                 return found;
                             }
                         });

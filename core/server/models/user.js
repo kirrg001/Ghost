@@ -54,7 +54,7 @@ User = ghostBookshelf.Model.extend({
     },
 
     onUpdated: function onUpdated(model, response, options) {
-        model.statusChanging = model.get('status') !== model.updated('status');
+        model.statusChanging = model.get('status') !== model.previous('status');
         model.isActive = _.includes(activeStates, model.get('status'));
 
         if (model.statusChanging) {

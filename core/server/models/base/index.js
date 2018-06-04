@@ -106,17 +106,8 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         return [];
     },
 
-    /**
-     * @NOTE
-     * We have to remember the `_previousAttributes` attributes, because when destroying resources
-     * We listen on the `onDestroyed` event and Bookshelf resets these properties right after the event.
-     * If the query runs in a txn, `_previousAttributes` will be empty.
-     */
     emitChange: function (model, event, options) {
         debug(model.tableName, event);
-
-        const previousAttributes = model._previousAttributes;
-
         if (!options.transacting) {
             return common.events.emit(event, model, options);
         }
@@ -137,7 +128,6 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
                 }
 
                 _.each(this.ghostEvents, (ghostEvent) => {
-                    model._previousAttributes = previousAttributes;
                     common.events.emit(ghostEvent, model, _.omit(options, 'transacting'));
                 });
 
@@ -228,8 +218,6 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     onSaving: function onSaving(newObj) {
         // Remove any properties which don't belong on the model
         this.attributes = this.pick(this.permittedAttributes());
-        // Store the previous attributes so we can tell what was updated later
-        this._updatedAttributes = newObj.previousAttributes();
     },
 
     /**
@@ -438,16 +426,6 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         return proto.toJSON.call(this, options);
     },
 
-    // Get attributes that have been updated (values before a .save() call)
-    updatedAttributes: function updatedAttributes() {
-        return this._updatedAttributes || {};
-    },
-
-    // Get a specific updated attribute value
-    updated: function updated(attr) {
-        return this.updatedAttributes()[attr];
-    },
-
     /**
      * There is difference between `updated` and `previous`:
      * Depending on the hook (before or after writing into the db), both fields have a different meaning.
@@ -456,9 +434,8 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
      *
      * hasDateChanged('attr', {beforeWrite: true})
      */
-    hasDateChanged: function (attr, options) {
-        options = options || {};
-        return moment(this.get(attr)).diff(moment(options.beforeWrite ? this.previous(attr) : this.updated(attr))) !== 0;
+    hasDateChanged: function (attr) {
+        return moment(this.get(attr)).diff(moment(this.previous(attr))) !== 0;
     },
 
     /**
@@ -760,6 +737,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         }
 
         return model.fetch(options).then(function then(object) {
+            console.log(object.relations.tags);
             if (object) {
                 return object.save(data, _.merge({method: 'update'}, options));
             }
