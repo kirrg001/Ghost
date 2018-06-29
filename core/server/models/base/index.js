@@ -108,6 +108,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
 
     emitChange: function (model, event, options) {
         debug(model.tableName, event);
+
         if (!options.transacting) {
             return common.events.emit(event, model, options);
         }
@@ -215,7 +216,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         }
     },
 
-    onSaving: function onSaving(newObj) {
+    onSaving: function onSaving() {
         // Remove any properties which don't belong on the model
         this.attributes = this.pick(this.permittedAttributes());
     },
@@ -737,7 +738,6 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         }
 
         return model.fetch(options).then(function then(object) {
-            console.log(object.relations.tags);
             if (object) {
                 return object.save(data, _.merge({method: 'update'}, options));
             }

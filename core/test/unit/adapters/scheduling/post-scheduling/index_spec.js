@@ -33,6 +33,9 @@ describe('Scheduling: Post Scheduling', function () {
             mobiledoc: testUtils.DataGenerator.markdownToMobiledoc('something')
         }));
 
+        // this.attributes === this.previousAttributes suddenly
+        // console.log(scope.post);
+
         scope.adapter = new SchedulingDefault();
 
         sandbox.stub(api.schedules, 'getScheduledPosts').callsFake(function () {

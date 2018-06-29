@@ -148,7 +148,7 @@ User = ghostBookshelf.Model.extend({
          *     normal behaviour if not (set random password, lock user, and hash password)
          *   - no validations should run, when importing
          */
-        if (self.hasChanged('password')) {
+        if (self.hasChanged('password') || options.method === 'insert') {
             this.set('password', String(this.get('password')));
 
             // CASE: import with `importPersistUser` should always be an bcrypt password already,

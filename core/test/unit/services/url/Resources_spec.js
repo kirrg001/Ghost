@@ -169,7 +169,7 @@ describe('Unit: services/url/Resources', function () {
             });
 
             models.Post.destroy(_.merge({id: randomResource.data.id}, testUtils.context.owner))
-                .then(function () {
+                .then(function (x) {
                     onEvents['post.unpublished'](emitEvents['post.unpublished']);
                 })
                 .catch(done);

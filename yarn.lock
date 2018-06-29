@@ -576,17 +576,15 @@ bookshelf-relations@0.2.1:
     ghost-ignition "2.9.2"
     lodash "4.17.10"
 
-bookshelf@0.13.3:
+"bookshelf@https://github.com/bookshelf/bookshelf/tarball/903ec1fe0bc59ec4de987c2cdfd07c07398e6a8b":
   version "0.13.3"
-  resolved "https://registry.yarnpkg.com/bookshelf/-/bookshelf-0.13.3.tgz#aa73d9159b6cac92830dc1ff37325490c3c6dfba"
+  resolved "https://github.com/bookshelf/bookshelf/tarball/903ec1fe0bc59ec4de987c2cdfd07c07398e6a8b#d34eef763a100b9a481a8f88ad06594a29a3115b"
   dependencies:
-    babel-runtime "^6.26.0"
     bluebird "^3.4.3"
     chalk "^2.3.0"
     create-error "~0.3.1"
     inflection "^1.5.1"
-    inherits "~2.0.1"
-    lodash "^4.13.1"
+    lodash "^4.17.10"
 
 boolbase@~1.0.0:
   version "1.0.0"
@@ -3548,7 +3546,7 @@ lodash.uniq@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
 
-lodash@4.17.10, lodash@^4.13.1, lodash@^4.16.4, lodash@^4.17.10, lodash@^4.17.4, lodash@^4.17.5, lodash@^4.3.0, lodash@^4.7.0, lodash@^4.8.0, lodash@~4.17.10, lodash@~4.17.5:
+lodash@4.17.10, lodash@^4.16.4, lodash@^4.17.10, lodash@^4.17.4, lodash@^4.17.5, lodash@^4.3.0, lodash@^4.7.0, lodash@^4.8.0, lodash@~4.17.10, lodash@~4.17.5:
   version "4.17.10"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.10.tgz#1b7793cf7259ea38fb3661d4d38b3260af8ae4e7"
 

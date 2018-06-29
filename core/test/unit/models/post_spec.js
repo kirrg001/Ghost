@@ -268,7 +268,7 @@ describe('Unit: models/post', function () {
     });
 
     describe('edit', function () {
-        it.only('update post, relation has not changed', function () {
+        it('update post, relation has not changed', function () {
             const events = {
                 post: [],
                 tag: []
@@ -287,6 +287,8 @@ describe('Unit: models/post', function () {
                 status: 'draft'
             }, {withRelated: ['tags']})
                 .then((post) => {
+                    post.get('title').should.eql(testUtils.DataGenerator.forKnex.posts[3].title);
+
                     // post will be updated, tags relation not
                     return models.Post.edit({
                         title: 'change',

@@ -351,7 +351,7 @@ Post = ghostBookshelf.Model.extend({
         } else {
             ops.push(function updateSlug() {
                 // If any of the attributes above were false, set initial slug and check to see if slug was changed by the user
-                if (self.hasChanged('slug') || !self.get('slug')) {
+                if (self.hasChanged('slug') || !self.get('slug') || options.method === 'insert') {
                     // Pass the new slug through the generator to strip illegal characters, detect duplicates
                     return ghostBookshelf.Model.generateSlug(Post, self.get('slug') || self.get('title'),
                         {status: 'all', transacting: options.transacting, importing: options.importing})
@@ -646,7 +646,7 @@ Post = ghostBookshelf.Model.extend({
      * ### Edit
      * Fetches and saves to Post. See model.Base.edit
      *
-     * @extends ghostBookshelf.Model.edit to handle returning the full object and manage _updatedAttributes
+     * @extends ghostBookshelf.Model.edit to handle returning the full object and manage _previousAttributes
      * **See:** [ghostBookshelf.Model.edit](base.js.html#edit)
      */
     edit: function edit(data, unfilteredOptions) {
