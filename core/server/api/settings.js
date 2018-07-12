@@ -2,9 +2,13 @@
 // RESTful API for the Setting resource
 var Promise = require('bluebird'),
     _ = require('lodash'),
+    fs = require('fs-extra'),
+    path = require('path'),
+    config = require('../config'),
     models = require('../models'),
     canThis = require('../services/permissions').canThis,
     localUtils = require('./utils'),
+    urlService = require('../services/url'),
     common = require('../lib/common'),
     settingsCache = require('../services/settings/cache'),
     docName = 'settings',
@@ -236,6 +240,68 @@ settings = {
                 return settingsResult(settingsKeyedJSON, type);
             });
         });
+    },
+
+    /**
+     * @TODO:
+     *   - add permissions (!)
+     *   - move queue.start somewhere else, this is hacky
+     */
+    upload: (options) => {
+        let errToReturn;
+
+        return fs.copy(config.getContentPath('settings') + '/routes.yaml', config.getContentPath('settings') + '/routes.backup.yaml')
+            .then(() => {
+                return fs.copy(options.path, config.getContentPath('settings') + '/routes.yaml');
+            })
+            .then(() => {
+                urlService.resetGenerators({releaseResourcesOnly: true});
+            })
+            .then(() => {
+                const siteApp = require('../web/site/app');
+
+                try {
+                    return siteApp.reload();
+                } catch (err) {
+                    errToReturn = err;
+
+                    return fs.copy(config.getContentPath('settings') + '/routes.backup.yaml', config.getContentPath('settings') + '/routes.yaml')
+                        .then(() => {
+                            return siteApp.reload();
+                        });
+                }
+            })
+            .then(() => {
+                urlService.queue.start({
+                    event: 'init',
+                    tolerance: 100,
+                    requiredSubscriberCount: 1
+                });
+            })
+            .then(() => {
+                if (errToReturn) {
+                    throw errToReturn;
+                }
+            });
+    },
+
+    download: () => {
+        const routesPath = path.join(config.getContentPath('settings'), 'routes.yaml');
+
+        return fs.readFile(routesPath, 'utf-8')
+            .catch(function handleError(err) {
+                if (err.code === 'ENOENT') {
+                    return Promise.resolve([]);
+                }
+
+                if (common.errors.utils.isIgnitionError(err)) {
+                    throw err;
+                }
+
+                throw new common.errors.NotFoundError({
+                    err: err
+                });
+            });
     }
 };
 

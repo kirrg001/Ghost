@@ -187,6 +187,13 @@ module.exports = function apiRoutes() {
         api.http(api.uploads.add)
     );
 
+    apiRouter.get('/routes/yaml', mw.authenticatePrivate, api.http(api.settings.download));
+    apiRouter.post('/routes/yaml',
+        upload.single('file'),
+        validation.upload({type: 'routes'}),
+        api.http(api.settings.upload)
+    );
+
     // ## Invites
     apiRouter.get('/invites', mw.authenticatePrivate, api.http(api.invites.browse));
     apiRouter.get('/invites/:id', mw.authenticatePrivate, api.http(api.invites.read));
