@@ -116,7 +116,7 @@ addFixturesForModel = function addFixturesForModel(modelFixture, options) {
 
     return Promise.mapSeries(modelFixture.entries, function (entry) {
         // CASE: if id is specified, only query by id
-        return models[modelFixture.name].findOne(entry.id ? {id: entry.id} : entry, options).then(function (found) {
+        return models[modelFixture.name].findOne(entry.id ? {id: entry.id} : entry.slug ? {slug: entry.slug} : entry, options).then(function (found) {
             if (!found) {
                 return models[modelFixture.name].add(entry, options);
             }
