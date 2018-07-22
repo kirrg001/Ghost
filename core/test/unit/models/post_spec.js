@@ -1896,14 +1896,7 @@ describe('Unit: models/post', function () {
             });
         });
 
-        it('uses v2 if Koenig is enabled', function () {
-            sandbox.stub(labs, 'isSet').callsFake(function (key) {
-                if (key === 'koenigEditor') {
-                    return true;
-                }
-                return origLabs.get(key);
-            });
-
+        it('converts correctly', function () {
             let newPost = testUtils.DataGenerator.forModel.posts[2];
 
             return models.Post.add(
@@ -1912,32 +1905,7 @@ describe('Unit: models/post', function () {
             ).then((post) => {
                 should.exist(post);
                 post.has('html').should.equal(true);
-                post.get('html').should.equal('<div class="kg-post">\n<h2 id="testing">testing</h2>\n<p>mctesters</p>\n<ul>\n<li>test</li>\n<li>line</li>\n<li>items</li>\n</ul>\n\n</div>');
-            });
-        });
-
-        it('uses v2 if Koenig is disabled but post is not v1 compatible', function () {
-            let newPost = testUtils.DataGenerator.forModel.posts[2];
-
-            newPost.mobiledoc = JSON.stringify({
-                version: '0.3.1',
-                atoms: [],
-                cards: [],
-                markups: [],
-                sections: [
-                    [1, 'p', [
-                        [0, [], 0, 'Test']
-                    ]]
-                ]
-            });
-
-            return models.Post.add(
-                newPost,
-                testUtils.context.editor
-            ).then((post) => {
-                should.exist(post);
-                post.has('html').should.equal(true);
-                post.get('html').should.equal('<div class="kg-post">\n<p>Test</p>\n</div>');
+                post.get('html').should.equal('<h2 id="testing">testing</h2>\n<p>mctesters</p>\n<ul>\n<li>test</li>\n<li>line</li>\n<li>items</li>\n</ul>\n');
             });
         });
     });
