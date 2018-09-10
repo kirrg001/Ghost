@@ -8,7 +8,7 @@ var should = require('should'),
     common = require('../../../server/lib/common'),
     db = require('../../../server/data/db'),
     models = require('../../../server/models'),
-    PostAPI = require('../../../server/api/posts'),
+    PostAPI = require('../../../server/api/v0.1/posts'),
     urlService = require('../../../server/services/url'),
     settingsCache = require('../../../server/services/settings/cache'),
 

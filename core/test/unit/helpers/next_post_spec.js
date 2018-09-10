@@ -4,7 +4,7 @@ var should = require('should'),
     markdownToMobiledoc = require('../../utils/fixtures/data-generator').markdownToMobiledoc,
 
     helpers = require('../../../server/helpers'),
-    api = require('../../../server/api'),
+    api = require('../../../server/api/v0.1/index'),
     common = require('../../../server/lib/common'),
 
     sandbox = sinon.sandbox.create();

@@ -1,6 +1,6 @@
 const should = require('should'),
     sinon = require('sinon'),
-    api = require('../../../../../server/api'),
+    api = require('../../../../../server/api/v0.1/index'),
     helpers = require('../../../../../server/services/routing/helpers'),
     testUtils = require('../../../../utils'),
     sandbox = sinon.sandbox.create();

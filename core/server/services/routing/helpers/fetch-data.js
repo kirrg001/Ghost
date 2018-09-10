@@ -4,7 +4,7 @@
  */
 const _ = require('lodash'),
     Promise = require('bluebird'),
-    api = require('../../../api'),
+    api = require('../../../api').content,
     defaultPostQuery = {};
 
 // The default settings for a default post query

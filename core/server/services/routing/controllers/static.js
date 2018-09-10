@@ -1,7 +1,7 @@
 const _ = require('lodash'),
     Promise = require('bluebird'),
     debug = require('ghost-ignition').debug('services:routing:controllers:static'),
-    api = require('../../../api'),
+    api = require('../../../api').content,
     helpers = require('../helpers');
 
 function processQuery(query) {

@@ -3,7 +3,7 @@ var should = require('should'),
     Promise = require('bluebird'),
 
     settingsCache = require('../../../../server/services/settings/cache'),
-    api = require('../../../../server/api'),
+    api = require('../../../../server/api/v0.1/index'),
 
     // Stuff we are testing
     AppLoader = require('../../../../server/services/apps/loader'),

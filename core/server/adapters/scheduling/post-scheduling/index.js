@@ -3,7 +3,6 @@ const Promise = require('bluebird'),
     localUtils = require('../utils'),
     common = require('../../../lib/common'),
     models = require('../../../models'),
-    schedules = require('../../../api/schedules'),
     urlService = require('../../../services/url'),
     _private = {};
 
@@ -25,7 +24,9 @@ _private.loadClient = function loadClient() {
 };
 
 _private.loadScheduledPosts = function () {
-    return schedules.getScheduledPosts()
+    const api = require('../../../api').admin;
+
+    return api.schedules.getScheduledPosts()
         .then((result) => {
             return result.posts || [];
         });

@@ -1,5 +1,5 @@
 const _ = require('lodash'),
-    api = require('../../api'),
+    api = require('../../api').admin,
     helpers = require('../../helpers/register'),
     filters = require('../../filters'),
     common = require('../../lib/common'),
