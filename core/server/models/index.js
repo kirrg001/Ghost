@@ -31,6 +31,8 @@ models = [
     'user',
     'invite',
     'webhook',
+    'page',
+    'postorpage',
     'posts_meta'
 ];
 

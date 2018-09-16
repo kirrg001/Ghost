@@ -48,6 +48,50 @@ module.exports = {
         meta_title: {type: 'string', maxlength: 2000, nullable: true, validations: {isLength: {max: 300}}},
         meta_description: {type: 'string', maxlength: 2000, nullable: true, validations: {isLength: {max: 500}}},
     },
+    pages: {
+        id: {type: 'string', maxlength: 24, nullable: false, primary: true},
+        uuid: {type: 'string', maxlength: 36, nullable: false, validations: {isUUID: true}},
+        title: {type: 'string', maxlength: 2000, nullable: false, validations: {isLength: {max: 255}}},
+        slug: {type: 'string', maxlength: 191, nullable: false, unique: true},
+        mobiledoc: {type: 'text', maxlength: 1000000000, fieldtype: 'long', nullable: true},
+        html: {type: 'text', maxlength: 1000000000, fieldtype: 'long', nullable: true},
+        comment_id: {type: 'string', maxlength: 50, nullable: true},
+        plaintext: {type: 'text', maxlength: 1000000000, fieldtype: 'long', nullable: true},
+        feature_image: {type: 'string', maxlength: 2000, nullable: true},
+        featured: {type: 'bool', nullable: false, defaultTo: false},
+        page: {type: 'bool', nullable: false, defaultTo: false},
+        status: {type: 'string', maxlength: 50, nullable: false, defaultTo: 'draft'},
+        locale: {type: 'string', maxlength: 6, nullable: true},
+        visibility: {
+            type: 'string',
+            maxlength: 50,
+            nullable: false,
+            defaultTo: 'public',
+            validations: {isIn: [['public']]}
+        },
+        /**
+         * @deprecated: `author_id`, might be removed in Ghost 3.0
+         * If we keep it, then only, because you can easier query post.author_id than posts_authors[*].sort_order.
+         */
+        author_id: {type: 'string', maxlength: 24, nullable: false},
+        created_at: {type: 'dateTime', nullable: false},
+        created_by: {type: 'string', maxlength: 24, nullable: false},
+        updated_at: {type: 'dateTime', nullable: true},
+        updated_by: {type: 'string', maxlength: 24, nullable: true},
+        published_at: {type: 'dateTime', nullable: true},
+        published_by: {type: 'string', maxlength: 24, nullable: true},
+        custom_excerpt: {type: 'string', maxlength: 2000, nullable: true, validations: {isLength: {max: 300}}},
+        codeinjection_head: {type: 'text', maxlength: 65535, nullable: true},
+        codeinjection_foot: {type: 'text', maxlength: 65535, nullable: true},
+        og_image: {type: 'string', maxlength: 2000, nullable: true},
+        og_title: {type: 'string', maxlength: 300, nullable: true},
+        og_description: {type: 'string', maxlength: 500, nullable: true},
+        twitter_image: {type: 'string', maxlength: 2000, nullable: true},
+        twitter_title: {type: 'string', maxlength: 300, nullable: true},
+        twitter_description: {type: 'string', maxlength: 500, nullable: true},
+        custom_template: {type: 'string', maxlength: 100, nullable: true},
+        example: {type: 'string', maxlength: 50, nullable: true}
+    },
     users: {
         id: {type: 'string', maxlength: 24, nullable: false, primary: true},
         name: {type: 'string', maxlength: 191, nullable: false},

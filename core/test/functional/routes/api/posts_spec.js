@@ -31,7 +31,7 @@ describe('Post API', function () {
 
         describe('Browse', function () {
             it.only('retrieves all published posts only by default', function (done) {
-                request.get(testUtils.API.getApiQuery('posts/'))
+                request.get(testUtils.API.getApiQuery('posts/?filter=page:[true,false]'))
                     .set('Authorization', 'Bearer ' + ownerAccessToken)
                     .expect('Content-Type', /json/)
                     .expect('Cache-Control', testUtils.cacheRules.private)
@@ -48,7 +48,7 @@ describe('Post API', function () {
                         jsonResponse.posts[0].hasOwnProperty('meta_description').should.eql(true);
                         jsonResponse.posts[0].hasOwnProperty('example').should.eql(false);
                         testUtils.API.checkResponse(jsonResponse, 'posts');
-                        jsonResponse.posts.should.have.length(11);
+                        jsonResponse.posts.should.have.length(12);
                         testUtils.API.checkResponse(jsonResponse.posts[0], 'post', ['meta_title', 'meta_description'], ['example']);
                         testUtils.API.checkResponse(jsonResponse.meta.pagination, 'pagination');
                         _.isBoolean(jsonResponse.posts[0].featured).should.eql(true);

@@ -59,8 +59,16 @@ posts = {
         function modelQuery(options) {
             // serialisation INPUT (extend options)
             options.withRelated = ['meta'];
-            return models.Post.findPage(options)
+
+            // @TODO: gql needs an extension for the aliases
+
+            // @TODO: we would need to create a special query which does a union of pages and posts, otherwise
+            //        we would break pagination e.g. models.PagesOrPosts.findPage (a temporary model which can query both tables)
+            return models.PostOrPage.findPage(options)
                 .then((response) => {
+                    // @TODO: not impl
+                    response.meta = {};
+
                     // serialisation OUTPUT (modify response objects)
                     response.posts.forEach((post) => {
                         post.meta_title = post.meta.meta_title || '';
@@ -68,6 +76,7 @@ posts = {
                         delete post.meta;
                         delete post.example;
                     });
+
                     return response;
                 });
         }
