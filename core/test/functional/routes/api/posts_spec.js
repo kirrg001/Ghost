@@ -30,7 +30,7 @@ describe('Post API', function () {
         });
 
         describe('Browse', function () {
-            it('retrieves all published posts only by default', function (done) {
+            it.only('retrieves all published posts only by default', function (done) {
                 request.get(testUtils.API.getApiQuery('posts/'))
                     .set('Authorization', 'Bearer ' + ownerAccessToken)
                     .expect('Content-Type', /json/)
@@ -44,6 +44,7 @@ describe('Post API', function () {
                         should.not.exist(res.headers['x-cache-invalidate']);
                         var jsonResponse = res.body;
                         should.exist(jsonResponse.posts);
+                        jsonResponse.posts[0].hasOwnProperty('meta_title').should.eql(true);
                         testUtils.API.checkResponse(jsonResponse, 'posts');
                         jsonResponse.posts.should.have.length(11);
                         testUtils.API.checkResponse(jsonResponse.posts[0], 'post');

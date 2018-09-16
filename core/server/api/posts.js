@@ -57,7 +57,16 @@ posts = {
          * @returns {Object} options
          */
         function modelQuery(options) {
-            return models.Post.findPage(options);
+            options.withRelated = ['meta'];
+            return models.Post.findPage(options)
+                .then((response) => {
+                    response.posts.forEach((post) => {
+                        post.meta_title = post.meta.meta_title;
+                        post.meta_description = post.meta.meta_description;
+                        delete post.meta;
+                    });
+                    return response;
+                });
         }
 
         // Push all of our tasks into a `tasks` array in the correct order

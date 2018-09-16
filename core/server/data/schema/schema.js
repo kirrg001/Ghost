@@ -20,8 +20,6 @@ module.exports = {
             defaultTo: 'public',
             validations: {isIn: [['public']]}
         },
-        meta_title: {type: 'string', maxlength: 2000, nullable: true, validations: {isLength: {max: 300}}},
-        meta_description: {type: 'string', maxlength: 2000, nullable: true, validations: {isLength: {max: 500}}},
         /**
          * @deprecated: `author_id`, might be removed in Ghost 3.0
          * If we keep it, then only, because you can easier query post.author_id than posts_authors[*].sort_order.
@@ -43,6 +41,11 @@ module.exports = {
         twitter_title: {type: 'string', maxlength: 300, nullable: true},
         twitter_description: {type: 'string', maxlength: 500, nullable: true},
         custom_template: {type: 'string', maxlength: 100, nullable: true}
+    },
+    posts_meta: {
+        post_id: {type: 'string', maxlength: 24, nullable: false},
+        meta_title: {type: 'string', maxlength: 2000, nullable: true, validations: {isLength: {max: 300}}},
+        meta_description: {type: 'string', maxlength: 2000, nullable: true, validations: {isLength: {max: 500}}},
     },
     users: {
         id: {type: 'string', maxlength: 24, nullable: false, primary: true},

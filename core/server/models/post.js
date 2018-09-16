@@ -48,7 +48,7 @@ Post = ghostBookshelf.Model.extend({
         };
     },
 
-    relationships: ['tags', 'authors'],
+    relationships: ['tags', 'authors', 'meta'],
 
     // NOTE: look up object, not super nice, but was easy to implement
     relationshipBelongsTo: {
@@ -216,6 +216,14 @@ Post = ghostBookshelf.Model.extend({
             }
         }
 
+        if (!model.get('meta')) {
+            model.set('meta', {
+                post_id: model.id,
+                meta_title: model.get('meta_title'),
+                meta_description: model.get('meta_description')
+            });
+        }
+
         // CASE: both page and post can get scheduled
         if (newStatus === 'scheduled') {
             if (!publishedAt) {
@@ -381,6 +389,10 @@ Post = ghostBookshelf.Model.extend({
         return this.belongsToMany('Tag', 'posts_tags', 'post_id', 'tag_id')
             .withPivot('sort_order')
             .query('orderBy', 'sort_order', 'ASC');
+    },
+
+    meta: function () {
+        return this.hasOne('PostMeta', 'post_id');
     },
 
     fields: function fields() {
