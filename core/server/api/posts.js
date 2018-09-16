@@ -66,6 +66,7 @@ posts = {
                         post.meta_title = post.meta.meta_title || '';
                         post.meta_description = post.meta.meta_description || '';
                         delete post.meta;
+                        delete post.example;
                     });
                     return response;
                 });
