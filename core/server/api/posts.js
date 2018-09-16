@@ -57,12 +57,14 @@ posts = {
          * @returns {Object} options
          */
         function modelQuery(options) {
+            // serialisation INPUT (extend options)
             options.withRelated = ['meta'];
             return models.Post.findPage(options)
                 .then((response) => {
+                    // serialisation OUTPUT (modify response objects)
                     response.posts.forEach((post) => {
-                        post.meta_title = post.meta.meta_title;
-                        post.meta_description = post.meta.meta_description;
+                        post.meta_title = post.meta.meta_title || '';
+                        post.meta_description = post.meta.meta_description || '';
                         delete post.meta;
                     });
                     return response;

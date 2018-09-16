@@ -45,9 +45,11 @@ describe('Post API', function () {
                         var jsonResponse = res.body;
                         should.exist(jsonResponse.posts);
                         jsonResponse.posts[0].hasOwnProperty('meta_title').should.eql(true);
+                        jsonResponse.posts[0].hasOwnProperty('meta_description').should.eql(true);
+                        jsonResponse.posts[0].hasOwnProperty('example').should.eql(false);
                         testUtils.API.checkResponse(jsonResponse, 'posts');
                         jsonResponse.posts.should.have.length(11);
-                        testUtils.API.checkResponse(jsonResponse.posts[0], 'post');
+                        testUtils.API.checkResponse(jsonResponse.posts[0], 'post', ['meta_title', 'meta_description'], ['example']);
                         testUtils.API.checkResponse(jsonResponse.meta.pagination, 'pagination');
                         _.isBoolean(jsonResponse.posts[0].featured).should.eql(true);
                         _.isBoolean(jsonResponse.posts[0].page).should.eql(true);
