@@ -34,7 +34,7 @@ const disposition = {
 };
 
 module.exports = {
-    get(result, config) {
+    get(result, config = {}) {
         let headers = {};
 
         if (config.disposition) {

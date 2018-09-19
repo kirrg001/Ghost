@@ -2,6 +2,7 @@ const express = require('express');
 const os = require('os');
 const multer = require('multer');
 const api = require('../../../../api');
+const apiV2 = require('../../../../api/v2/admin');
 const mw = require('./middleware');
 
 const auth = require('../../../../services/auth');
@@ -28,7 +29,7 @@ module.exports = function apiRoutes() {
     router.get('/posts', mw.authenticatePrivate, api.http(api.posts.browse));
 
     router.post('/posts', mw.authenticatePrivate, api.http(api.posts.add));
-    router.get('/posts/:id', mw.authenticatePrivate, api.http(api.posts.read));
+    router.get('/posts/:id', mw.authenticatePrivate, apiV2.http(apiV2.posts.read));
     router.get('/posts/slug/:slug', mw.authenticatePrivate, api.http(api.posts.read));
     router.put('/posts/:id', mw.authenticatePrivate, api.http(api.posts.edit));
     router.del('/posts/:id', mw.authenticatePrivate, api.http(api.posts.destroy));

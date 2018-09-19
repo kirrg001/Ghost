@@ -1,31 +1,27 @@
-const _ = require('lodash');
-const shared = require('../../shared');
+const shared = require('../shared');
 
 const http = (apiImpl) => {
     return (req, res, next) => {
-        let object = req.body;
-        let options = Object.assign({}, req.file, {ip: req.ip}, req.query, req.params, {
-            context: {
-                user: req.user
+        const options = new shared.Options({
+            data: req.body,
+            query: req.query,
+            params: req.params,
+            file: req.file,
+            files: req.files,
+            apiOptions: {
+                context: {
+                    user: req.user.id
+                }
             }
         });
 
-        if (req.files) {
-            options.files = req.files;
-        }
-
-        if (_.isEmpty(object)) {
-            object = options;
-            options = {};
-        }
-
-        return apiImpl.call(object, options)
-            .tap((result) => {
+        apiImpl(options)
+            .then((result) => {
                 res.status(apiImpl.statusCode || 200);
 
                 res.set(shared.headers.get(result, apiImpl.headers));
 
-                if (apiImpl.response.format === 'plain') {
+                if (apiImpl.response && apiImpl.response.format === 'plain') {
                     return res.send(result);
                 }
 

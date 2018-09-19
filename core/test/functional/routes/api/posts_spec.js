@@ -322,7 +322,7 @@ describe('Post API', function () {
         });
 
         // ## Read
-        describe('Read', function () {
+        describe.only('Read', function () {
             it('can retrieve a post by id', function (done) {
                 request.get(testUtils.API.getApiQuery('posts/' + testUtils.DataGenerator.Content.posts[0].id + '/'))
                     .set('Authorization', 'Bearer ' + ownerAccessToken)

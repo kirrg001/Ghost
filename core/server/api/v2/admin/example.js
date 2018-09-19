@@ -1,3 +1,6 @@
+const models = require('../../../models');
+const localUtils = require('../utils');
+
 module.exports = {
     add: {
         statusCode: 201,
@@ -17,18 +20,38 @@ module.exports = {
         headers: {
             cacheInvalidate: false
         },
-        call(object, options) {
-            /**
-             * return models.Post.edit()
-             *   .then((posts) => {
-             *       if (model.updated('status') !== model.get('status')) {
-             *           this.headers.cacheInvalidate = true;
-             *       }
-             *   });
-             *
-             */
+        call(options) {
+            return models.Post.edit(options.data, options.modelOptions)
+                .then((model) => {
+                    if (model.updated('status') !== model.get('status')) {
+                        this.headers.cacheInvalidate = true;
+                    }
 
-            console.log(object, options);
+                    return model;
+                });
+        }
+    },
+
+    read: {
+        headers: {
+            cacheInvalidate: false
+        },
+        validate: {
+            docName: 'posts',
+            dataAttributes: ['id', 'slug', 'status', 'uuid'],
+            extraAllowedModelOptions: ['formats', 'absolute_urls'],
+            allowedIncludes: ['created_by', 'updated_by', 'published_by', 'author', 'tags', 'fields', 'authors', 'authors.roles'],
+            allowedFormats: models.Post.allowedFormats
+        },
+        call(options) {
+            return models.Post.edit(options.data, options.modelOptions)
+                .then((model) => {
+                    if (model.updated('status') !== model.get('status')) {
+                        this.headers.cacheInvalidate = true;
+                    }
+
+                    return model;
+                });
         }
     }
 };
