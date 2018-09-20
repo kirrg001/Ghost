@@ -9,6 +9,7 @@ const http = (apiImpl) => {
             file: req.file,
             files: req.files,
             apiOptions: {
+                // @TODO: make the user accessible (FULL USER)
                 context: {
                     user: req.user.id
                 }
