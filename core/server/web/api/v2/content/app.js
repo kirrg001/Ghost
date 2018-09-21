@@ -1,6 +1,7 @@
 const debug = require('ghost-ignition').debug('api');
 const boolParser = require('express-query-boolean');
 const express = require('express');
+const bodyParser = require('body-parser');
 const shared = require('../../../shared');
 const routes = require('./routes');
 
@@ -11,6 +12,8 @@ module.exports = function setupApiApp() {
     // API middleware
 
     // Query parsing
+    // @NOTE: If we don't use the body parser for the content API, `req.body` would be undefined.
+    apiApp.use(bodyParser.json({limit: '1mb'}));
     apiApp.use(boolParser());
 
     // send 503 json response in case of maintenance

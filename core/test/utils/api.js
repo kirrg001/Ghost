@@ -3,7 +3,7 @@ var _ = require('lodash'),
     moment = require('moment'),
     config = require('../../server/config'),
     schema = require('../../server/data/schema').tables,
-    ApiRouteBase = '/ghost/api/v2/admin/',
+    ApiRouteBase = '/ghost/api/',
     host = config.get('server').host,
     port = config.get('server').port,
     protocol = 'http://',
@@ -57,8 +57,8 @@ var _ = require('lodash'),
         webhook: _.keys(schema.webhooks)
     };
 
-function getApiQuery(route) {
-    return url.resolve(ApiRouteBase, route);
+function getApiQuery(route, version = 'v2/admin/') {
+    return url.resolve(`${ApiRouteBase}${version}/`, route);
 }
 
 function getURL() {

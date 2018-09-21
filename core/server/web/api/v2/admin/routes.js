@@ -26,13 +26,12 @@ module.exports = function apiRoutes() {
     router.get('/configuration/:key', mw.authenticatePrivate, api.http(api.configuration.read));
 
     // ## Posts
-    router.get('/posts', mw.authenticatePrivate, api.http(api.posts.browse));
-
-    router.post('/posts', mw.authenticatePrivate, api.http(api.posts.add));
+    router.get('/posts', mw.authenticatePrivate, apiV2.http(apiV2.posts.browse));
+    router.post('/posts', mw.authenticatePrivate, apiV2.http(apiV2.posts.add));
     router.get('/posts/:id', mw.authenticatePrivate, apiV2.http(apiV2.posts.read));
-    router.get('/posts/slug/:slug', mw.authenticatePrivate, api.http(api.posts.read));
-    router.put('/posts/:id', mw.authenticatePrivate, api.http(api.posts.edit));
-    router.del('/posts/:id', mw.authenticatePrivate, api.http(api.posts.destroy));
+    router.get('/posts/slug/:slug', mw.authenticatePrivate, apiV2.http(apiV2.posts.read));
+    router.put('/posts/:id', mw.authenticatePrivate, apiV2.http(apiV2.posts.edit));
+    router.del('/posts/:id', mw.authenticatePrivate, apiV2.http(apiV2.posts.destroy));
 
     // ## Schedules
     router.put('/schedules/posts/:id', [

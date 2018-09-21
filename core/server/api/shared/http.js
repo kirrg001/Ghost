@@ -9,9 +9,10 @@ const http = (apiImpl) => {
             file: req.file,
             files: req.files,
             apiOptions: {
-                // @TODO: make the user accessible (FULL USER)
                 context: {
-                    user: req.user.id
+                    // @TODO: make the user accessible (FULL USER)
+                    // @TODO: why is user id 0 on public context??
+                    user: req.user && req.user.id ? req.user.id : null
                 }
             }
         });

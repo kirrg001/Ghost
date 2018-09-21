@@ -244,7 +244,6 @@ posts = {
          */
         function deletePost(options) {
             const opts = defaults({require: true}, options);
-
             return models.Post.destroy(opts).return(null)
                 .catch(models.Post.NotFoundError, () => {
                     throw new common.errors.NotFoundError({

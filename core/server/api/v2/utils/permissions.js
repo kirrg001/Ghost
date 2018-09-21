@@ -8,8 +8,8 @@ module.exports = {
         let singular = config.docName.replace(/s$/, '');
 
         return function doHandlePermissions(options) {
-            let unsafeAttrObject = config.unsafeAttrNames && _.has(options, `data.[${config.docName}][0]`) ? _.pick(options.data[config.docName][0], config.unsafeAttrNames) : {},
-                permsPromise = permissions.canThis(options.context)[config.method][singular](options.id, unsafeAttrObject);
+            let unsafeAttrObject = config.unsafeAttrs && _.has(options, `data.[${config.docName}][0]`) ? _.pick(options.data[config.docName][0], config.unsafeAttrs) : {},
+                permsPromise = permissions.canThis(options.modelOptions.context)[config.method][singular](options.modelOptions.id, unsafeAttrObject);
 
             return permsPromise.then((result) => {
                 /*
@@ -43,6 +43,31 @@ module.exports = {
                 return Promise.reject(new common.errors.GhostError({
                     err: err
                 }));
+            });
+        };
+    },
+
+    content(config) {
+        let singular = config.docName.replace(/s$/, '');
+
+        /**
+         * Check if this is a public request, if so use the public permissions, otherwise use standard canThis
+         * @param {Object} options
+         * @returns {Object} options
+         */
+        return function doHandlePublicPermissions(options) {
+            let permsPromise;
+
+            options.modelOptions.context = permissions.parseContext(options.modelOptions.context);
+
+            if (options.modelOptions.context.public) {
+                permsPromise = permissions.applyPublicRules(config.docName, config.method, options);
+            } else {
+                permsPromise = permissions.canThis(options.modelOptions.context)[config.method][singular](options.data);
+            }
+
+            return permsPromise.then(() => {
+                return options;
             });
         };
     }

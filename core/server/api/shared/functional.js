@@ -1,11 +1,14 @@
 const Promise = require('bluebird');
+const _ = require('lodash');
 const shared = require('../shared');
 
 const functional = (api, utils) => {
     const keys = Object.keys(api);
 
     return keys.reduce((obj, key) => {
-        obj[key] = function () {
+        const apiImpl = _.cloneDeep(api[key]);
+
+        obj[key] = function wrapper() {
             let options, data;
 
             if (arguments.length === 2) {
@@ -24,8 +27,6 @@ const functional = (api, utils) => {
                 });
             }
 
-            const apiImpl = api[key];
-
             return Promise.resolve()
                 .then(() => {
                     if (apiImpl.validation) {
@@ -42,7 +43,11 @@ const functional = (api, utils) => {
                             return apiImpl.permissions(options);
                         }
 
-                        return utils.permissions.admin(apiImpl.permissions, options);
+                        if (apiImpl.permissions.content) {
+                            return utils.permissions.content(apiImpl.permissions)(options);
+                        }
+
+                        return utils.permissions.admin(apiImpl.permissions)(options);
                     }
                 })
                 .then(() => {
@@ -50,6 +55,7 @@ const functional = (api, utils) => {
                 });
         };
 
+        Object.assign(obj[key], apiImpl);
         return obj;
     }, {});
 };

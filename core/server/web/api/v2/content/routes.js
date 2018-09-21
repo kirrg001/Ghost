@@ -1,5 +1,6 @@
 const express = require('express');
 const api = require('../../../../api');
+const apiV2 = require('../../../../api/v2/content');
 const shared = require('../../../shared');
 const mw = require('./middleware');
 
@@ -16,9 +17,12 @@ module.exports = function apiRoutes() {
     router.get('/configuration', api.http(api.configuration.read));
 
     // ## Posts
-    router.get('/posts', mw.authenticatePublic, api.http(api.posts.browse));
+    router.get('/posts', mw.authenticatePublic, apiV2.http(apiV2.posts.browse));
     router.get('/posts/:id', mw.authenticatePublic, api.http(api.posts.read));
     router.get('/posts/slug/:slug', mw.authenticatePublic, api.http(api.posts.read));
+
+    // ## Pages
+    router.get('/pages', mw.authenticatePublic, apiV2.http(apiV2.pages.browse));
 
     // ## Users
     router.get('/users', mw.authenticatePublic, api.http(api.users.browse));
