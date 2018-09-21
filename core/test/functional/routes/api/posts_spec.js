@@ -483,7 +483,7 @@ describe('Post API', function () {
             });
 
             it('can\'t retrieve non existent post', function (done) {
-                request.get(testUtils.API.getApiQuery('posts/99/'))
+                request.get(testUtils.API.getApiQuery(`posts/${ObjectId.generate()}/`))
                     .set('Authorization', 'Bearer ' + ownerAccessToken)
                     .set('Accept', 'application/json')
                     .expect('Content-Type', /json/)
@@ -504,7 +504,7 @@ describe('Post API', function () {
             });
 
             it('can\'t retrieve a draft post', function (done) {
-                request.get(testUtils.API.getApiQuery('posts/5/'))
+                request.get(testUtils.API.getApiQuery(`posts/${testUtils.DataGenerator.Content.posts[3].id}/`))
                     .set('Authorization', 'Bearer ' + ownerAccessToken)
                     .set('Accept', 'application/json')
                     .expect('Content-Type', /json/)
@@ -525,7 +525,7 @@ describe('Post API', function () {
             });
 
             it('can\'t retrieve a draft page', function (done) {
-                request.get(testUtils.API.getApiQuery('posts/8/'))
+                request.get(testUtils.API.getApiQuery(`posts/${testUtils.DataGenerator.Content.posts[6].id}/`))
                     .set('Authorization', 'Bearer ' + ownerAccessToken)
                     .set('Accept', 'application/json')
                     .expect('Content-Type', /json/)
