@@ -29,11 +29,19 @@ const functional = (api, utils) => {
             return Promise.resolve()
                 .then(() => {
                     if (apiImpl.validation) {
+                        if (typeof apiImpl.validation === 'function') {
+                            return apiImpl.validation(options);
+                        }
+
                         return utils.validation.validate(apiImpl.validation, options);
                     }
                 })
                 .then(() => {
                     if (apiImpl.permissions) {
+                        if (typeof apiImpl.permissions === 'function') {
+                            return apiImpl.permissions(options);
+                        }
+
                         return utils.permissions.admin(apiImpl.permissions, options);
                     }
                 })
