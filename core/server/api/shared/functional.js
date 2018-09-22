@@ -71,7 +71,7 @@ const functional = (api, utils) => {
                     }
                 })
                 .then(() => {
-                    return apiImpl.call(options);
+                    return apiImpl.query(options);
                 });
         };
 

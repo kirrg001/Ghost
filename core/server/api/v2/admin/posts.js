@@ -17,7 +17,7 @@ module.exports = {
             docName: 'posts',
             method: 'browse'
         },
-        call(options) {
+        query(options) {
             return models.Post.findPage(options.modelOptions);
         }
     },
@@ -36,7 +36,7 @@ module.exports = {
             method: 'read',
             unsafeAttrs: ['author_id', 'status', 'authors']
         },
-        call(options) {
+        query(options) {
             return models.Post.findOne(options.data, options.modelOptions)
                 .then((model) => {
                     if (!model) {
@@ -68,7 +68,7 @@ module.exports = {
             method: 'edit',
             unsafeAttrs: ['author_id', 'status', 'authors']
         },
-        call(options) {
+        query(options) {
             return models.Post.edit(options.data.posts[0], options.modelOptions)
                 .then((model) => {
                     if (!model) {
@@ -113,7 +113,7 @@ module.exports = {
             method: 'add',
             unsafeAttrs: ['author_id', 'status', 'authors']
         },
-        call(options) {
+        query(options) {
             return models.Post.add(options.data.posts[0], options.modelOptions)
                 .then((model) => {
                     if (model.get('status') === 'published') {
@@ -144,7 +144,7 @@ module.exports = {
             method: 'destroy',
             unsafeAttrs: ['author_id', 'status', 'authors']
         },
-        call(options) {
+        query(options) {
             options.modelOptions.require = true;
 
             return models.Post.destroy(options.modelOptions)

@@ -17,7 +17,7 @@ module.exports = {
             docName: 'users',
             method: 'browse'
         },
-        call(options) {
+        query(options) {
             return models.User.findPage(options.modelOptions);
         }
     },
@@ -45,7 +45,7 @@ module.exports = {
             docName: 'users',
             method: 'read'
         },
-        call(options) {
+        query(options) {
             return models.User.findOne(options.data, options.modelOptions)
                 .then((model) => {
                     if (!model) {
@@ -147,7 +147,7 @@ module.exports = {
                     });
             }
         },
-        call(options) {
+        query(options) {
             return models.User.edit(options.data.users[0], options.modelOptions)
                 .then((model) => {
                     if (!model) {
@@ -176,7 +176,7 @@ module.exports = {
             docName: 'users',
             method: 'destroy'
         },
-        call(options) {
+        query(options) {
             options.modelOptions.status = 'all';
 
             return models.Base.transaction((t) => {
