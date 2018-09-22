@@ -29,12 +29,27 @@ const functional = (api, utils) => {
 
             return Promise.resolve()
                 .then(() => {
+                    if (apiImpl.validation && apiImpl.validation.before) {
+                        return apiImpl.validation.before(options);
+                    }
+                })
+                .then(() => {
                     if (apiImpl.validation) {
                         if (typeof apiImpl.validation === 'function') {
                             return apiImpl.validation(options);
                         }
 
-                        return utils.validation.validate(apiImpl.validation, options);
+                        return utils.validation.validate(apiImpl.validation.config || apiImpl.validation, options);
+                    }
+                })
+                .then(() => {
+                    if (apiImpl.validation && apiImpl.validation.after) {
+                        return apiImpl.validation.after(options);
+                    }
+                })
+                .then(() => {
+                    if (apiImpl.permissions && apiImpl.permissions.before) {
+                        return apiImpl.permissions.before(options);
                     }
                 })
                 .then(() => {
@@ -44,10 +59,15 @@ const functional = (api, utils) => {
                         }
 
                         if (apiImpl.permissions.content) {
-                            return utils.permissions.content(apiImpl.permissions)(options);
+                            return utils.permissions.content(apiImpl.permissions.config || apiImpl.permissions)(options);
                         }
 
-                        return utils.permissions.admin(apiImpl.permissions)(options);
+                        return utils.permissions.admin(apiImpl.permissions.config || apiImpl.permissions)(options);
+                    }
+                })
+                .then(() => {
+                    if (apiImpl.permissions && apiImpl.permissions.after) {
+                        return apiImpl.permissions.after(options);
                     }
                 })
                 .then(() => {

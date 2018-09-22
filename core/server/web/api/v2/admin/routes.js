@@ -53,16 +53,15 @@ module.exports = function apiRoutes() {
     router.put('/settings', mw.authenticatePrivate, api.http(api.settings.edit));
 
     // ## Users
-    router.get('/users', mw.authenticatePrivate, api.http(api.users.browse));
-    router.get('/users/:id', mw.authenticatePrivate, api.http(api.users.read));
-    router.get('/users/slug/:slug', mw.authenticatePrivate, api.http(api.users.read));
-    // NOTE: We don't expose any email addresses via the public api.
-    router.get('/users/email/:email', mw.authenticatePrivate, api.http(api.users.read));
+    router.get('/users', mw.authenticatePrivate, apiV2.http(apiV2.users.browse));
+    router.get('/users/:id', mw.authenticatePrivate, apiV2.http(apiV2.users.read));
+    router.get('/users/slug/:slug', mw.authenticatePrivate, apiV2.http(apiV2.users.read));
+    router.get('/users/email/:email', mw.authenticatePrivate, apiV2.http(apiV2.users.read));
 
-    router.put('/users/password', mw.authenticatePrivate, api.http(api.users.changePassword));
-    router.put('/users/owner', mw.authenticatePrivate, api.http(api.users.transferOwnership));
-    router.put('/users/:id', mw.authenticatePrivate, api.http(api.users.edit));
-    router.del('/users/:id', mw.authenticatePrivate, api.http(api.users.destroy));
+    router.put('/users/password', mw.authenticatePrivate, apiV2.http(apiV2.users.changePassword));
+    router.put('/users/owner', mw.authenticatePrivate, apiV2.http(apiV2.users.transferOwnership));
+    router.put('/users/:id', mw.authenticatePrivate, apiV2.http(apiV2.users.edit));
+    router.del('/users/:id', mw.authenticatePrivate, apiV2.http(apiV2.users.destroy));
 
     // ## Tags
     router.get('/tags', mw.authenticatePrivate, api.http(api.tags.browse));

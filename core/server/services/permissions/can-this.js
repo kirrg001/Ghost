@@ -92,7 +92,12 @@ CanThisResult.prototype.buildObjectTypeHandlers = function (objTypes, actType, c
                 if (TargetModel && _.isFunction(TargetModel.permissible)) {
                     return TargetModel.permissible(
                         modelId, actType, context, unsafeAttrs, loadedPermissions, hasUserPermission, hasAppPermission
-                    );
+                    ).catch((err) => {
+                        throw new common.errors.NoPermissionError({
+                            message: common.i18n.t('errors.permissions.noPermissionToAction'),
+                            err
+                        });
+                    });
                 }
 
                 if (hasUserPermission && hasAppPermission) {

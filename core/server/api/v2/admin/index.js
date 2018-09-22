@@ -8,5 +8,9 @@ module.exports = {
 
     get posts() {
         return shared.functional(require('./posts'), localUtils);
+    },
+
+    get users() {
+        return shared.functional(require('./users'), localUtils);
     }
 };
