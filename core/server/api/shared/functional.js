@@ -39,13 +39,16 @@ const functional = (api, utils) => {
                             return apiImpl.validation(options);
                         }
 
-                        return utils.validation.validate(apiImpl.validation.config || apiImpl.validation, options);
+                        return utils.validators.validate(options, apiImpl.validation.config || apiImpl.validation);
                     }
                 })
                 .then(() => {
                     if (apiImpl.validation && apiImpl.validation.after) {
                         return apiImpl.validation.after(options);
                     }
+                })
+                .then(() => {
+                    return utils.serializers.input(options);
                 })
                 .then(() => {
                     if (apiImpl.permissions && apiImpl.permissions.before) {
@@ -72,6 +75,9 @@ const functional = (api, utils) => {
                 })
                 .then(() => {
                     return apiImpl.query(options);
+                })
+                .then((result) => {
+                    return utils.serialize.output(result);
                 });
         };
 
