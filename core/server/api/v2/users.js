@@ -18,7 +18,13 @@ module.exports = {
             method: 'browse'
         },
         query(options) {
-            return models.User.findPage(options.modelOptions);
+            return models.User.findPage(options.modelOptions)
+                .then(({data, meta}) => {
+                    return {
+                        users: data.map(model => model.toJSON(options)),
+                        meta: meta
+                    };
+                });
         }
     },
 
@@ -26,7 +32,7 @@ module.exports = {
         validation: {
             config: {
                 docName: 'users',
-                urlProperties: ['id', 'slug', 'status', 'email', 'role'],
+                queryData: ['id', 'slug', 'status', 'email', 'role'],
                 queryOptions: ['include', 'absolute_urls'],
                 queryOptionsValues: {
                     include: allowedIncludes

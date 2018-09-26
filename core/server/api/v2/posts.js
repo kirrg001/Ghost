@@ -7,7 +7,19 @@ module.exports = {
     browse: {
         validation: {
             docName: 'posts',
-            queryOptions: ['include', 'filter', 'status', 'fields', 'formats', 'absolute_urls', 'staticPages'],
+            queryOptions: [
+                'include',
+                'filter',
+                'status',
+                'fields',
+                'formats',
+                'absolute_urls',
+                'staticPages',
+                'page',
+                'limit',
+                'order',
+                'debug'
+            ],
             queryOptionsValues: {
                 include: allowedIncludes,
                 formats: models.Post.allowedFormats
@@ -24,7 +36,7 @@ module.exports = {
     read: {
         validation: {
             docName: 'posts',
-            urlProperties: ['id', 'slug', 'status', 'uuid'],
+            queryData: ['id', 'slug', 'status', 'uuid'],
             queryOptions: ['include', 'fields', 'formats', 'absolute_urls'],
             queryOptionsValues: {
                 include: allowedIncludes,
@@ -37,7 +49,7 @@ module.exports = {
             unsafeAttrs: ['author_id', 'status', 'authors']
         },
         query(options) {
-            return models.Post.findOne(options.data, options.modelOptions)
+            return models.Post.findOne(options.queryData, options.modelOptions)
                 .then((model) => {
                     if (!model) {
                         return Promise.reject(new common.errors.NotFoundError({
@@ -45,9 +57,7 @@ module.exports = {
                         }));
                     }
 
-                    return {
-                        posts: [model.toJSON(options.modelOptions)]
-                    };
+                    return model;
                 });
         }
     },
@@ -89,9 +99,7 @@ module.exports = {
                         };
                     }
 
-                    return {
-                        posts: [model.toJSON(options.modelOptions)]
-                    };
+                    return model;
                 });
         }
     },
@@ -126,7 +134,7 @@ module.exports = {
                         };
                     }
 
-                    return {posts: [model.toJSON(options.modelOptions)]};
+                    return model;
                 });
         }
     },

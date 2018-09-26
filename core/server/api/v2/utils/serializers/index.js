@@ -1,9 +1,9 @@
 module.exports = {
-    get options() {
-        return require('./options');
+    get input() {
+        return require('./input');
     },
 
-    get posts() {
-        return require('./posts');
+    get output() {
+        return require('./output');
     }
 };
