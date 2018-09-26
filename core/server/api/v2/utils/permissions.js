@@ -50,6 +50,6 @@ module.exports = {
             return permissions.applyPublicRules(config.docName, config.method, options);
         }
 
-        return nonePublicAuth();
+        return nonePublicAuth(config, options);
     }
 };

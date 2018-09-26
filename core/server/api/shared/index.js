@@ -15,7 +15,7 @@ module.exports = {
         return require('./functional');
     },
 
-    get serializers() {
-        return require('./serializers');
+    get validators() {
+        return require('./validators');
     }
 };

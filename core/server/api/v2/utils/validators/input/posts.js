@@ -34,8 +34,8 @@ module.exports = {
     edit(config, options) {
         this.add(config, options);
 
-        if (options.modelOptions.id && options.data[config.docName][0].id
-            && options.modelOptions.id !== options.data[config.docName][0].id) {
+        if (options.apiOptions.id && options.data[config.docName][0].id
+            && options.apiOptions.id !== options.data[config.docName][0].id) {
             throw new common.errors.BadRequestError({
                 message: common.i18n.t('errors.api.utils.invalidIdProvided')
             });

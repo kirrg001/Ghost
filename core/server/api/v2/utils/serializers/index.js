@@ -1,9 +1,5 @@
 module.exports = {
-    get input() {
-        return require('./input');
-    },
-
-    get output() {
-        return require('./output');
+    get handle() {
+        return require('./handle');
     }
 };

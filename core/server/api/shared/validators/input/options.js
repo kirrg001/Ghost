@@ -1,15 +1,10 @@
 const _ = require('lodash');
-const INTERNAL_OPTIONS = ['transacting', 'forUpdate'];
-const DEFAULT_OPTIONS = ['context'];
+const INTERNAL_OPTIONS = ['transacting', 'forUpdate', 'context'];
 
 module.exports = {
     all(config, options) {
-        Object.assign(options.apiOptions, _.pick(options.query, DEFAULT_OPTIONS));
-        Object.assign(options.apiOptions, _.pick(options.params, DEFAULT_OPTIONS));
-
-        if (options.apiOptions.context.internal) {
-            Object.assign(options.apiOptions, _.pick(options.query, INTERNAL_OPTIONS));
-            Object.assign(options.apiOptions, _.pick(options.params, INTERNAL_OPTIONS));
+        if (!options.apiOptions.context.internal) {
+            Object.assign(options.apiOptions, _.omit(options.apiOptions, INTERNAL_OPTIONS));
         }
 
         if (config.queryOptions) {
@@ -22,6 +17,8 @@ module.exports = {
         }
 
         if (config.queryData) {
+            options.queryData = {};
+
             if (typeof config.queryData === 'function') {
                 config.queryData = config.queryData(options);
             }

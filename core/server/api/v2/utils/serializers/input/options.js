@@ -16,7 +16,8 @@ module.exports = {
         options.modelOptions = _.cloneDeep(options.apiOptions);
 
         if (options.modelOptions.include) {
-            options.modelOptions.include = _.intersection(trimAndLowerCase(options.modelOptions.include), config.include);
+            // No need to validate the values again, happened already in validators
+            options.modelOptions.include = trimAndLowerCase(options.modelOptions.include);
 
             if (local.forModel) {
                 options.modelOptions.withRelated = options.modelOptions.include;
@@ -32,7 +33,7 @@ module.exports = {
         }
 
         if (options.modelOptions.formats) {
-            options.modelOptions.formats = _.intersection(trimAndLowerCase(options.modelOptions.formats), config.formats);
+            options.modelOptions.formats = trimAndLowerCase(options.modelOptions.formats);
         }
 
         if (options.modelOptions.formats && options.modelOptions.columns) {

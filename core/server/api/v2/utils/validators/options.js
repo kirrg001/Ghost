@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const _ = require('lodash');
-const validation = require('../../../data/validation');
+const validation = require('../../../../data/validation');
+const common = require('../../../../lib/common');
 
 const GLOBAL_VALIDATORS = {
     id: {matches: /^[a-f\d]{24}$|^1$|me/i},
@@ -14,20 +15,28 @@ const GLOBAL_VALIDATORS = {
     slug: {isSlug: true},
     name: {},
     email: {isEmail: true},
-    context: {isObject: true},
-    filter: {isString: true},
-    forUpdate: true,
-    transacting: true
+    filter: false,
+    context: false,
+    forUpdate: false,
+    transacting: false,
+    include: false,
+    formats: false
 };
 
-const validate = (attrs, config) => {
+const validate = (config, attrs) => {
     let errors = [];
 
     _.each(attrs, (value, key) => {
-        if (config.queryOptionsValues && config.queryOptionsValues[key]) {
-            errors = errors.concat(validation.validate(value, key, config.queryOptionsValues[key]));
-        } else {
-            if (GLOBAL_VALIDATORS[key]) {
+        if (GLOBAL_VALIDATORS[key]) {
+            if (config.queryOptionsValues && config.queryOptionsValues[key]) {
+                if (!value || value.length === 1) {
+                    return;
+                }
+
+                if (value.trim().toLowerCase().split(',').difference(config.queryOptionsValues[key]).length) {
+                    errors.push(new common.errors.ValidationError());
+                }
+            } else {
                 errors = errors.concat(validation.validate(value, key, GLOBAL_VALIDATORS[key]));
             }
         }
@@ -41,7 +50,7 @@ module.exports = {
         let validationErrors;
 
         if (options.apiOptions) {
-            validationErrors = validate(options.apiOptions);
+            validationErrors = validate(config, options.apiOptions);
         }
 
         if (!_.isEmpty(validationErrors)) {
@@ -49,7 +58,7 @@ module.exports = {
         }
 
         if (options.queryData) {
-            validationErrors = validate(options.queryData);
+            validationErrors = validate(config, options.queryData);
         }
 
         if (!_.isEmpty(validationErrors)) {

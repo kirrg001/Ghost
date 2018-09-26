@@ -1,9 +1,13 @@
+const _ = require('lodash');
+
 module.exports = {
     all(config, options) {
         if (options.modelOptions.context.public) {
             options.modelOptions.filter = 'page:false';
         }
+    },
 
+    add(config, options) {
         /**
              * Convert author property to author_id to match the name in the database.
              *
@@ -56,5 +60,9 @@ module.exports = {
                 });
             }
         }
+    },
+
+    edit(config, options) {
+        this.add(config, options);
     }
 };

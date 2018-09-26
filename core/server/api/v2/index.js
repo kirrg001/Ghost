@@ -1,9 +1,9 @@
-const shared = require('../../shared');
-const localUtils = require('../utils');
+const shared = require('../shared');
+const localUtils = require('./utils');
 
 module.exports = {
     get http() {
-        return require('../../shared/http');
+        return shared.http;
     },
 
     get posts() {

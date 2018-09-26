@@ -13,9 +13,7 @@ module.exports = {
                 include: allowedIncludes
             }
         },
-        permissions: {
-            method: 'browse'
-        },
+        permissions: true,
         query(options) {
             return models.User.findPage(options.modelOptions)
                 .then(({data, meta}) => {
@@ -45,9 +43,7 @@ module.exports = {
                 return Promise.resolve();
             }
         },
-        permissions: {
-            method: 'read'
-        },
+        permissions: true,
         query(options) {
             return models.User.findOne(options.data, options.modelOptions)
                 .then((model) => {
@@ -98,9 +94,6 @@ module.exports = {
             }
         },
         permissions: {
-            config: {
-                method: 'edit'
-            },
             // @TODO move manual role permissions out of here
             after: (options) => {
                 // CASE: if roles aren't in the payload, proceed with the edit
@@ -172,9 +165,7 @@ module.exports = {
         validation: {
             queryOptions: ['id']
         },
-        permissions: {
-            method: 'destroy'
-        },
+        permissions: true,
         query(options) {
             options.modelOptions.status = 'all';
 

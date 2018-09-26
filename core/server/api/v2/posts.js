@@ -103,8 +103,7 @@ module.exports = {
             queryOptions: ['include'],
             queryOptionsValues: {
                 include: allowedIncludes
-            },
-            allowedIncludes: allowedIncludes
+            }
         },
         permissions: {
             unsafeAttrs: ['author_id', 'status', 'authors']

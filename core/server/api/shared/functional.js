@@ -7,7 +7,7 @@ const functional = (api, utils) => {
 
     return keys.reduce((obj, key) => {
         const docName = api.docName;
-        const methodName = key;
+        const method = key;
 
         const apiImpl = _.cloneDeep(api[key]);
 
@@ -42,7 +42,16 @@ const functional = (api, utils) => {
                             return apiImpl.validation(options);
                         }
 
-                        const config = Object.assign({docName, methodName}, apiImpl.validation.config || apiImpl.validation);
+                        const config = {docName, method};
+
+                        if (apiImpl.validation.config) {
+                            Object.assign(config, apiImpl.validation.config);
+                        } else if (typeof apiImpl.validation !== 'boolean') {
+                            Object.assign(config, apiImpl.validation);
+                        } else {
+                            Object.assign(config, {});
+                        }
+
                         return utils.validators.handle(config, options);
                     }
                 })
@@ -52,7 +61,8 @@ const functional = (api, utils) => {
                     }
                 })
                 .then(() => {
-                    return utils.serializers.handle.input(options);
+                    const config = {docName, method};
+                    return utils.serializers.handle.input(config, options);
                 })
                 .then(() => {
                     if (apiImpl.permissions && apiImpl.permissions.before) {
@@ -65,7 +75,16 @@ const functional = (api, utils) => {
                             return apiImpl.permissions(options);
                         }
 
-                        const config = Object.assign({docName, methodName}, apiImpl.permissions.config || apiImpl.permissions);
+                        const config = {docName, method};
+
+                        if (apiImpl.permissions.config) {
+                            Object.assign(config, apiImpl.permissions.config);
+                        } else if (typeof apiImpl.permissions !== 'boolean') {
+                            Object.assign(config, apiImpl.permissions);
+                        } else {
+                            Object.assign(config, {});
+                        }
+
                         return utils.permissions.handle(config, options);
                     }
                 })
@@ -77,8 +96,11 @@ const functional = (api, utils) => {
                 .then(() => {
                     return apiImpl.query(options);
                 })
-                .then((result) => {
-                    return utils.serializers.handle.output(result);
+                .then((models) => {
+                    return utils.serializers.handle.output(models, {docName, method}, options);
+                })
+                .then(() => {
+                    return options.response;
                 });
         };
 

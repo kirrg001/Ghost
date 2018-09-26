@@ -6,7 +6,7 @@ module.exports = {
 
         if (models.meta) {
             options.response = {
-                posts: models.data.map(model => model.toJSON(options.modelOptions)),
+                users: models.data.map(model => model.toJSON(options.modelOptions)),
                 meta: models.meta
             };
 
@@ -14,7 +14,7 @@ module.exports = {
         }
 
         options.response = {
-            posts: [models.toJSON(options.modelOptions)]
+            users: [models.toJSON(options.modelOptions)]
         };
     }
 };
