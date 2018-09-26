@@ -52,5 +52,9 @@ module.exports = {
                 });
             }
         }
+
+        if (options.modelOptions.context.public) {
+            options.modelOptions.filter = 'page:false';
+        }
     }
 };

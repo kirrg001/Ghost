@@ -61,11 +61,7 @@ const functional = (api, utils) => {
                             return apiImpl.permissions(options);
                         }
 
-                        if (apiImpl.permissions.content) {
-                            return utils.permissions.content(apiImpl.permissions.config || apiImpl.permissions)(options);
-                        }
-
-                        return utils.permissions.admin(apiImpl.permissions.config || apiImpl.permissions)(options);
+                        return utils.permissions.handle(apiImpl.permissions.config || apiImpl.permissions, options);
                     }
                 })
                 .then(() => {

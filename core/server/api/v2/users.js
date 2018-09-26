@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
-const models = require('../../../models');
-const common = require('../../../lib/common');
-const permissionsService = require('../../../services/permissions');
+const models = require('../../models/index');
+const common = require('../../lib/common/index');
+const permissionsService = require('../../services/permissions/index');
 const allowedIncludes = ['count.posts', 'permissions', 'roles', 'roles.permissions'];
 
 module.exports = {

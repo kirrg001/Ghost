@@ -1,4 +1,4 @@
-const models = require('../../../models');
+const models = require('../../models/index');
 
 module.exports = {
     browse: {
@@ -12,11 +12,9 @@ module.exports = {
         },
         permissions: {
             docName: 'posts',
-            method: 'browse',
-            content: true
+            method: 'browse'
         },
         query(options) {
-            options.modelOptions.filter = 'page:true';
             return models.Post.findPage(options.modelOptions);
         }
     }

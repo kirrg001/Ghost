@@ -1,9 +1,13 @@
 module.exports = {
-    get admin() {
-        return require('./admin');
+    get pages() {
+        return require('./pages');
     },
 
-    get content() {
-        return require('./content');
+    get posts() {
+        return require('./posts');
+    },
+
+    get users() {
+        return require('./users');
     }
 };

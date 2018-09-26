@@ -1,6 +1,6 @@
 const express = require('express');
 const api = require('../../../../api');
-const apiV2 = require('../../../../api/v2/content');
+const apiV2 = require('../../../../api/v2');
 const shared = require('../../../shared');
 const mw = require('./middleware');
 

@@ -2,7 +2,7 @@ const express = require('express');
 const os = require('os');
 const multer = require('multer');
 const api = require('../../../../api');
-const apiV2 = require('../../../../api/v2/admin');
+const apiV2 = require('../../../../api/v2');
 const mw = require('./middleware');
 
 const auth = require('../../../../services/auth');
