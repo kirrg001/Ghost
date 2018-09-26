@@ -37,7 +37,7 @@ const validate = (attrs, config) => {
 };
 
 module.exports = {
-    all(options) {
+    all(config, options) {
         let validationErrors;
 
         if (options.apiOptions) {

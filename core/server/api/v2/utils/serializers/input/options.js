@@ -12,13 +12,13 @@ const trimAndLowerCase = (params) => {
 };
 
 module.exports = {
-    all(options, apiConfig, config = {forModel: true}) {
+    all(config, options, local = {forModel: true}) {
         options.modelOptions = _.cloneDeep(options.apiOptions);
 
         if (options.modelOptions.include) {
-            options.modelOptions.include = _.intersection(trimAndLowerCase(options.modelOptions.include), apiConfig.include);
+            options.modelOptions.include = _.intersection(trimAndLowerCase(options.modelOptions.include), config.include);
 
-            if (config.forModel) {
+            if (local.forModel) {
                 options.modelOptions.withRelated = options.modelOptions.include;
                 delete options.modelOptions.include;
             }
@@ -32,7 +32,7 @@ module.exports = {
         }
 
         if (options.modelOptions.formats) {
-            options.modelOptions.formats = _.intersection(trimAndLowerCase(options.modelOptions.formats), apiConfig.formats);
+            options.modelOptions.formats = _.intersection(trimAndLowerCase(options.modelOptions.formats), config.formats);
         }
 
         if (options.modelOptions.formats && options.modelOptions.columns) {

@@ -4,9 +4,9 @@ const common = require('../../lib/common/index');
 const allowedIncludes = ['created_by', 'updated_by', 'published_by', 'author', 'tags', 'authors', 'authors.roles'];
 
 module.exports = {
+    docName: 'posts',
     browse: {
         validation: {
-            docName: 'posts',
             queryOptions: [
                 'include',
                 'filter',
@@ -25,17 +25,13 @@ module.exports = {
                 formats: models.Post.allowedFormats
             }
         },
-        permissions: {
-            docName: 'posts',
-            method: 'browse'
-        },
+        permissions: true,
         query(options) {
             return models.Post.findPage(options.modelOptions);
         }
     },
     read: {
         validation: {
-            docName: 'posts',
             queryData: ['id', 'slug', 'status', 'uuid'],
             queryOptions: ['include', 'fields', 'formats', 'absolute_urls'],
             queryOptionsValues: {
@@ -44,8 +40,6 @@ module.exports = {
             }
         },
         permissions: {
-            docName: 'posts',
-            method: 'read',
             unsafeAttrs: ['author_id', 'status', 'authors']
         },
         query(options) {
@@ -67,15 +61,12 @@ module.exports = {
             cacheInvalidate: false
         },
         validation: {
-            docName: 'posts',
             queryOptions: ['include', 'id'],
             queryOptionsValues: {
                 include: allowedIncludes
             }
         },
         permissions: {
-            docName: 'posts',
-            method: 'edit',
             unsafeAttrs: ['author_id', 'status', 'authors']
         },
         query(options) {
@@ -109,7 +100,6 @@ module.exports = {
             cacheInvalidate: false
         },
         validation: {
-            docName: 'posts',
             queryOptions: ['include'],
             queryOptionsValues: {
                 include: allowedIncludes
@@ -117,8 +107,6 @@ module.exports = {
             allowedIncludes: allowedIncludes
         },
         permissions: {
-            docName: 'posts',
-            method: 'add',
             unsafeAttrs: ['author_id', 'status', 'authors']
         },
         query(options) {
@@ -144,12 +132,9 @@ module.exports = {
             cacheInvalidate: true
         },
         validation: {
-            docName: 'posts',
             queryOptions: ['id']
         },
         permissions: {
-            docName: 'posts',
-            method: 'destroy',
             unsafeAttrs: ['author_id', 'status', 'authors']
         },
         query(options) {

@@ -1,9 +1,9 @@
 const models = require('../../models/index');
 
 module.exports = {
+    docName: 'pages',
     browse: {
         validation: {
-            docName: 'posts',
             queryOptions: [
                 'include',
                 'filter',
@@ -22,10 +22,7 @@ module.exports = {
                 formats: models.Post.allowedFormats
             }
         },
-        permissions: {
-            docName: 'posts',
-            method: 'browse'
-        },
+        permissions: true,
         query(options) {
             return models.Post.findPage(options.modelOptions);
         }

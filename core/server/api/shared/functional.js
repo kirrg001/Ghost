@@ -6,6 +6,9 @@ const functional = (api, utils) => {
     const keys = Object.keys(api);
 
     return keys.reduce((obj, key) => {
+        const docName = api.docName;
+        const methodName = key;
+
         const apiImpl = _.cloneDeep(api[key]);
 
         obj[key] = function wrapper() {
@@ -39,7 +42,8 @@ const functional = (api, utils) => {
                             return apiImpl.validation(options);
                         }
 
-                        return utils.validators.validate(options, apiImpl.validation.config || apiImpl.validation);
+                        const config = Object.assign({docName, methodName}, apiImpl.validation.config || apiImpl.validation);
+                        return utils.validators.handle(config, options);
                     }
                 })
                 .then(() => {
@@ -48,7 +52,7 @@ const functional = (api, utils) => {
                     }
                 })
                 .then(() => {
-                    return utils.serializers.input(options);
+                    return utils.serializers.handle.input(options);
                 })
                 .then(() => {
                     if (apiImpl.permissions && apiImpl.permissions.before) {
@@ -61,7 +65,8 @@ const functional = (api, utils) => {
                             return apiImpl.permissions(options);
                         }
 
-                        return utils.permissions.handle(apiImpl.permissions.config || apiImpl.permissions, options);
+                        const config = Object.assign({docName, methodName}, apiImpl.permissions.config || apiImpl.permissions);
+                        return utils.permissions.handle(config, options);
                     }
                 })
                 .then(() => {
@@ -73,7 +78,7 @@ const functional = (api, utils) => {
                     return apiImpl.query(options);
                 })
                 .then((result) => {
-                    return utils.serialize.output(result);
+                    return utils.serializers.handle.output(result);
                 });
         };
 

@@ -13,5 +13,9 @@ module.exports = {
 
     get functional() {
         return require('./functional');
+    },
+
+    get serializers() {
+        return require('./serializers');
     }
 };

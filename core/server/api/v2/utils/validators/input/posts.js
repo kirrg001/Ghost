@@ -2,7 +2,7 @@ const _ = require('lodash');
 const common = require('../../../../../lib/common/index');
 
 module.exports = {
-    add(options) {
+    add(config, options) {
         /**
          * Ensure correct incoming `post.authors` structure.
          *
@@ -31,10 +31,11 @@ module.exports = {
         }
     },
 
-    edit(options) {
-        this.add(options);
+    edit(config, options) {
+        this.add(config, options);
 
-        if (options.modelOptions.id && options.data[docName][0].id && options.modelOptions.id !== options.data[docName][0].id) {
+        if (options.modelOptions.id && options.data[config.docName][0].id
+            && options.modelOptions.id !== options.data[config.docName][0].id) {
             throw new common.errors.BadRequestError({
                 message: common.i18n.t('errors.api.utils.invalidIdProvided')
             });

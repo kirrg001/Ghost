@@ -5,16 +5,15 @@ const permissionsService = require('../../services/permissions/index');
 const allowedIncludes = ['count.posts', 'permissions', 'roles', 'roles.permissions'];
 
 module.exports = {
+    docName: 'users',
     browse: {
         validation: {
-            docName: 'users',
             queryOptions: ['include', 'status', 'absolute_urls'],
             queryOptionsValues: {
                 include: allowedIncludes
             }
         },
         permissions: {
-            docName: 'users',
             method: 'browse'
         },
         query(options) {
@@ -31,7 +30,6 @@ module.exports = {
     read: {
         validation: {
             config: {
-                docName: 'users',
                 queryData: ['id', 'slug', 'status', 'email', 'role'],
                 queryOptions: ['include', 'absolute_urls'],
                 queryOptionsValues: {
@@ -48,7 +46,6 @@ module.exports = {
             }
         },
         permissions: {
-            docName: 'users',
             method: 'read'
         },
         query(options) {
@@ -73,7 +70,6 @@ module.exports = {
         },
         validation: {
             config: {
-                docName: 'users',
                 queryOptions: ['include', 'id'],
                 queryOptionsValues: {
                     include: allowedIncludes
@@ -103,7 +99,6 @@ module.exports = {
         },
         permissions: {
             config: {
-                docName: 'users',
                 method: 'edit'
             },
             // @TODO move manual role permissions out of here
@@ -175,11 +170,9 @@ module.exports = {
             cacheInvalidate: true
         },
         validation: {
-            docName: 'posts',
             queryOptions: ['id']
         },
         permissions: {
-            docName: 'users',
             method: 'destroy'
         },
         query(options) {

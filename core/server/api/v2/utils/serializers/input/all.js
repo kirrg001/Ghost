@@ -1,15 +1,14 @@
 const _ = require('lodash');
-const common = require('../../../../lib/common');
 
 module.exports = {
-    add(options) {
+    add(config, options) {
         // will remove unwanted null values
-        _.each(options.data[docName], (value, index) => {
-            if (!_.isObject(options.data[docName][index])) {
+        _.each(options.data[config.docName], (value, index) => {
+            if (!_.isObject(options.data[config.docName][index])) {
                 return;
             }
 
-            options.data[docName][index] = _.omitBy(options.data[docName][index], _.isNull);
+            options.data[config.docName][index] = _.omitBy(options.data[config.docName][index], _.isNull);
         });
     },
 

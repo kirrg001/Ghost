@@ -1,13 +1,20 @@
+const shared = require('../../shared');
+const localUtils = require('../utils');
+
 module.exports = {
-    get pages() {
-        return require('./pages');
+    get http() {
+        return require('../../shared/http');
     },
 
     get posts() {
-        return require('./posts');
+        return shared.functional(require('./posts'), localUtils);
+    },
+
+    get pages() {
+        return shared.functional(require('./posts'), localUtils);
     },
 
     get users() {
-        return require('./users');
+        return shared.functional(require('./users'), localUtils);
     }
 };
