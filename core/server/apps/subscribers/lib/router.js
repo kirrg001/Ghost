@@ -4,7 +4,7 @@ const path = require('path'),
     subscribeRouter = express.Router(),
     bodyParser = require('body-parser'),
     // Dirty requires
-    api = require('../../../api'),
+    api = require('../../../api/v0.1/index'),
     common = require('../../../lib/common'),
     urlService = require('../../../services/url'),
     validator = require('../../../data/validation').validator,

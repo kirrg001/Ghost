@@ -6,7 +6,8 @@ var should = require('should'),
     ObjectId = require('bson-objectid'),
     configUtils = require('../../utils/configUtils'),
     common = require('../../../server/lib/common'),
-    PostAPI = require('../../../server/api/posts'),
+    api = require('../../../server/api/v2'),
+    apiOld = require('../../../server/api/v0.1'),
     urlService = require('../../../server/services/url'),
     settingsCache = require('../../../server/services/settings/cache'),
 
@@ -31,7 +32,7 @@ describe('Post API', function () {
         localSettingsCache = {};
     });
 
-    should.exist(PostAPI);
+    should.exist(api.posts);
 
     describe('Browse', function () {
         beforeEach(function () {
@@ -43,7 +44,7 @@ describe('Post API', function () {
         });
 
         it('can fetch all posts with internal context in correct order', function () {
-            return PostAPI.browse({context: {internal: true}}).then(function (results) {
+            return api.posts.browse({context: {internal: true}}).then(function (results) {
                 should.exist(results.posts);
                 results.posts.length.should.eql(8);
 
@@ -61,7 +62,7 @@ describe('Post API', function () {
         });
 
         it('can fetch featured posts for user 1', function () {
-            return PostAPI.browse(_.merge({filter: 'featured:true'}, testUtils.context.owner)).then(function (results) {
+            return api.posts.browse(_.merge({filter: 'featured:true'}, testUtils.context.owner)).then(function (results) {
                 should.exist(results.posts);
                 results.posts.length.should.eql(2);
                 results.posts[0].featured.should.eql(true);
@@ -69,7 +70,7 @@ describe('Post API', function () {
         });
 
         it('can fetch featured posts for user 2', function () {
-            return PostAPI.browse(_.merge({filter: 'featured:true'}, testUtils.context.admin)).then(function (results) {
+            return api.posts.browse(_.merge({filter: 'featured:true'}, testUtils.context.admin)).then(function (results) {
                 should.exist(results.posts);
                 results.posts.length.should.eql(2);
                 results.posts[0].featured.should.eql(true);
@@ -77,7 +78,7 @@ describe('Post API', function () {
         });
 
         it('can exclude featured posts for user 1', function () {
-            return PostAPI.browse(_.merge({
+            return api.posts.browse(_.merge({
                 status: 'all',
                 filter: 'featured:false'
             }, testUtils.context.owner)).then(function (results) {
@@ -88,7 +89,7 @@ describe('Post API', function () {
         });
 
         it('can limit the number of posts', function () {
-            return PostAPI.browse({context: {user: 1}, status: 'all', limit: 3}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, status: 'all', limit: 3}).then(function (results) {
                 should.exist(results.posts);
                 results.posts.length.should.eql(3);
                 results.meta.pagination.limit.should.eql(3);
@@ -96,7 +97,7 @@ describe('Post API', function () {
         });
 
         it('can fetch only static posts', function () {
-            return PostAPI.browse({context: {user: 1}, staticPages: true}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, staticPages: true}).then(function (results) {
                 should.exist(results.posts);
                 results.posts.length.should.eql(1);
                 results.posts[0].page.should.eql(true);
@@ -104,7 +105,7 @@ describe('Post API', function () {
         });
 
         it('can fetch only static posts with string \'true\'', function () {
-            return PostAPI.browse({context: {user: 1}, staticPages: 'true'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, staticPages: 'true'}).then(function (results) {
                 should.exist(results.posts);
                 results.posts.length.should.eql(1);
                 results.posts[0].page.should.eql(true);
@@ -112,7 +113,7 @@ describe('Post API', function () {
         });
 
         it('can fetch only static posts with string \'1\'', function () {
-            return PostAPI.browse({context: {user: 1}, staticPages: '1'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, staticPages: '1'}).then(function (results) {
                 should.exist(results.posts);
                 results.posts.length.should.eql(1);
                 results.posts[0].page.should.eql(true);
@@ -120,7 +121,7 @@ describe('Post API', function () {
         });
 
         it('can exclude static posts', function () {
-            return PostAPI.browse({context: {user: 1}, staticPages: false}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, staticPages: false}).then(function (results) {
                 should.exist(results.posts);
                 results.posts.length.should.eql(4);
                 results.posts[0].page.should.eql(false);
@@ -128,14 +129,14 @@ describe('Post API', function () {
         });
 
         it('can fetch static and normal posts', function () {
-            return PostAPI.browse({context: {user: 1}, staticPages: 'all'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, staticPages: 'all'}).then(function (results) {
                 should.exist(results.posts);
                 results.posts.length.should.eql(5);
             });
         });
 
         it('can fetch static and normal posts (filter version)', function () {
-            return PostAPI.browse({context: {user: 1}, filter: 'page:[false,true]'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, filter: 'page:[false,true]'}).then(function (results) {
                 // should be the same as the current staticPages: 'all'
                 should.exist(results.posts);
                 results.posts.length.should.eql(5);
@@ -143,7 +144,7 @@ describe('Post API', function () {
         });
 
         it('can fetch page 1', function () {
-            return PostAPI.browse({context: {user: 1}, page: 1, limit: 2, status: 'all'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, page: 1, limit: 2, status: 'all'}).then(function (results) {
                 should.exist(results.posts);
                 results.posts.length.should.eql(2);
                 results.posts[0].slug.should.eql('scheduled-post');
@@ -154,7 +155,7 @@ describe('Post API', function () {
         });
 
         it('can fetch page 2', function () {
-            return PostAPI.browse({context: {user: 1}, page: 2, limit: 2, status: 'all'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, page: 2, limit: 2, status: 'all'}).then(function (results) {
                 should.exist(results.posts);
                 results.posts.length.should.eql(2);
                 results.posts[0].slug.should.eql('not-so-short-bit-complex');
@@ -166,7 +167,7 @@ describe('Post API', function () {
         });
 
         it('without context.user cannot fetch all posts', function () {
-            return PostAPI.browse({status: 'all'}).then(function (results) {
+            return api.posts.browse({status: 'all'}).then(function (results) {
                 should.not.exist(results);
 
                 throw new Error('should not provide results if invalid status provided');
@@ -176,7 +177,7 @@ describe('Post API', function () {
         });
 
         it('without context.user cannot fetch draft posts', function () {
-            return PostAPI.browse({status: 'draft'}).then(function (results) {
+            return api.posts.browse({status: 'draft'}).then(function (results) {
                 should.not.exist(results);
 
                 throw new Error('should not provide results if invalid status provided');
@@ -186,7 +187,7 @@ describe('Post API', function () {
         });
 
         it('without context.user cannot use uuid to fetch draft posts in browse', function () {
-            return PostAPI.browse({status: 'draft', uuid: 'imastring'}).then(function (results) {
+            return api.posts.browse({status: 'draft', uuid: 'imastring'}).then(function (results) {
                 should.not.exist(results);
 
                 throw new Error('should not provide results if invalid status provided');
@@ -196,7 +197,7 @@ describe('Post API', function () {
         });
 
         it('with context.user can fetch drafts', function () {
-            return PostAPI.browse({context: {user: 1}, status: 'draft'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, status: 'draft'}).then(function (results) {
                 should.exist(results);
                 testUtils.API.checkResponse(results, 'posts');
                 should.exist(results.posts);
@@ -207,7 +208,7 @@ describe('Post API', function () {
         });
 
         it('with context.user can fetch all posts', function () {
-            return PostAPI.browse({context: {user: 1}, status: 'all'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, status: 'all'}).then(function (results) {
                 should.exist(results);
                 testUtils.API.checkResponse(results, 'posts');
                 should.exist(results.posts);
@@ -219,7 +220,7 @@ describe('Post API', function () {
         });
 
         it('can include tags', function () {
-            return PostAPI.browse({context: {user: 1}, status: 'all', include: 'tags'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, status: 'all', include: 'tags'}).then(function (results) {
                 results.posts[0].tags.length.should.eql(0);
                 results.posts[1].tags.length.should.eql(1);
 
@@ -228,7 +229,7 @@ describe('Post API', function () {
         });
 
         it('[DEPRECATED] can include author (using status:all)', function () {
-            return PostAPI.browse({context: {user: 1}, status: 'all', include: 'author'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, status: 'all', include: 'author'}).then(function (results) {
                 should.exist(results.posts);
                 should.exist(results.posts[0].author.name);
                 results.posts[0].author.name.should.eql('Joe Bloggs');
@@ -236,7 +237,7 @@ describe('Post API', function () {
         });
 
         it('[DEPRECATED] can include author', function () {
-            return PostAPI.read({
+            return api.posts.read({
                 context: {user: testUtils.DataGenerator.Content.users[1].id},
                 id: testUtils.DataGenerator.Content.posts[1].id,
                 include: 'author'
@@ -247,7 +248,7 @@ describe('Post API', function () {
         });
 
         it('can include authors', function () {
-            return PostAPI.browse({context: {user: 1}, status: 'all', include: 'authors'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, status: 'all', include: 'authors'}).then(function (results) {
                 should.exist(results.posts);
                 should.exist(results.posts[0].authors);
                 should.exist(results.posts[0].authors[0]);
@@ -256,7 +257,7 @@ describe('Post API', function () {
         });
 
         it('can fetch all posts for a tag', function () {
-            return PostAPI.browse({
+            return api.posts.browse({
                 context: {user: 1},
                 status: 'all',
                 filter: 'tags:kitchen-sink',
@@ -272,7 +273,7 @@ describe('Post API', function () {
         });
 
         it('can include authors and be case insensitive', function () {
-            return PostAPI.browse({context: {user: 1}, status: 'all', include: 'Authors'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, status: 'all', include: 'Authors'}).then(function (results) {
                 should.exist(results.posts);
                 should.exist(results.posts[0].authors);
                 should.exist(results.posts[0].authors[0]);
@@ -281,7 +282,7 @@ describe('Post API', function () {
         });
 
         it('can include authors and ignore space in include', function () {
-            return PostAPI.browse({context: {user: 1}, status: 'all', include: ' authors'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, status: 'all', include: ' authors'}).then(function (results) {
                 should.exist(results.posts);
                 should.exist(results.posts[0].authors);
                 should.exist(results.posts[0].authors[0]);
@@ -290,7 +291,7 @@ describe('Post API', function () {
         });
 
         it('[DEPRECATED] can fetch all posts for an author', function () {
-            return PostAPI.browse({
+            return api.posts.browse({
                 context: {user: 1},
                 status: 'all',
                 filter: 'author:joe-bloggs',
@@ -306,7 +307,7 @@ describe('Post API', function () {
         });
 
         it('can fetch all posts for an author', function () {
-            return PostAPI.browse({
+            return api.posts.browse({
                 context: {user: 1},
                 status: 'all',
                 filter: 'authors:joe-bloggs',
@@ -326,7 +327,7 @@ describe('Post API', function () {
 
         // @TODO: ensure filters are fully validated
         it.skip('cannot fetch all posts for a tag with invalid slug', function () {
-            return PostAPI.browse({filter: 'tags:invalid!'}).then(function () {
+            return api.posts.browse({filter: 'tags:invalid!'}).then(function () {
                 throw new Error('Should not return a result with invalid tag');
             }).catch(function (err) {
                 should.exist(err);
@@ -336,7 +337,7 @@ describe('Post API', function () {
         });
 
         it.skip('cannot fetch all posts for an author with invalid slug', function () {
-            return PostAPI.browse({filter: 'authors:invalid!'}).then(function () {
+            return api.posts.browse({filter: 'authors:invalid!'}).then(function () {
                 throw new Error('Should not return a result with invalid author');
             }).catch(function (err) {
                 should.exist(err);
@@ -346,7 +347,7 @@ describe('Post API', function () {
         });
 
         it('with context.user can fetch a single field', function () {
-            return PostAPI.browse({context: {user: 1}, status: 'all', limit: 5, fields: 'title'}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, status: 'all', limit: 5, fields: 'title'}).then(function (results) {
                 should.exist(results.posts);
 
                 should.exist(results.posts[0].title);
@@ -355,7 +356,7 @@ describe('Post API', function () {
         });
 
         it('with context.user can fetch multiple fields', function () {
-            return PostAPI.browse({
+            return api.posts.browse({
                 context: {user: 1},
                 status: 'all',
                 limit: 5,
@@ -372,7 +373,7 @@ describe('Post API', function () {
         it('with context.user can fetch url and author fields', function () {
             sandbox.stub(urlService, 'getUrlByResourceId').withArgs(testUtils.DataGenerator.Content.posts[7].id).returns('/html-ipsum/');
 
-            return PostAPI.browse({context: {user: 1}, status: 'all', limit: 5}).then(function (results) {
+            return api.posts.browse({context: {user: 1}, status: 'all', limit: 5}).then(function (results) {
                 should.exist(results.posts);
 
                 should.exist(results.posts[0].url);
@@ -382,7 +383,7 @@ describe('Post API', function () {
         });
 
         it('with context.user can fetch multiple fields and be case insensitive', function () {
-            return PostAPI.browse({
+            return api.posts.browse({
                 context: {user: 1},
                 status: 'all',
                 limit: 5,
@@ -397,7 +398,7 @@ describe('Post API', function () {
         });
 
         it('with context.user can fetch multiple fields ignoring spaces', function () {
-            return PostAPI.browse({
+            return api.posts.browse({
                 context: {user: 1},
                 status: 'all',
                 limit: 5,
@@ -412,7 +413,7 @@ describe('Post API', function () {
         });
 
         it('with context.user can fetch a field and not return invalid field', function () {
-            return PostAPI.browse({context: {user: 1}, status: 'all', limit: 5, fields: 'foo,title'})
+            return api.posts.browse({context: {user: 1}, status: 'all', limit: 5, fields: 'foo,title'})
                 .then(function (results) {
                     var objectKeys;
                     should.exist(results.posts);
@@ -430,7 +431,7 @@ describe('Post API', function () {
             posts = _(testUtils.DataGenerator.Content.posts).reject('page').value();
             expectedTitles = _(posts).map('title').sortBy().value();
 
-            return PostAPI.browse({
+            return api.posts.browse({
                 context: {user: 1},
                 status: 'all',
                 order: 'title asc',
@@ -449,7 +450,7 @@ describe('Post API', function () {
             posts = _(testUtils.DataGenerator.Content.posts).reject('page').value();
             expectedTitles = _(posts).map('title').sortBy().reverse().value();
 
-            return PostAPI.browse({
+            return api.posts.browse({
                 context: {user: 1},
                 status: 'all',
                 order: 'title DESC',
@@ -468,7 +469,7 @@ describe('Post API', function () {
             posts = _(testUtils.DataGenerator.Content.posts).reject('page').value();
             expectedTitles = _(posts).map('title').sortBy().value();
 
-            return PostAPI.browse({
+            return api.posts.browse({
                 context: {user: 1},
                 status: 'all',
                 order: 'bunny DESC, title ASC',
@@ -499,7 +500,7 @@ describe('Post API', function () {
                 published_at: moment().add(1, 'minutes').toDate()
             }])
                 .then(function () {
-                    return PostAPI.browse({context: {internal: true}});
+                    return api.posts.browse({context: {internal: true}});
                 })
                 .then(function (results) {
                     should.exist(results.posts);
@@ -528,12 +529,12 @@ describe('Post API', function () {
         it('can fetch a post', function () {
             var firstPost;
 
-            return PostAPI.browse().then(function (results) {
+            return api.posts.browse().then(function (results) {
                 should.exist(results);
                 should.exist(results.posts);
                 results.posts.length.should.be.above(0);
                 firstPost = _.find(results.posts, {title: testUtils.DataGenerator.Content.posts[0].title});
-                return PostAPI.read({slug: firstPost.slug, include: 'tags'});
+                return api.posts.read({slug: firstPost.slug, include: 'tags'});
             }).then(function (found) {
                 var post;
 
@@ -551,7 +552,7 @@ describe('Post API', function () {
         });
 
         it('without context.user cannot fetch draft', function () {
-            return PostAPI.read({slug: 'unfinished', status: 'draft'}).then(function () {
+            return api.posts.read({slug: 'unfinished', status: 'draft'}).then(function () {
                 throw new Error('Should not return a result with no permission');
             }).catch(function (err) {
                 should.exist(err);
@@ -560,21 +561,21 @@ describe('Post API', function () {
         });
 
         it('with context.user can fetch a draft', function () {
-            return PostAPI.read({context: {user: 1}, slug: 'unfinished', status: 'draft'}).then(function (results) {
+            return api.posts.read({context: {user: 1}, slug: 'unfinished', status: 'draft'}).then(function (results) {
                 should.exist(results.posts);
                 results.posts[0].status.should.eql('draft');
             });
         });
 
         it('without context.user can fetch a draft if uuid is provided', function () {
-            return PostAPI.read({uuid: 'd52c42ae-2755-455c-80ec-70b2ec55c903', status: 'draft'}).then(function (results) {
+            return api.posts.read({uuid: 'd52c42ae-2755-455c-80ec-70b2ec55c903', status: 'draft'}).then(function (results) {
                 should.exist(results.posts);
                 results.posts[0].slug.should.eql('unfinished');
             });
         });
 
         it('cannot fetch post with unknown id', function () {
-            return PostAPI.read({context: {user: 1}, slug: 'not-a-post'}).then(function () {
+            return api.posts.read({context: {user: 1}, slug: 'not-a-post'}).then(function () {
                 throw new Error('Should not return a result with unknown id');
             }).catch(function (err) {
                 should.exist(err);
@@ -583,7 +584,7 @@ describe('Post API', function () {
         });
 
         it('can fetch post with by id', function () {
-            return PostAPI.read({
+            return api.posts.read({
                 context: {user: testUtils.DataGenerator.Content.users[1].id},
                 id: testUtils.DataGenerator.Content.posts[1].id,
                 status: 'all'
@@ -595,7 +596,7 @@ describe('Post API', function () {
         });
 
         it('can include tags', function () {
-            return PostAPI.read({
+            return api.posts.read({
                 context: {user: testUtils.DataGenerator.Content.users[1].id},
                 id: testUtils.DataGenerator.Content.posts[2].id,
                 include: 'tags'
@@ -607,7 +608,7 @@ describe('Post API', function () {
 
         // TODO: this should be a 422?
         it('cannot fetch a post with an invalid slug', function () {
-            return PostAPI.read({slug: 'invalid!'}).then(function () {
+            return api.posts.read({slug: 'invalid!'}).then(function () {
                 throw new Error('Should not return a result with invalid slug');
             }).catch(function (err) {
                 should.exist(err);
@@ -627,14 +628,14 @@ describe('Post API', function () {
                 id: testUtils.DataGenerator.Content.posts[0].id
             };
 
-            PostAPI.read(options).then(function (results) {
+            api.posts.read(options).then(function (results) {
                 should.exist(results.posts[0]);
 
-                return PostAPI.destroy(options);
+                return api.posts.destroy(options);
             }).then(function (results) {
                 should.not.exist(results);
 
-                return PostAPI.read(options);
+                return api.posts.read(options);
             }).then(function () {
                 throw new Error('Post still exists when it should have been deleted');
             }).catch(function (error) {
@@ -645,7 +646,7 @@ describe('Post API', function () {
         it('returns an error when attempting to delete a non-existent post', function () {
             var options = {context: {user: testUtils.DataGenerator.Content.users[1].id}, id: ObjectId.generate()};
 
-            return PostAPI.destroy(options).then(function () {
+            return api.posts.destroy(options).then(function () {
                 throw new Error('No error was thrown');
             }).catch(function (error) {
                 error.errorType.should.eql('NotFoundError');
@@ -659,7 +660,7 @@ describe('Post API', function () {
         after(testUtils.teardown);
 
         it('can edit own post', function () {
-            return PostAPI.edit({posts: [{status: 'test'}]}, {
+            return api.posts.edit({posts: [{status: 'test'}]}, {
                 context: {user: testUtils.DataGenerator.Content.users[1].id},
                 id: testUtils.DataGenerator.Content.posts[0].id
             }).then(function (results) {
@@ -668,7 +669,7 @@ describe('Post API', function () {
         });
 
         it('cannot edit others post', function () {
-            return PostAPI.edit(
+            return api.posts.edit(
                 {posts: [{status: 'test'}]},
                 {
                     context: {user: testUtils.DataGenerator.Content.users[3].id},

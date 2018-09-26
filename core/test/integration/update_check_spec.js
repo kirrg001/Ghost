@@ -10,7 +10,7 @@ var _ = require('lodash'),
     packageInfo = require('../../../package'),
     updateCheck = rewire('../../server/update-check'),
     ghostVersion = rewire('../../server/lib/ghost-version'),
-    SettingsAPI = require('../../server/api/settings'),
+    SettingsAPI = require('../../server/api/v0.1/settings'),
     NotificationsAPI = rewire('../../server/api/notifications'),
     sandbox = sinon.sandbox.create();
 

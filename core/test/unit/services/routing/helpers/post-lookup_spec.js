@@ -2,7 +2,7 @@ const should = require('should'),
     sinon = require('sinon'),
     Promise = require('bluebird'),
     testUtils = require('../../../../utils'),
-    api = require('../../../../../server/api'),
+    api = require('../../../../../server/api/v0.1/index'),
     helpers = require('../../../../../server/services/routing/helpers'),
     sandbox = sinon.sandbox.create();
 

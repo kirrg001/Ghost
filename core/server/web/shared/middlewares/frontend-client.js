@@ -1,4 +1,4 @@
-const api = require('../../../api');
+const api = require('../../../api/v0.1/index');
 const labs = require('../../../services/labs');
 const common = require('../../../lib/common');
 

@@ -24,7 +24,7 @@ _private.loadClient = function loadClient() {
 };
 
 _private.loadScheduledPosts = function () {
-    const api = require('../../../api');
+    const api = require('../../../api/v0.1/index');
     return api.schedules.getScheduledPosts()
         .then((result) => {
             return result.posts || [];

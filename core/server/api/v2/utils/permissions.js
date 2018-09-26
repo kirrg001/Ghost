@@ -47,7 +47,19 @@ module.exports = {
         options.modelOptions.context = permissions.parseContext(options.modelOptions.context);
 
         if (options.modelOptions.context.public) {
-            return permissions.applyPublicRules(config.docName, config.method, options);
+            // @TODO: permission layer is FUCKED O_O
+            return permissions.applyPublicRules(config.docName, config.method, {
+                status: options.modelOptions.status,
+                id: options.modelOptions.id,
+                uuid: options.modelOptions.uuid,
+                slug: options.modelOptions.slug,
+                data: {
+                    status: options.queryData.status,
+                    id: options.queryData.id,
+                    uuid: options.queryData.uuid,
+                    slug: options.queryData.slug
+                }
+            });
         }
 
         return nonePublicAuth(config, options);

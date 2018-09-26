@@ -16,9 +16,9 @@ module.exports = {
             Object.assign(options.apiOptions, _.pick(options.query, config.queryOptions));
         }
 
-        if (config.queryData) {
-            options.queryData = {};
+        options.queryData = {};
 
+        if (config.queryData) {
             if (typeof config.queryData === 'function') {
                 config.queryData = config.queryData(options);
             }

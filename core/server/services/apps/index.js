@@ -1,7 +1,7 @@
 var debug = require('ghost-ignition').debug('services:apps'),
     _ = require('lodash'),
     Promise = require('bluebird'),
-    api = require('../../api'),
+    api = require('../../api/v0.1/index'),
     common = require('../../lib/common'),
     config = require('../../config'),
     settingsCache = require('../settings/cache'),

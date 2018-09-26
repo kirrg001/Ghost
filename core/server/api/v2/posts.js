@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
-const models = require('../../models/index');
-const common = require('../../lib/common/index');
+const models = require('../../models');
+const common = require('../../lib/common');
 const allowedIncludes = ['created_by', 'updated_by', 'published_by', 'author', 'tags', 'authors', 'authors.roles'];
 
 module.exports = {
@@ -22,7 +22,7 @@ module.exports = {
             ],
             queryOptionsValues: {
                 include: allowedIncludes,
-                formats: models.Post.allowedFormats
+                formats: ['mobiledoc', 'html', 'plaintext']
             }
         },
         permissions: true,
@@ -36,7 +36,7 @@ module.exports = {
             queryOptions: ['include', 'fields', 'formats', 'absolute_urls'],
             queryOptionsValues: {
                 include: allowedIncludes,
-                formats: models.Post.allowedFormats
+                formats: ['mobiledoc', 'html', 'plaintext']
             }
         },
         permissions: {

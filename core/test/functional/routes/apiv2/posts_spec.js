@@ -1092,7 +1092,7 @@ describe('Post API', function () {
                     });
             });
 
-            it.only('can\'t edit non existent post', function (done) {
+            it('can\'t edit non existent post', function (done) {
                 request.get(testUtils.API.getApiQuery('posts/' + testUtils.DataGenerator.Content.posts[0].id + '/'))
                     .set('Authorization', 'Bearer ' + ownerAccessToken)
                     .expect('Content-Type', /json/)

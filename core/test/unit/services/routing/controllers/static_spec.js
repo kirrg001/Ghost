@@ -1,7 +1,7 @@
 const should = require('should'),
     sinon = require('sinon'),
     testUtils = require('../../../../utils'),
-    api = require('../../../../../server/api'),
+    api = require('../../../../../server/api/v0.1/index'),
     themeService = require('../../../../../server/services/themes'),
     helpers = require('../../../../../server/services/routing/helpers'),
     controllers = require('../../../../../server/services/routing/controllers'),

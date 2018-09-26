@@ -26,7 +26,7 @@ const functional = (api, utils) => {
             if (!(options instanceof shared.Options)) {
                 options = new shared.Options({
                     data: data,
-                    apiOptions: options
+                    apiOptions: Object.assign({context: {}}, options)
                 });
             }
 

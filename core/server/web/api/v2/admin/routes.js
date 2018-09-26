@@ -1,7 +1,7 @@
 const express = require('express');
 const os = require('os');
 const multer = require('multer');
-const api = require('../../../../api');
+const api = require('../../../../api/v0.1/index');
 const apiV2 = require('../../../../api/v2');
 const mw = require('./middleware');
 

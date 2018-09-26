@@ -6,7 +6,7 @@ var should = require('should'),
     markdownToMobiledoc = require('../../utils/fixtures/data-generator').markdownToMobiledoc,
     helpers = require('../../../server/helpers'),
     urlService = require('../../../server/services/url'),
-    api = require('../../../server/api'),
+    api = require('../../../server/api/v0.1/index'),
     sandbox = sinon.sandbox.create();
 
 describe('{{url}} helper', function () {

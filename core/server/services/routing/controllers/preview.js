@@ -1,5 +1,5 @@
 const debug = require('ghost-ignition').debug('services:routing:controllers:preview'),
-    api = require('../../../api'),
+    api = require('../../../api/v0.1/index'),
     urlService = require('../../url'),
     filters = require('../../../filters'),
     helpers = require('../helpers');

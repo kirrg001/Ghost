@@ -18,7 +18,7 @@ module.exports = {
     escapeExpression: hbs.escapeExpression,
 
     // TODO: Expose less of the API to make this safe
-    api: require('../api'),
+    api: require('../api/v0.1/index'),
     models: require('../models'),
 
     // TODO: Only expose "get"

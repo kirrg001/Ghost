@@ -2,11 +2,11 @@ const fs = require('fs-extra'),
     Promise = require('bluebird'),
     moment = require('moment'),
     path = require('path'),
-    config = require('../config'),
-    common = require('../lib/common'),
-    validation = require('../data/validation'),
+    config = require('../../config/index'),
+    common = require('../../lib/common/index'),
+    validation = require('../../data/validation/index'),
     localUtils = require('./utils'),
-    web = require('../web');
+    web = require('../../web/index');
 
 let redirectsAPI,
     _private = {};

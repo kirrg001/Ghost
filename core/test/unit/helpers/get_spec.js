@@ -5,7 +5,7 @@ var should = require('should'),
     // Stuff we are testing
     helpers = require('../../../server/helpers'),
     models = require('../../../server/models'),
-    api = require('../../../server/api'),
+    api = require('../../../server/api/v0.1/index'),
 
     labs = require('../../../server/services/labs'),
 

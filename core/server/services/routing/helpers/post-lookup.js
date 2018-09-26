@@ -3,7 +3,7 @@ const _ = require('lodash'),
     url = require('url'),
     debug = require('ghost-ignition').debug('services:routing:helpers:post-lookup'),
     routeMatch = require('path-match')(),
-    api = require('../../../api');
+    api = require('../../../api/v0.1/index');
 
 function postLookup(postUrl, routerOptions) {
     debug(postUrl);

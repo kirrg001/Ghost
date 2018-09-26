@@ -5,13 +5,13 @@ const Promise = require('bluebird'),
     moment = require('moment-timezone'),
     fs = require('fs-extra'),
     path = require('path'),
-    config = require('../config'),
-    models = require('../models'),
-    canThis = require('../services/permissions').canThis,
+    config = require('../../config/index'),
+    models = require('../../models/index'),
+    canThis = require('../../services/permissions/index').canThis,
     localUtils = require('./utils'),
-    urlService = require('../services/url'),
-    common = require('../lib/common'),
-    settingsCache = require('../services/settings/cache'),
+    urlService = require('../../services/url/index'),
+    common = require('../../lib/common/index'),
+    settingsCache = require('../../services/settings/cache'),
     docName = 'settings';
 
 let settings,
@@ -280,7 +280,7 @@ settings = {
                 urlService.resetGenerators({releaseResourcesOnly: true});
             })
             .then(() => {
-                const siteApp = require('../web/site/app');
+                const siteApp = require('../../web/site/app');
 
                 try {
                     return siteApp.reload();

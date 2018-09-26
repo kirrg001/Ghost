@@ -7,7 +7,7 @@ var should = require('should'),
     config = require('../../../server/config'),
     sequence = require('../../../server/lib/promise/sequence'),
     common = require('../../../server/lib/common'),
-    api = require('../../../server/api'),
+    api = require('../../../server/api/v0.1/index'),
     models = require('../../../server/models'),
     sandbox = sinon.sandbox.create();
 

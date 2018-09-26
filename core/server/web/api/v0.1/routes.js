@@ -1,6 +1,6 @@
 const express = require('express');
 // This essentially provides the controllers for the routes
-const api = require('../../../api');
+const api = require('../../../api/v0.1/index');
 
 // Middleware
 const mw = require('./middleware');
