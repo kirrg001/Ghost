@@ -2,6 +2,7 @@ const Promise = require('bluebird');
 const _ = require('lodash');
 const shared = require('../shared');
 
+// @TODO: pipeline :D
 const functional = (api, utils) => {
     const keys = Object.keys(api);
 
@@ -70,6 +71,7 @@ const functional = (api, utils) => {
                     }
                 })
                 .then(() => {
+                    // @TODO: do not skip, throw if key is not defined
                     if (apiImpl.permissions) {
                         if (typeof apiImpl.permissions === 'function') {
                             return apiImpl.permissions(options);
