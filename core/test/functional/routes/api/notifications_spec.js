@@ -62,7 +62,7 @@ describe('Notifications API', function () {
                 });
         });
 
-        xit('creates only one notification with same id', function (done) {
+        it('creates only one notification with same id', function (done) {
             const newNotification = {
                 type: 'info',
                 message: 'this should not duplicate',
@@ -81,7 +81,7 @@ describe('Notifications API', function () {
                         return done(err);
                     }
 
-                    var jsonResponse = res.body;
+                    const jsonResponse = res.body;
                     should.exist(jsonResponse.notifications);
                     jsonResponse.notifications.should.be.an.Array().with.lengthOf(1);
                     jsonResponse.notifications[0].message.should.equal(newNotification.message);
@@ -91,16 +91,15 @@ describe('Notifications API', function () {
                         .send({notifications: [newNotification]})
                         .expect('Content-Type', /json/)
                         .expect('Cache-Control', testUtils.cacheRules.private)
-                        .expect(201)
+                        .expect(200)
                         .end(function (err, res) {
                             if (err) {
                                 return done(err);
                             }
 
-                            var jsonResponse = res.body;
+                            const jsonResponse = res.body;
                             should.exist(jsonResponse.notifications);
-                            jsonResponse.notifications.should.be.an.Array().with.lengthOf(1);
-                            jsonResponse.notifications[0].message.should.equal(newNotification.message);
+                            jsonResponse.notifications.should.be.an.Array().with.lengthOf(0);
 
                             done();
                         });
