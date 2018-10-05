@@ -24,13 +24,13 @@ describe('Notifications API', function () {
     });
 
     describe('Add', function () {
-        var newNotification = {
-            type: 'info',
-            message: 'test notification',
-            custom: true
-        };
+        it('creates a new notification and sets default fields', function (done) {
+            const newNotification = {
+                type: 'info',
+                message: 'test notification',
+                custom: true
+            };
 
-        it('creates a new notification', function (done) {
             request.post(localUtils.API.getApiQuery('notifications/'))
                 .set('Authorization', 'Bearer ' + accesstoken)
                 .send({notifications: [newNotification]})
@@ -55,6 +55,39 @@ describe('Notifications API', function () {
                     should.exist(jsonResponse.notifications[0].location);
                     jsonResponse.notifications[0].location.should.equal('bottom');
                     jsonResponse.notifications[0].id.should.be.a.String();
+
+                    done();
+                });
+        });
+
+        xit('should not be able to set custom id from outside', function (done) {
+            const newNotification = {
+                type: 'info',
+                message: 'test notification',
+                custom: true,
+                id: 'customId'
+            };
+
+            request.post(testUtils.API.getApiQuery('notifications/'))
+                .set('Authorization', 'Bearer ' + accesstoken)
+                .send({notifications: [newNotification]})
+                .expect('Content-Type', /json/)
+                .expect('Cache-Control', testUtils.cacheRules.private)
+                .expect(201)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    var jsonResponse = res.body;
+
+                    should.exist(jsonResponse.notifications);
+
+                    testUtils.API.checkResponse(jsonResponse.notifications[0], 'notification');
+
+                    jsonResponse.notifications[0].type.should.equal(newNotification.type);
+                    jsonResponse.notifications[0].message.should.equal(newNotification.message);
+                    jsonResponse.notifications[0].id.should.not.equal(newNotification.id);
 
                     done();
                 });
