@@ -61,6 +61,51 @@ describe('Notifications API', function () {
                     done();
                 });
         });
+
+        xit('creates only one notification with same id', function (done) {
+            const newNotification = {
+                type: 'info',
+                message: 'this should not duplicate',
+                custom: true,
+                id: 'customId'
+            };
+
+            request.post(testUtils.API.getApiQuery('notifications/'))
+                .set('Authorization', 'Bearer ' + accesstoken)
+                .send({notifications: [newNotification]})
+                .expect('Content-Type', /json/)
+                .expect('Cache-Control', testUtils.cacheRules.private)
+                .expect(201)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    var jsonResponse = res.body;
+                    should.exist(jsonResponse.notifications);
+                    jsonResponse.notifications.should.be.an.Array().with.lengthOf(1);
+                    jsonResponse.notifications[0].message.should.equal(newNotification.message);
+
+                    request.post(testUtils.API.getApiQuery('notifications/'))
+                        .set('Authorization', 'Bearer ' + accesstoken)
+                        .send({notifications: [newNotification]})
+                        .expect('Content-Type', /json/)
+                        .expect('Cache-Control', testUtils.cacheRules.private)
+                        .expect(201)
+                        .end(function (err, res) {
+                            if (err) {
+                                return done(err);
+                            }
+
+                            var jsonResponse = res.body;
+                            should.exist(jsonResponse.notifications);
+                            jsonResponse.notifications.should.be.an.Array().with.lengthOf(1);
+                            jsonResponse.notifications[0].message.should.equal(newNotification.message);
+
+                            done();
+                        });
+                });
+        });
     });
 
     describe('Delete', function () {
