@@ -199,7 +199,7 @@ describe('DB API', function () {
     });
 
     it('delete all content (owner)', function (done) {
-        request.get(testUtils.API.getApiQuery('posts/'))
+        request.get(localUtils.API.getApiQuery('posts/'))
             .set('Authorization', 'Bearer ' + accesstoken)
             .expect('Content-Type', /json/)
             .expect('Cache-Control', testUtils.cacheRules.private)
@@ -212,7 +212,8 @@ describe('DB API', function () {
                 let results = jsonResponse.posts;
                 jsonResponse.posts.should.have.length(7);
                 _.filter(results, {page: false, status: 'published'}).length.should.equal(7);
-                request.delete(testUtils.API.getApiQuery('db/'))
+
+                request.delete(localUtils.API.getApiQuery('db/'))
                     .set('Authorization', 'Bearer ' + accesstoken)
                     .set('Accept', 'application/json')
                     .expect(204)

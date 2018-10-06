@@ -1,6 +1,7 @@
 const should = require('should');
 const supertest = require('supertest');
 const testUtils = require('../../../utils');
+const localUtils = require('./utils');
 const config = require('../../../../../core/server/config');
 const ghost = testUtils.startGhost;
 let request;
@@ -15,7 +16,7 @@ describe('Roles API', function () {
                 request = supertest.agent(config.get('url'));
             })
             .then(function () {
-                return testUtils.doAuth(request, 'posts');
+                return localUtils.doAuth(request, 'posts');
             })
             .then(function (token) {
                 accesstoken = token;
