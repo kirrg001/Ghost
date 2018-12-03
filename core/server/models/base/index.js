@@ -117,7 +117,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     emitChange: function (model, event, options) {
         debug(model.tableName, event);
 
-        const previousAttributes = model._previousAttributes;
+        // const previousAttributes = model._previousAttributes;
 
         if (!options.transacting) {
             return common.events.emit(event, model, options);
@@ -139,7 +139,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
                 }
 
                 _.each(this.ghostEvents, (ghostEvent) => {
-                    model._previousAttributes = previousAttributes;
+                    // model._previousAttributes = previousAttributes;
                     common.events.emit(ghostEvent, model, _.omit(options, 'transacting'));
                 });
 
@@ -231,7 +231,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         // Remove any properties which don't belong on the model
         this.attributes = this.pick(this.permittedAttributes());
         // Store the previous attributes so we can tell what was updated later
-        this._updatedAttributes = newObj.previousAttributes();
+        // this._updatedAttributes = newObj.previousAttributes();
     },
 
     /**
@@ -471,14 +471,9 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         return proto.toJSON.call(this, options);
     },
 
-    // Get attributes that have been updated (values before a .save() call)
-    updatedAttributes: function updatedAttributes() {
-        return this._updatedAttributes || {};
-    },
-
     // Get a specific updated attribute value
     updated: function updated(attr) {
-        return this.updatedAttributes()[attr];
+        return this._previousAttributes[attr];
     },
 
     /**

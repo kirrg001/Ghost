@@ -813,6 +813,9 @@ User = ghostBookshelf.Model.extend({
                     .then(() => {
                         user.set({status: 'active'});
                         return user.save();
+                    })
+                    .then((updatedUser) => {
+                        return user;
                     });
             })
             .catch((err) => {
@@ -953,6 +956,7 @@ User = ghostBookshelf.Model.extend({
             var userWithEmail = users.find(function findUser(user) {
                 return user.get('email').toLowerCase() === email.toLowerCase();
             });
+
             if (userWithEmail) {
                 return userWithEmail;
             }

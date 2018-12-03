@@ -752,7 +752,7 @@ Post = ghostBookshelf.Model.extend({
                         .then((found) => {
                             if (found) {
                                 // Pass along the updated attributes for checking status changes
-                                found._updatedAttributes = post._updatedAttributes;
+                                found._previousAttributes = post._previousAttributes;
                                 return found;
                             }
                         });

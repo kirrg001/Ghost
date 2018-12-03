@@ -39,7 +39,7 @@
     "bcryptjs": "2.4.3",
     "bluebird": "3.5.3",
     "body-parser": "1.18.3",
-    "bookshelf": "0.13.3",
+    "bookshelf": "https://github.com/bookshelf/bookshelf/tarball/bad81579078397a47a96c21746b9df1e2ab3738c",
     "bookshelf-relations": "0.2.1",
     "brute-knex": "3.0.0",
     "bson-objectid": "1.2.4",
