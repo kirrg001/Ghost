@@ -407,7 +407,7 @@ Post = ghostBookshelf.Model.extend({
     },
 
     created_by: function createdBy() {
-        return this.belongsTo('User', 'created_by');
+        return this.morphTo('created_by', ['created_by_type', 'created_by'], ['Integration', 'integration'], ['User', 'user']);
     },
 
     updated_by: function updatedBy() {
