@@ -383,5 +383,22 @@ module.exports = {
         created_by: {type: 'string', maxlength: 24, nullable: false},
         updated_at: {type: 'dateTime', nullable: true},
         updated_by: {type: 'string', maxlength: 24, nullable: true}
+    },
+    actions: {
+        id: {type: 'string', maxlength: 24, nullable: false, primary: true},
+        resource_id: {type: 'string', maxlength: 24, nullable: true},
+        resource_type: {type: 'string', maxlength: 100, nullable: false},
+        actor_id: {type: 'string', maxlength: 24, nullable: false},
+        actor_type: {type: 'string', maxlength: 100, nullable: false},
+        // @NOTE: These are short buzzwords e.g. subscribed, started, added etc.
+        //        The context can be later used to add granular information about an action.
+        event: {type: 'string', maxlength: 100, nullable: false, validations: {isIn: [['added', 'edited', 'deleted']]}},
+        context_id: {type: 'string', maxlength: 24, nullable: true},
+        created_at: {type: 'dateTime', nullable: false}
+    },
+    contexts: {
+        id: {type: 'string', maxlength: 24, nullable: false, primary: true},
+        value: {type: 'text', maxlength: 1000000000, nullable: false},
+        created_at: {type: 'dateTime', nullable: false}
     }
 };
