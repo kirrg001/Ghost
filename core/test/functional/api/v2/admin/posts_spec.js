@@ -532,7 +532,7 @@ describe('Posts API V2', function () {
         });
 
         describe('destroy', function () {
-            it('default', function () {
+            it.only('default', function () {
                 return request
                     .del(localUtils.API.getApiQuery('posts/' + testUtils.DataGenerator.Content.posts[0].id + '/'))
                     .set('Origin', config.get('url'))

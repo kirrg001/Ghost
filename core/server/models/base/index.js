@@ -247,17 +247,17 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
 
                 if (this.tableName === 'posts') {
                     if (options.context.integration) {
-                        this.set('created_by_action', {
+                        this.set('created_by_action', [{
                             performer_type: 'integration',
                             performer_id: this.get('created_by'),
                             resource_type: 'created_by'
-                        });
+                        }]);
                     } else {
-                        this.set('created_by_action', {
+                        this.set('created_by_action', [{
                             performer_type: 'user',
                             performer_id: this.get('created_by'),
                             resource_type: 'created_by'
-                        });
+                        }]);
                     }
                 }
             }
@@ -303,19 +303,19 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
 
                 if (this.tableName === 'posts') {
                     if (options.context.integration) {
-                        this.set('updated_by_action', {
+                        this.set('updated_by_action', [{
                             resource_id: newObj.id,
                             performer_type: 'integration',
                             performer_id: this.get('updated_by'),
                             resource_type: 'updated_by'
-                        });
+                        }]);
                     } else {
-                        this.set('updated_by_action', {
+                        this.set('updated_by_action', [{
                             resource_id: newObj.id,
                             performer_type: 'user',
                             performer_id: this.get('updated_by'),
                             resource_type: 'updated_by'
-                        });
+                        }]);
                     }
                 }
             }

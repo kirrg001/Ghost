@@ -325,7 +325,7 @@ describe('Posts', function () {
             });
     });
 
-    it('lol', function () {
+    it.only('lol', function () {
         let postId;
 
         return request.get(localUtils.API.getApiQuery(`posts/?key=${validKey}&include=created_by`))
@@ -373,7 +373,7 @@ describe('Posts', function () {
                 return models.Post.edit({
                     title: 'huhuhuhu'
                 }, {
-                    context: {integration: testUtils.DataGenerator.Content.integrations[0].id},
+                    context: {user: '1'},
                     id: postId
                 });
             })

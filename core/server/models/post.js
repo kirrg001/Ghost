@@ -414,7 +414,7 @@ Post = ghostBookshelf.Model.extend({
     },
 
     created_by_action: function () {
-        return this.hasOne('Action', 'resource_id')
+        return this.hasMany('Action', 'resource_id')
             .query('where', 'resource_type', 'created_by');
     },
 
@@ -424,7 +424,7 @@ Post = ghostBookshelf.Model.extend({
     },
 
     updated_by_action: function () {
-        return this.hasOne('Action', 'resource_id')
+        return this.hasMany('Action', 'resource_id')
             .query('where', 'resource_type', 'updated_by');
     },
 
