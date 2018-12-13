@@ -244,6 +244,24 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         if (schema.tables[this.tableName].hasOwnProperty('created_by')) {
             if (!options.importing || (options.importing && !this.get('created_by'))) {
                 this.set('created_by', this.contextUser(options));
+
+                if (this.tableName === 'posts') {
+                    if (options.context.integration) {
+                        this.set('created_by_action', {
+                            resource_id: newObj.id,
+                            performer_type: 'integration',
+                            performer_id: this.get('created_by'),
+                            resource_type: 'created_by'
+                        });
+                    } else {
+                        this.set('created_by_action', {
+                            resource_id: newObj.id,
+                            performer_type: 'user',
+                            performer_id: this.get('created_by'),
+                            resource_type: 'created_by'
+                        });
+                    }
+                }
             }
         }
 
@@ -396,6 +414,10 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     contextUser: function contextUser(options) {
         options = options || {};
         options.context = options.context || {};
+
+        if (options.context.integration) {
+            return options.context.integration;
+        }
 
         if (options.context.user || ghostBookshelf.Model.isExternalUser(options.context.user)) {
             return options.context.user;

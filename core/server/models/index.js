@@ -35,7 +35,8 @@ models = [
     'integration',
     'api-key',
     'mobiledoc-revision',
-    'member'
+    'member',
+    'action'
 ];
 
 function init() {

@@ -8,6 +8,7 @@ const testUtils = require('../../../../utils');
 const localUtils = require('./utils');
 const configUtils = require('../../../../utils/configUtils');
 const config = require('../../../../../../core/server/config');
+const models = require('../../../../../../core/server/models');
 
 const ghost = testUtils.startGhost;
 let request;
@@ -19,7 +20,7 @@ describe('Posts', function () {
                 request = supertest.agent(config.get('url'));
             })
             .then(function () {
-                return testUtils.initFixtures('users:no-owner', 'user:inactive', 'posts', 'tags:extra', 'api_keys');
+                return testUtils.initFixtures('users:no-owner', 'user:inactive', 'posts', 'tags:extra', 'api_keys', 'integrations');
             });
     });
 
@@ -321,6 +322,42 @@ describe('Posts', function () {
                 jsonResponse.posts[0].url.should.eql('http://127.0.0.1:2369/welcome/');
                 jsonResponse.posts[0].tags[0].url.should.eql('http://127.0.0.1:2369/tag/getting-started/');
                 done();
+            });
+    });
+
+    it.only('lol', function () {
+        return request.get(localUtils.API.getApiQuery(`posts/?key=${validKey}&include=created_by`))
+            .set('Origin', testUtils.API.getURL())
+            .expect('Content-Type', /json/)
+            .expect('Cache-Control', testUtils.cacheRules.private)
+            .expect(200)
+            .then((res) => {
+                const jsonResponse = res.body;
+
+                should.exist(jsonResponse.posts);
+                console.log(jsonResponse.posts[0].created_by);
+
+                console.log('integration id', testUtils.DataGenerator.Content.integrations[0].id);
+
+                return models.Post.add({
+                    title: 'lol',
+                    author_id: testUtils.DataGenerator.Content.users[0].id,
+                    status: 'published'
+                }, {context: {integration: testUtils.DataGenerator.Content.integrations[0].id}});
+            })
+            .then((newpost) => {
+                console.log(newpost.attributes);
+                return request.get(localUtils.API.getApiQuery(`posts/${newpost.id}/?key=${validKey}&include=created_by`))
+                    .set('Origin', testUtils.API.getURL())
+                    .expect('Content-Type', /json/)
+                    .expect('Cache-Control', testUtils.cacheRules.private)
+                    .expect(200);
+            })
+            .then((res) => {
+                const jsonResponse = res.body;
+
+                should.exist(jsonResponse.posts);
+                console.log(jsonResponse.posts[0].created_by);
             });
     });
 

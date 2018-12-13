@@ -53,6 +53,13 @@ module.exports = {
         twitter_description: {type: 'string', maxlength: 500, nullable: true},
         custom_template: {type: 'string', maxlength: 100, nullable: true}
     },
+    actions: {
+        id: {type: 'string', maxlength: 24, nullable: false, primary: true},
+        resource_id: {type: 'string', maxlength: 24, nullable: false},
+        performer_id: {type: 'string', maxlength: 24, nullable: false},
+        performer_type: {type: 'string', maxlength: 100, nullable: false},
+        resource_type: {type: 'string', maxlength: 100, nullable: false}
+    },
     users: {
         id: {type: 'string', maxlength: 24, nullable: false, primary: true},
         name: {type: 'string', maxlength: 191, nullable: false},
