@@ -326,6 +326,8 @@ describe('Posts', function () {
     });
 
     it.only('lol', function () {
+        let postId;
+
         return request.get(localUtils.API.getApiQuery(`posts/?key=${validKey}&include=created_by`))
             .set('Origin', testUtils.API.getURL())
             .expect('Content-Type', /json/)
@@ -335,7 +337,7 @@ describe('Posts', function () {
                 const jsonResponse = res.body;
 
                 should.exist(jsonResponse.posts);
-                console.log(jsonResponse.posts[0].created_by);
+                console.log('created_by', jsonResponse.posts[0].created_by);
 
                 console.log('integration id', testUtils.DataGenerator.Content.integrations[0].id);
 
@@ -346,7 +348,8 @@ describe('Posts', function () {
                 }, {context: {integration: testUtils.DataGenerator.Content.integrations[0].id}});
             })
             .then((newpost) => {
-                console.log(newpost.attributes);
+                postId = newpost.id;
+
                 return request.get(localUtils.API.getApiQuery(`posts/${newpost.id}/?key=${validKey}&include=created_by`))
                     .set('Origin', testUtils.API.getURL())
                     .expect('Content-Type', /json/)
@@ -357,7 +360,43 @@ describe('Posts', function () {
                 const jsonResponse = res.body;
 
                 should.exist(jsonResponse.posts);
-                console.log(jsonResponse.posts[0].created_by);
+                console.log('created_by', jsonResponse.posts[0].created_by);
+
+                return models.Post.edit({
+                    title: 'hehehhe'
+                }, {
+                    context: {integration: testUtils.DataGenerator.Content.integrations[0].id},
+                    id: postId
+                });
+            })
+            .then((newpost) => {
+                return models.Post.edit({
+                    title: 'huhuhuhu'
+                }, {
+                    context: {integration: testUtils.DataGenerator.Content.integrations[0].id},
+                    id: postId
+                });
+            })
+            .then((newpost) => {
+                return models.Action.findPage({filter: `resource_id:${postId}`});
+            })
+            .then((actions) => {
+                actions.data.forEach((model) => {
+                    console.log(model.toJSON());
+                });
+
+                return request.get(localUtils.API.getApiQuery(`posts/${postId}/?key=${validKey}&include=created_by,updated_by`))
+                    .set('Origin', testUtils.API.getURL())
+                    .expect('Content-Type', /json/)
+                    .expect('Cache-Control', testUtils.cacheRules.private)
+                    .expect(200);
+            })
+            .then((res) => {
+                const jsonResponse = res.body;
+
+                should.exist(jsonResponse.posts);
+                console.log('created_by', jsonResponse.posts[0].created_by);
+                console.log('updated_by', jsonResponse.posts[0].updated_by);
             });
     });
 

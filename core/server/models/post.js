@@ -49,13 +49,14 @@ Post = ghostBookshelf.Model.extend({
         };
     },
 
-    relationships: ['tags', 'authors', 'mobiledoc_revisions', 'created_by_action'],
+    relationships: ['tags', 'authors', 'mobiledoc_revisions', 'created_by_action', 'updated_by_action'],
 
     // NOTE: look up object, not super nice, but was easy to implement
     relationshipBelongsTo: {
         tags: 'tags',
         authors: 'users',
-        created_by_action: 'created_by_action'
+        created_by_action: 'created_by_action',
+        updated_by_action: 'updated_by_action'
     },
 
     /**
@@ -412,13 +413,19 @@ Post = ghostBookshelf.Model.extend({
             .query('where', 'resource_type', 'created_by');
     },
 
-    created_by_action: function createdBy() {
-        return this.hasOne('Action', 'id', 'resource_id')
+    created_by_action: function () {
+        return this.hasOne('Action', 'resource_id')
             .query('where', 'resource_type', 'created_by');
     },
 
     updated_by: function updatedBy() {
-        return this.belongsTo('User', 'updated_by');
+        return this.belongsTo('Action', 'id', 'resource_id')
+            .query('where', 'resource_type', 'updated_by');
+    },
+
+    updated_by_action: function () {
+        return this.hasOne('Action', 'resource_id')
+            .query('where', 'resource_type', 'updated_by');
     },
 
     published_by: function publishedBy() {
@@ -645,6 +652,7 @@ Post = ghostBookshelf.Model.extend({
 
         if (options.withRelated && options.withRelated.includes('created_by')) {
             options.withRelated.push('created_by.resource');
+            options.withRelated.push('updated_by.resource');
         }
 
         return options;
