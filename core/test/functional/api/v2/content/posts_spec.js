@@ -325,7 +325,7 @@ describe('Posts', function () {
             });
     });
 
-    it.only('lol', function () {
+    it('lol', function () {
         let postId;
 
         return request.get(localUtils.API.getApiQuery(`posts/?key=${validKey}&include=created_by`))
