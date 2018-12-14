@@ -474,7 +474,17 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         const options = ghostBookshelf.Model.filterOptions(unfilteredOptions, 'toJSON');
         options.omitPivot = true;
 
-        return proto.toJSON.call(this, options);
+        const attrs = proto.toJSON.call(this, options);
+
+        if (options.withRelated && options.withRelated.includes('created_by') && attrs.created_by) {
+            attrs.created_by = attrs.created_by.resource;
+        }
+
+        if (options.withRelated && options.withRelated.includes('updated_by') && attrs.updated_by) {
+            attrs.updated_by = attrs.updated_by.resource;
+        }
+
+        return attrs;
     },
 
     // Get attributes that have been updated (values before a .save() call)
