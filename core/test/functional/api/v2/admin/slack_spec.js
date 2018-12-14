@@ -9,7 +9,7 @@ const ghost = testUtils.startGhost;
 
 let request;
 
-describe('Slack API', function () {
+describe.skip('Slack API', function () {
     let ghostServer;
     let sandbox;
     before(function () {
