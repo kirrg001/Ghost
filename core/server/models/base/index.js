@@ -90,6 +90,16 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     // Bookshelf `hasTimestamps` - handles created_at and updated_at properties
     hasTimestamps: true,
 
+    created_by_action: function () {
+        return this.hasMany('Action', 'resource_id')
+            .query('where', 'resource_type', 'created_by');
+    },
+
+    updated_by_action: function () {
+        return this.hasMany('Action', 'resource_id')
+            .query('where', 'resource_type', 'updated_by');
+    },
+
     // https://github.com/bookshelf/bookshelf/commit/a55db61feb8ad5911adb4f8c3b3d2a97a45bd6db
     parsedIdAttribute: function () {
         return false;
