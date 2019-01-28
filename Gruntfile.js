@@ -114,7 +114,7 @@ const configureGrunt = function (grunt) {
                 reporter: grunt.option('reporter') || 'spec',
                 timeout: '30000',
                 save: grunt.option('reporter-output'),
-                require: ['core/server/overrides'],
+                require: ['core/server/overrides', 'core/test/overrides'],
                 exit: true
             },
 
@@ -152,7 +152,7 @@ const configureGrunt = function (grunt) {
                 options: {
                     mask: '**/*_spec.js',
                     coverageFolder: 'core/test/coverage/unit',
-                    mochaOptions: ['--timeout=15000', '--require', 'core/server/overrides', '--exit'],
+                    mochaOptions: ['--timeout=15000', '--require', 'core/server/overrides','core/test/overrides', '--exit'],
                     excludes: ['core/client', 'core/server/built']
                 }
             },
@@ -165,7 +165,7 @@ const configureGrunt = function (grunt) {
                 options: {
                     coverageFolder: 'core/test/coverage/all',
                     mask: '**/*_spec.js',
-                    mochaOptions: ['--timeout=15000', '--require', 'core/server/overrides', '--exit'],
+                    mochaOptions: ['--timeout=15000', '--require', 'core/server/overrides', 'core/test/overrides', '--exit'],
                     excludes: ['core/client', 'core/server/built']
                 }
 

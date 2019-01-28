@@ -30,8 +30,8 @@ describe('Authors Content API', function () {
 
     const validKey = localUtils.getValidKey();
 
-    it('Can request authors', function (done) {
-        request.get(localUtils.API.getApiQuery(`authors/?key=${validKey}`))
+    it('browse authors: does not give back roles if trying to fetch roles', function (done) {
+        request.get(localUtils.API.getApiQuery(`authors/?key=${validKey}&include=roles`))
             .set('Origin', testUtils.API.getURL())
             .expect('Content-Type', /json/)
             .expect('Cache-Control', testUtils.cacheRules.private)
