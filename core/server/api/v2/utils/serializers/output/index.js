@@ -81,5 +81,9 @@ module.exports = {
 
     get configuration() {
         return require('./configuration');
+    },
+
+    get actions() {
+        return require('./actions');
     }
 };

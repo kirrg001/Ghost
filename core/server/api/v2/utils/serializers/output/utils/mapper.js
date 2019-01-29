@@ -90,8 +90,15 @@ const mapIntegration = (model, frame) => {
     return jsonModel;
 };
 
+const mapAction = (model, frame) => {
+    const attrs = model.toJSON(frame.options);
+    clean.action(attrs);
+    return attrs;
+};
+
 module.exports.mapPost = mapPost;
 module.exports.mapUser = mapUser;
 module.exports.mapTag = mapTag;
 module.exports.mapIntegration = mapIntegration;
 module.exports.mapSettings = mapSettings;
+module.exports.mapAction = mapAction;

@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 const tag = (attrs) => {
     // Already deleted in model.toJSON, but leaving here so that we can clean that up when we deprecate v0.1
     delete attrs.parent_id;
@@ -94,6 +96,32 @@ const post = (attrs) => {
     return attrs;
 };
 
+const action = (attrs) => {
+    if (attrs.actor) {
+        delete attrs.actor_id;
+        delete attrs.resource_id;
+
+        if (attrs.actor_type === 'user') {
+            attrs.actor = _.pick(attrs.actor, ['id', 'name', 'slug', 'profile_image']);
+            attrs.actor.image = attrs.actor.profile_image;
+            delete attrs.actor.profile_image;
+        } else {
+            attrs.actor = _.pick(attrs.actor, ['id', 'name', 'slug', 'icon_image']);
+            attrs.actor.image = attrs.actor.icon_image;
+            delete attrs.actor.icon_image;
+        }
+    } else if (attrs.resource) {
+        delete attrs.actor_id;
+        delete attrs.resource_id;
+
+        // @NOTE: we only support posts right now
+        attrs.resource = _.pick(attrs.resource, ['id', 'title', 'slug', 'feature_image']);
+        attrs.resource.image = attrs.resource.feature_image;
+        delete attrs.resource.feature_image;
+    }
+};
+
 module.exports.post = post;
 module.exports.tag = tag;
 module.exports.author = author;
+module.exports.action = action;
