@@ -383,5 +383,26 @@ module.exports = {
         created_by: {type: 'string', maxlength: 24, nullable: false},
         updated_at: {type: 'dateTime', nullable: true},
         updated_by: {type: 'string', maxlength: 24, nullable: true}
+    },
+    actions: {
+        id: {type: 'string', maxlength: 24, nullable: false, primary: true},
+        resource_id: {type: 'string', maxlength: 24, nullable: true},
+        resource_type: {type: 'string', maxlength: 50, nullable: false},
+        actor_id: {type: 'string', maxlength: 24, nullable: false},
+        actor_type: {type: 'string', maxlength: 50, nullable: false},
+        // @NOTE: The event column contains short buzzwords e.g. subscribed, started, added, deleted, edited etc.
+        //        We will add schema validation later.
+        //        The context reference can be later used to add granular information about an action.
+        //        This context can be used for diffs or meta information about an action.
+        event: {type: 'string', maxlength: 50, nullable: false},
+        context_id: {type: 'string', maxlength: 24, nullable: true},
+        created_at: {type: 'dateTime', nullable: false}
     }
+    /*
+    contexts: {
+        id: {type: 'string', maxlength: 24, nullable: false, primary: true},
+        value: {type: 'text', maxlength: 1000000000, nullable: false},
+        created_at: {type: 'dateTime', nullable: false}
+    }
+    */
 };
