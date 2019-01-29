@@ -391,6 +391,11 @@
                     "name": "Delete API keys",
                     "action_type": "destroy",
                     "object_type": "api_key"
+                },
+                {
+                    "name": "Browse Actions",
+                    "action_type": "browse",
+                    "object_type": "action"
                 }
             ]
         },
@@ -559,7 +564,8 @@
                     "redirect": "all",
                     "webhook": "all",
                     "integration": "all",
-                    "api_key": "all"
+                    "api_key": "all",
+                    "action": "all"
                 },
                 "Admin Integration": {
                     "mail": "all",
@@ -575,7 +581,8 @@
                     "subscriber": "all",
                     "invite": "all",
                     "redirect": "all",
-                    "webhook": "all"
+                    "webhook": "all",
+                    "action": "all"
                 },
                 "Editor": {
                     "post": "all",
@@ -587,7 +594,8 @@
                     "client": "all",
                     "subscriber": ["add"],
                     "invite": "all",
-                    "theme": ["browse"]
+                    "theme": ["browse"],
+                    "action": "all"
                 },
                 "Author": {
                     "post": ["browse", "read", "add"],
@@ -598,7 +606,8 @@
                     "role": ["browse"],
                     "client": "all",
                     "subscriber": ["add"],
-                    "theme": ["browse"]
+                    "theme": ["browse"],
+                    "action": "all"
                 },
                 "Contributor": {
                     "post": ["browse", "read", "add"],
@@ -609,7 +618,8 @@
                     "role": ["browse"],
                     "client": "all",
                     "subscriber": ["add"],
-                    "theme": ["browse"]
+                    "theme": ["browse"],
+                    "action": "all"
                 }
             }
         },
