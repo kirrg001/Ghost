@@ -472,6 +472,10 @@ Post = ghostBookshelf.Model.extend({
             .query('orderBy', 'sort_order', 'ASC');
     },
 
+    actions: function () {
+        return this.hasMany('Action', 'resource_id');
+    },
+
     tags: function tags() {
         return this.belongsToMany('Tag', 'posts_tags', 'post_id', 'tag_id')
             .withPivot('sort_order')
@@ -611,6 +615,29 @@ Post = ghostBookshelf.Model.extend({
         delete options.status;
         delete options.staticPages;
         return filter;
+    },
+
+    getAction(ghostEvent, options) {
+        const supported = ['post.edited', 'post.deleted', 'post.added'];
+
+        if (!supported.includes(ghostEvent)) {
+            return;
+        }
+
+        const actor = this.getActor(options);
+
+        // @NOTE: we ignore internal updates (`options.context.internal`) for now
+        if (!actor) {
+            return;
+        }
+
+        return {
+            event: ghostEvent.replace(/^\w+\./, ''),
+            resource_id: this.id,
+            resource_type: this.tableName.replace(/s$/, ''),
+            actor_id: actor.id,
+            actor_type: actor.type
+        };
     }
 }, {
     allowedFormats: ['mobiledoc', 'html', 'plaintext'],
