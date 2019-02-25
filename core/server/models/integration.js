@@ -60,7 +60,7 @@ const Integration = ghostBookshelf.Model.extend({
         if (this.hasChanged('slug') || !this.get('slug')) {
             // Pass the new slug through the generator to strip illegal characters, detect duplicates
             return ghostBookshelf.Model.generateSlug(Integration, this.get('slug') || this.get('name'),
-                {transacting: options.transacting})
+                {transacting: options.transacting, forShare: options.forShare})
                 .then((slug) => {
                     this.set({slug});
                 });

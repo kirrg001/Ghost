@@ -813,6 +813,8 @@ Post = ghostBookshelf.Model.extend({
     add: function add(data, unfilteredOptions) {
         let options = this.filterOptions(unfilteredOptions, 'add', {extraAllowedProperties: ['id']});
 
+        options.forShare = true;
+
         const addPost = (() => {
             return ghostBookshelf.Model.add.call(this, data, options)
                 .then((post) => {

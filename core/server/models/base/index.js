@@ -282,6 +282,10 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         if (options.forUpdate && options.transacting) {
             options.query.forUpdate();
         }
+
+        if (options.forShare && options.transacting) {
+            options.query.forShare();
+        }
     },
 
     onFetchingCollection: function onFetchingCollection(model, columns, options) {
@@ -669,7 +673,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
      */
     permittedOptions: function permittedOptions(methodName) {
         const baseOptions = ['context', 'withRelated'];
-        const extraOptions = ['transacting', 'importing', 'forUpdate', 'migrating'];
+        const extraOptions = ['forShare', 'transacting', 'importing', 'forUpdate', 'migrating'];
 
         switch (methodName) {
         case 'toJSON':
