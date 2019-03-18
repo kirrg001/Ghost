@@ -1,0 +1,2 @@
+INSERT INTO api_keys (id, type, secret, created_at, created_by) VALUES ("5c8fcdb00e71350476ff9e9b", "admin", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "2018-11-05 17:20:47", "2018-11-05 17:20:47");
+UPDATE users SET name="Joe Bloggs", slug="joe-bloggs", email="jbloggs@example.com", password="$2b$10$ujPIlqjTsYwfc2/zrqZXZ.yd7cQQm2iOkAFenTAJfveKkc23nwdeS", profile_image="https://example.com/super_photo.jpg" WHERE id="1";

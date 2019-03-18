@@ -5,10 +5,17 @@ const Promise = require('bluebird');
 const path = require('path');
 
 module.exports = () => {
-    let config;
+    let ghostConfig;
     let insertData = false;
+    let dataSet = 'set1';
 
-    const db_path = path.join(__dirname, '..', 'content', 'data', 'ghost-test.db');
+    const db_path = path.join(__dirname, '..', 'content', 'data', `ghost-test-${dataSet}.db`);
+
+    try {
+        fs.unlinkSync(db_path);
+    } catch (err) {
+
+    }
 
     if (process.env['REGENERATE_DB']) {
         fs.removeSync(db_path);
@@ -22,7 +29,7 @@ module.exports = () => {
     return new Promise((resolve, reject) => {
         return portFinder.getPortPromise()
             .then((port) => {
-                config = {
+                ghostConfig = {
                     url: `http://127.0.0.1:${port}`,
                     server__host: '127.0.0.1',
                     server__port: port,
@@ -33,7 +40,7 @@ module.exports = () => {
                 const child = childProcess.spawn(process.execPath, ['index.js'], {
                     cwd: '.',
                     stdio: [0, 1, 2, 'ipc'],
-                    env: Object.assign(config, process.env)
+                    env: Object.assign(ghostConfig, process.env)
                 });
 
                 fs.writeFileSync(path.join(__dirname, 'ghost.pid'), child.pid);
@@ -53,7 +60,7 @@ module.exports = () => {
                     if (message.started) {
                         return resolve({
                             process: child,
-                            config: config
+                            ghostConfig: ghostConfig
                         });
                     }
 
@@ -74,7 +81,7 @@ module.exports = () => {
             });
     }).then((options) => {
         const supertest = require('supertest');
-        options.request = supertest.agent(options.config.url);
+        options.request = supertest.agent(options.ghostConfig.url);
         options.api_version = 'v2';
 
         return new Promise((resolve) => {
@@ -97,11 +104,24 @@ module.exports = () => {
             })();
         }).return(options);
     }).then((options) => {
+        const insert = require('./db/insert');
+        const fetch = require('./db/fetch');
+
         if (insertData) {
-            const insert = require('./db/insert');
-            return insert(config).return(options);
+            return insert(options, {dataSet})
+                .then(() => {
+                    return fetch();
+                })
+                .then((data) => {
+                    options.data = data;
+                    return options;
+                });
         }
 
-        return options;
+        return fetch()
+            .then((data) => {
+                options.data = data;
+                return options;
+            });
     });
 };

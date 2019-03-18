@@ -2,7 +2,7 @@ const moment = require('moment-timezone');
 const _ = require('lodash');
 
 const data = {
-    Tag: [
+    tags: [
         {
 
             name: 'kitchen sink',
@@ -32,7 +32,7 @@ const data = {
     ],
 
     // Password = Sl1m3rson99
-    User: [
+    users: [
         {
             // owner (owner is still id 1 because of permissions)
             id: '1',
@@ -117,7 +117,7 @@ const data = {
         }
     ],
 
-    Post: [
+    posts: [
         {
             title: 'HTML Ipsum',
             slug: 'html-ipsum',
@@ -260,33 +260,6 @@ const data = {
                     slug: 'joe-bloggs'
                 }
             ]
-        }
-    ],
-
-    Integration: [
-        {
-
-            name: 'Test Integration',
-            slug: 'test-integration'
-        }
-    ],
-
-    ApiKey: [
-        {
-
-            id: '5c4f7d5b75b56c8bf73d0440',
-            type: 'admin',
-            secret: _.repeat('a', 64)
-        },
-        {
-
-            type: 'content',
-            secret: _.repeat('c', 26)
-        },
-        {
-
-            type: 'admin',
-            integration_id: undefined // "internal"
         }
     ]
 };

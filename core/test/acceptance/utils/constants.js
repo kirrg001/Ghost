@@ -28,19 +28,19 @@ module.exports.URL = {
 
 module.exports.API_KEYS = {
     CONTENT: _.repeat('c', 26),
-    ADMIN(endpoint) {
+    ADMIN({endpoint, apiKeyId, secret}) {
         const jwt = require('jsonwebtoken');
+
         const JWT_OPTIONS = {
+            keyid: apiKeyId,
             algorithm: 'HS256',
             expiresIn: '5m',
             audience: endpoint
         };
 
         return jwt.sign(
-            {
-                kid: '5c4f7d5b75b56c8bf73d0440'
-            },
-            Buffer.from(_.repeat('a', 64), 'hex'),
+            {},
+            Buffer.from(secret, 'hex'),
             JWT_OPTIONS
         );
     }

@@ -1,29 +1,39 @@
 const Promise = require('bluebird');
+const knex = require('knex');
+const _ = require('lodash');
+const path = require('path');
+const fs = require('fs-extra');
+const AdminSDK = require('@tryghost/admin-api');
 
-module.exports = (options) => {
-    // @TODO: Ghost currently can't set the database connection for the model layer, sucks
-    const config = require('../../../../../server/config');
-    config.set('database:connection:filename', options.database__connection__filename);
+module.exports = (options, {dataSet}) => {
+    const connection = knex({
+        client: 'sqlite3',
+        connection: {
+            filename: options.ghostConfig.database__connection__filename
+        }
+    });
 
-    const models = require('../../../../../server/models');
-    const db = require('../../../../../server/data/db');
-    models.init();
+    const lines = fs.readFileSync(path.join(__dirname, dataSet, 'bootstrap.txt'), 'utf-8').split('\n');
 
-    // CASE: clear all users, posts and tags
-    return db.knex.truncate('users')
-        .then(() => {
-            return db.knex.truncate('tags');
-        })
-        .then(() => {
-            return db.knex.truncate('posts');
-        })
-        .then(() => {
-            const data = require('./data1');
+    return Promise.each(lines, (line, i) => {
+        if (!line.length) {
+            return;
+        }
 
-            return Promise.each(Object.keys(data), (modelName) => {
-                return Promise.map(data[modelName], (entry) => {
-                    return models[modelName].add(entry, {context: {internal: true}});
-                }, {concurrency: 100});
-            });
+        return connection.raw(line);
+    }).then(() => {
+        const data = require(`./${dataSet}/data`);
+        const api = new AdminSDK({
+            url: options.ghostConfig.url,
+            version: 'v2',
+            key: `5c8fcdb00e71350476ff9e9b:${_.repeat('a', 64)}`
         });
+
+        return Promise.each(Object.keys(data), (resourceName) => {
+            console.log(resourceName);
+            return Promise.map(data[resourceName], (entry) => {
+                return api[resourceName].add(entry);
+            }, {concurrency: 100});
+        });
+    });
 };

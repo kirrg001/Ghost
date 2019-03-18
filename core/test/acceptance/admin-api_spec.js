@@ -15,10 +15,16 @@ describe('Admin API: Use Cases', function () {
     });
 
     it('can add a post', function () {
+        console.log(options.data);
         return options.request
             .post(localUtils.constants.URL.admin(`posts/`))
-            .set('Origin', options.config.url)
-            .set('Authorization', `Ghost ${localUtils.constants.API_KEYS.ADMIN(localUtils.constants.URL.admin('posts/'))}`)
+            .set('Origin', options.ghostConfig.url)
+            .set('Authorization',
+                `Ghost ${localUtils.constants.API_KEYS.ADMIN({
+                    endpoint: localUtils.constants.URL.admin('posts/'),
+                    apiKeyId: options.data.ApiKey[0].id
+                })}`
+            )
             .send({
                 posts: [
                     localUtils.API[options.api_version]['admin'].post.in.create()

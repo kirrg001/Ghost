@@ -26,6 +26,8 @@ function configure(dbConfig) {
         };
     }
 
+    console.log(dbConfig);
+
     return dbConfig;
 }
 
