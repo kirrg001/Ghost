@@ -4,7 +4,7 @@ const sinon = require('sinon');
 const models = require('../../../../server/models');
 const {UnauthorizedError} = require('../../../../server/lib/common/errors');
 
-const sessionController = require('../../../../server/api/v2/session');
+const sessionController = require('../../../../server/api/v2/admin/session');
 const sessionServiceMiddleware = require('../../../../server/services/auth/session/middleware');
 
 describe('Session controller', function () {

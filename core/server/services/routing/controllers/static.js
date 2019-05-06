@@ -5,7 +5,7 @@ const _ = require('lodash'),
     config = require('../../../config');
 
 function processQuery(query, locals) {
-    const api = require('../../../api')[locals.apiVersion];
+    const api = require('../../../api')[locals.apiVersion].content;
     query = _.cloneDeep(query);
 
     // CASE: If you define a single data key for a static route (e.g. data: page.team), this static route will represent

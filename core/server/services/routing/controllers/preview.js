@@ -12,7 +12,7 @@ const debug = require('ghost-ignition').debug('services:routing:controllers:prev
 module.exports = function previewController(req, res, next) {
     debug('previewController');
 
-    const api = require('../../../api')[res.locals.apiVersion];
+    const api = require('../../../api')[res.locals.apiVersion].content;
 
     const params = {
         uuid: req.params.uuid,

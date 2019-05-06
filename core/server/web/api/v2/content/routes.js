@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const apiv2 = require('../../../../api/v2');
+const apiv2 = require('../../../../api/v2/content/index');
 const mw = require('./middleware');
 
 module.exports = function apiRoutes() {

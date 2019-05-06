@@ -76,7 +76,7 @@ function handleSource(req, res, next) {
 function storeSubscriber(req, res, next) {
     req.body.status = 'subscribed';
 
-    const api = require('../../../api')[res.locals.apiVersion];
+    const api = require('../../../api')[res.locals.apiVersion].content;
 
     if (_.isEmpty(req.body.email)) {
         return next(new common.errors.ValidationError({message: 'Email cannot be blank.'}));

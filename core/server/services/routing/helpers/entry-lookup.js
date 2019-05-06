@@ -15,7 +15,7 @@ const config = require('../../../config');
 function entryLookup(postUrl, routerOptions, locals) {
     debug(postUrl);
 
-    const api = require('../../../api')[locals.apiVersion];
+    const api = require('../../../api')[locals.apiVersion].content;
     const targetPath = url.parse(postUrl).path;
     const permalinks = routerOptions.permalinks;
     let isEditURL = false;

@@ -1,6 +1,6 @@
 const express = require('express');
 const api = require('../../../../api');
-const apiv2 = require('../../../../api/v2');
+const apiv2 = require('../../../../api/v2/admin');
 const mw = require('./middleware');
 
 const auth = require('../../../../services/auth');

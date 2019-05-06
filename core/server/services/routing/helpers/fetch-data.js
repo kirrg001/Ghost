@@ -50,7 +50,7 @@ defaultPostQuery.options = defaultQueryOptions.options;
  * @returns {Promise}
  */
 function processQuery(query, slugParam, locals) {
-    const api = require('../../../api')[locals.apiVersion];
+    const api = require('../../../api')[locals.apiVersion].content;
 
     query = _.cloneDeep(query);
 
